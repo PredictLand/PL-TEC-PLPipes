@@ -3,6 +3,7 @@ import yaml
 import logging
 import sys
 import collections.abc
+import re
 
 from pathlib import Path
 
@@ -19,7 +20,7 @@ class ConfigStack:
             path = path[:ix]
         return ".".join(path)
 
-    def _get(self, path, _has=False):
+    def _get(self, path, default=None, _has=False):
         anchored = False # Once we go into an array or a non-dict
                          # object we stop the stack lookup-merge
                          # process. This flag indicates that
@@ -34,8 +35,7 @@ class ConfigStack:
                     elif isinstance(p, dict):
                         p = p[key]
                     else:
-                        raise AttributeError(self._path_to_str(path, ix))
-
+                        raise AttributeError(self._path_to_string(path, ix))
                 if _has:
                     return True
                 if isinstance(p, list):
@@ -43,30 +43,33 @@ class ConfigStack:
                 elif isinstance(p, dict):
                     return _ConfigMapping(self, path)
                 return p
-            except IndexError:
-                if anchored:
-                    break
-        raise AttributeError(self._path_to_str(path))
+            except (IndexError, KeyError):
+                pass
+            if anchored:
+                break
+        if default is None:
+            raise KeyError(self._path_to_string(path))
+        return default
 
     def _has(self, path):
         return self._get(path, _has=True)
 
     def _iterator(self, path):
-        anchore = False
+        anchored = False
         keys = set()
         for level in self._stack:
             try:
                 p = level
                 for ix, key in enumerate(path):
-                    if isinstance(p, dic):
+                    if isinstance(p, list):
                         anchored = True
                         p = p[key]
                     elif isinstance(p, dict):
                         p = p[key]
                     else:
-                        raise AttributeError(self._path_to_str(path, ix))
+                        raise AttributeError(self._path_to_string(path, ix))
                 if isinstance(p, list):
-                    for ix, i in enumerate(list):
+                    for ix, i in enumerate(p):
                         yield self._get(path + [ix])
                 elif isinstance(p, dict):
                     for k in p:
@@ -75,22 +78,33 @@ class ConfigStack:
                             keys.add(k)
                 else:
                     raise Exception("Internal error, this code was unreacheable!")
-                return
-            except IndexError:
-                if anchored:
-                    break
-        raise AttributeError(self, _path_to_str(path))
+            except (IndexError, KeyError):
+                pass
+            if anchored:
+                break
+        return
 
     def squash(self):
         pass
 
     def push(self, level):
-        self._stack.append(level)
+        self._stack.insert(0, level)
+
+    def push_file(self, fn):
+        logging.debug(f"Reading configuration file {fn}")
+        with open(fn, "r+", encoding="utf8") as f:
+            if re.search(r'\.ya?ml', fn, re.IGNORECASE):
+                import yaml
+                level = yaml.safe_load(f)
+            elif re.search(r'\.json', fn, re.IGNORECASE):
+                import json
+                level = json.load(f)
+        self.push(level)
 
     def pop(self, level):
         self._stack.pop()
 
-def _ConfigPtr:
+class _ConfigPtr:
     def __init__(self, stack, path):
         super().__init__()
         self._stack=stack
@@ -114,9 +128,24 @@ def _ConfigPtr:
             len += 1
         return len
 
-class _ConfigMapping(collections.abc.Mapping, _ConfigPtr):
-    pass
+    def _child_as_tree(self, child):
+        if isinstance(child, _ConfigPtr):
+            return child._to_tree()
+        return child
 
-class _ConfigCollection(collections.abc.Collection, _ConfigPtr):
-    pass
+    def __repr__(self):
+        return repr(self._to_tree())
+
+    def __str__(self):
+        return str(self._to_tree())
+
+class _ConfigMapping(_ConfigPtr, collections.abc.Mapping):
+
+    def _to_tree(self):
+        return { k: self._child_as_tree(self[k]) for k in self }
+
+class _ConfigCollection(_ConfigPtr, collections.abc.Collection):
+
+    def _to_tree(self):
+        return [ self._child_as_tree(v) for v in self ]
 
