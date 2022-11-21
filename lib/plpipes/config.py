@@ -20,6 +20,13 @@ class ConfigStack:
             path = path[:ix]
         return ".".join(path)
 
+    def _wrap(self, path, val):
+        if isinstance(val, list):
+            return _ConfigCollection(self, path)
+        if isinstance(val, dict):
+            return _ConfigMapping(self, path)
+        return val
+
     def _get(self, path, default=None, _has=False):
         anchored = False # Once we go into an array or a non-dict
                          # object we stop the stack lookup-merge
@@ -35,14 +42,8 @@ class ConfigStack:
                     elif isinstance(p, dict):
                         p = p[key]
                     else:
-                        raise AttributeError(self._path_to_string(path, ix))
-                if _has:
-                    return True
-                if isinstance(p, list):
-                    return _ConfigCollection(self, path)
-                elif isinstance(p, dict):
-                    return _ConfigMapping(self, path)
-                return p
+                        raise KeyError(self._path_to_string(path, ix))
+                return True if _has else self._wrap(path, p)
             except (IndexError, KeyError):
                 pass
             if anchored:
@@ -54,30 +55,43 @@ class ConfigStack:
     def _has(self, path):
         return self._get(path, _has=True)
 
-    def _iterator(self, path):
+    def _dict_iterator(self, path):
         anchored = False
         keys = set()
         for level in self._stack:
             try:
                 p = level
-                for ix, key in enumerate(path):
-                    if isinstance(p, list):
+                for key in path:
+                    p = p[key]
+                    if not isinstance(p, dict):
                         anchored = True
-                        p = p[key]
-                    elif isinstance(p, dict):
-                        p = p[key]
-                    else:
-                        raise AttributeError(self._path_to_string(path, ix))
-                if isinstance(p, list):
-                    for ix, i in enumerate(p):
-                        yield self._get(path + [ix])
-                elif isinstance(p, dict):
+
+                if isinstance(p, dict):
                     for k in p:
                         if k not in keys:
                             yield k
                             keys.add(k)
-                else:
-                    raise Exception("Internal error, this code was unreacheable!")
+
+            except (IndexError, KeyError):
+                pass
+            if anchored:
+                break
+        return
+
+    def _list_iterator(self, path):
+        anchored = False
+        for level in self._stack:
+            try:
+                p = level
+                for key in path:
+                    p = p[key]
+                    if not isinstance(p, dict):
+                        anchored = True
+
+                assert isinstance(p, list)
+                for ix, v in enumerate(p):
+                    yield self._wrap(path + [ix], v)
+                return
             except (IndexError, KeyError):
                 pass
             if anchored:
@@ -88,6 +102,7 @@ class ConfigStack:
         pass
 
     def push(self, level):
+        assert isinstance(level, dict)
         self._stack.insert(0, level)
 
     def push_file(self, fn):
@@ -116,9 +131,6 @@ class _ConfigPtr:
     def __getitem__(self, key):
         return self._stack._get(self._path + [key])
 
-    def __iter__(self):
-        return self._stack._iterator(self._path)
-
     def __contains__(self, key):
         return self._stack._contains(self._path + [key])
 
@@ -144,8 +156,14 @@ class _ConfigMapping(_ConfigPtr, collections.abc.Mapping):
     def _to_tree(self):
         return { k: self._child_as_tree(self[k]) for k in self }
 
+    def __iter__(self):
+        return self._stack._dict_iterator(self._path)
+
 class _ConfigCollection(_ConfigPtr, collections.abc.Collection):
 
     def _to_tree(self):
         return [ self._child_as_tree(v) for v in self ]
+
+    def __iter__(self):
+        return self._stack._list_iterator(self._path)
 
