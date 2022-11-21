@@ -4,8 +4,9 @@ import argparse
 import os
 import pathlib
 import json
+import logging
 
-def _cfg_set(root, dotted_key, value):
+def _merge_entry(root, dotted_key, value):
     path = dotted_key.split(".")
     try:
         for p in path[:-1]:
@@ -14,6 +15,38 @@ def _cfg_set(root, dotted_key, value):
     except:
         raise KeyError(dotted_key)
 
+class _PairAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, unpack=None, default=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        if default is None:
+            default = {}
+        super().__init__(option_strings, dest, nargs=1, default=default, **kwargs)
+        self.unpack = unpack
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.unpack:
+            if self.unpack == "json":
+                unpacker = lambda x: json.loads(x)
+            else:
+                raise Exception(f"Bad unpacker {unpack}")
+        else:
+            unpacker = None
+        for pair in values:
+            try:
+                (k, v) = pair.split("=", 2)
+            except:
+                raise argparse.ArgumentError(self, f"Can not parse config pair '{pair}'")
+            if unpacker:
+                try:
+                    v = unpacker(v)
+                except:
+                    raise argparse.ArgumentError(self, f"Can not unpack value part of '{pair}' as {self.unpack}.")
+            try:
+                _merge_entry(getattr(namespace, self.dest), k, v)
+            except:
+                raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}'")
+
 def main(args=None):
     if args is None:
         args = sys.argv
@@ -21,8 +54,14 @@ def main(args=None):
     if len(args) < 1:
         raise Exception("Unable to infer config stem. Program name missing from argument list")
 
-    parser = argparse.ArgumentParser(prog='runner',
-                                     description="PLPipes runner")
+    prog_path = pathlib.Path(args[0])
+    stem = prog_path.stem
+    root_dir = prog_path.parent
+
+    config_extra = { 'fs': { 'stem': str(prog_path.stem),
+                             'root': str(prog_path.parent.parent) }}
+
+    parser = argparse.ArgumentParser(description="PLPipes runner")
 
     parser.add_argument('-d', '--debug',
                         help="Turns on debugging",
@@ -33,47 +72,35 @@ def main(args=None):
                         help="Additional configuration file",
                         default=[])
     parser.add_argument('-s', '--set',
-                        action="append",
+                        action=_PairAction,
                         metavar="CFG_KEY=VAL",
                         help="Set configuration entry",
-                        default=[])
+                        default=config_extra)
     parser.add_argument('-S', '--set-json',
-                        action="append",
+                        action=_PairAction,
                         metavar="CFG_KEY=JSON_VAL",
+                        unpack="json",
+                        dest="set",
                         help="Set configuration entry (value is parsed as JSON)",
-                        default=[])
+                        default=config_extra)
     parser.add_argument('-e', '--env',
                         metavar="ENVIRONMENT",
                         help="Select environment (dev, pre, pro, etc.)")
 
-    parser.add_argument('action', nargs="*",
+    parser.add_argument('actions', nargs="*",
                         metavar="ACTION", default=["default"])
 
-    opts = parser.parse_args(args)
+    opts = parser.parse_args(args[1:])
 
-    prog_path = pathlib.Path(args[0])
-    stem = prog_path.stem
-    root_dir = prog_path.parent
-
-    config_extra = { 'fs': { 'stem': str(prog_path.stem),
-                             'root': str(prog_path.parent.parent) }}
     if opts.env is not None:
         config_extra["env"] = opts.env
-    if opts.debug is not None:
-        config_extra["logging"] = { "level": "debug" }
+    if opts.debug:
+        config_extra.setdefault("logging", {})["level"] = "debug"
 
-    try:
-        for s in opts.set:
-            (k, v) = s.split("=", 2)
-            _cfg_set(config_extra, k, v)
-        for s in opts.set_json:
-            (k, v) = s.split("=", 2)
-            _cfg_set(config_extra, k, json.loads(v))
-    except ValueError:
-        raise ValueError("s")
+    # print(f"actions {opts.action}")
 
-    print(f"config_extra: {config_extra}")
-    
     plpipes.init(config_files=opts.config,
                  config_extra=config_extra)
 
+    for action in opts.actions:
+        print(f"action: {action}")
