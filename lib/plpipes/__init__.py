@@ -34,13 +34,19 @@ def init(config_files=[], config_extra={}, env=None):
     lib_dir = Path(cfg.fs.get("lib", root_dir / "lib"))
     config_dir = Path(cfg.fs.get("config", root_dir / "config"))
     config_default_dir = Path(cfg.fs.get("config_default", config_dir / "default"))
+    input_dir = Path(cfg.fs.get("input", root_dir / "input"))
+    output_dir = Path(cfg.fs.get("output", root_dir / "output"))
+    work_dir = Path(cfg.fs.get("work", root_dir / "work"))
 
     # dynamic fs config
     cfg_stack.push({ 'fs': { "root": str(root_dir),
                              "config": str(config_dir),
                              "config_default": str(config_default_dir),
                              "bin": str(bin_dir),
-                             "lib": str(lib_dir) }})
+                             "lib": str(lib_dir),
+                             "input": str(input_dir),
+                             "output": str(output_dir),
+                             "work": str(work_dir) }})
 
     for dir in (config_default_dir, config_dir):
         for stem_part in ("common", stem):
