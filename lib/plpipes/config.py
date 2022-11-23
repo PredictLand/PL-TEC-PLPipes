@@ -131,6 +131,9 @@ class _ConfigPtr:
     def __getitem__(self, key):
         return self._stack._get(self._path + [key])
 
+    def __setitem__(self, key, value):
+        return self._stack._set(self._path + [key], value)
+
     def __contains__(self, key):
         return self._stack._contains(self._path + [key])
 

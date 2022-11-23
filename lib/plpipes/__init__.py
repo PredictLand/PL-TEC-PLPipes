@@ -6,16 +6,33 @@ import os
 cfg_stack = plpipes.config.ConfigStack()
 cfg = cfg_stack.root()
 
-def init(config_files=[], config_extra={}, env=None):
+def _merge_entry(root, dotted_key, value):
+    path = dotted_key.split(".")
+    try:
+        for p in path[:-1]:
+            root = root.setdefault(p, {})
+        root[path[-1]] = value
+    except:
+        raise KeyError(dotted_key)
 
+_config0 = { 'db': { 'instance': { 'work': {},
+                                   'input': {},
+                                   'output': {} }},
+             'env': os.environ.get("PLPIPES_ENV", "dev"),
+             'logging': { 'level': os.environ.get("PLPIPES_LOGLEVEL", "info") } }
+
+def init(config={}, config_files=[]):
     from pathlib import Path
 
-    prog = Path(sys.argv[0])
+    config_extra = {}
+    for k, v in config.items():
+        _merge_entry(config_extra, k, v)
 
-    cfg_stack.push({'fs': { 'root': str(prog.parent.parent),
-                            'stem': str(prog.stem) },
-                    'env': os.environ.get("PLPIPES_ENV", "dev"),
-                    'logging': { 'level': os.environ.get("PLPIPES_LOGLEVEL", "info") } })
+    cfg_stack.push(_config0)
+
+    prog = Path(sys.argv[0])
+    cfg_stack.push({'fs': { 'root': str(prog.parent.parent.absolute()),
+                            'stem': str(prog.stem) } })
 
     cfg_stack.push(config_extra)
     logging.getLogger().setLevel(cfg.logging.level.upper())
@@ -63,6 +80,7 @@ def init(config_files=[], config_extra={}, env=None):
     for fn in config_files:
         cfg_stack.push_file(fn)
     cfg_stack.push(config_extra)
+    cfg_stack.push({'fs': {'stack': { k: [cfg.fs[k]]  for k in ("work",) } } })
     cfg_stack.squash()
 
     logging.getLogger().setLevel(cfg.logging.level.upper())

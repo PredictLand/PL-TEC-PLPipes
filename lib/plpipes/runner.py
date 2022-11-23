@@ -6,15 +6,6 @@ import pathlib
 import json
 import logging
 
-def _merge_entry(root, dotted_key, value):
-    path = dotted_key.split(".")
-    try:
-        for p in path[:-1]:
-            root = root.setdefault(p, {})
-        root[path[-1]] = value
-    except:
-        raise KeyError(dotted_key)
-
 class _PairAction(argparse.Action):
     def __init__(self, option_strings, dest, nargs=None, unpack=None, default=None, **kwargs):
         if nargs is not None:
@@ -43,7 +34,7 @@ class _PairAction(argparse.Action):
                 except:
                     raise argparse.ArgumentError(self, f"Can not unpack value part of '{pair}' as {self.unpack}.")
             try:
-                _merge_entry(getattr(namespace, self.dest), k, v)
+                plpipes._merge_entry(getattr(namespace, self.dest), k, v)
             except:
                 raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}'")
 
