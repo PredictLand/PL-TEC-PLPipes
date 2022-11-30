@@ -26,7 +26,7 @@ def init(config={}, config_files=[]):
 
     config_extra = {}
     for k, v in config.items():
-        _merge_entry(config_extra, k, v)
+        _merge_entry(config, k, v)
 
     cfg_stack.push(_config0)
 
@@ -34,12 +34,12 @@ def init(config={}, config_files=[]):
     cfg_stack.push({'fs': { 'root': str(prog.parent.parent.absolute()),
                             'stem': str(prog.stem) } })
 
-    cfg_stack.push(config_extra)
+    cfg_stack.push(config)
     logging.getLogger().setLevel(cfg.logging.level.upper())
 
     for fn in config_files:
         cfg_stack.push_file(fn)
-    cfg_stack.push(config_extra)
+    cfg_stack.push(config)
     cfg_stack.squash()
 
     logging.getLogger().setLevel(cfg.logging.level.upper())
@@ -54,6 +54,7 @@ def init(config={}, config_files=[]):
     input_dir = Path(cfg.fs.get("input", root_dir / "input"))
     output_dir = Path(cfg.fs.get("output", root_dir / "output"))
     work_dir = Path(cfg.fs.get("work", root_dir / "work"))
+    actions_dir = Path(cfg.fs.get("actions", root_dir / "actions"))
 
     # dynamic fs config
     cfg_stack.push({ 'fs': { "root": str(root_dir),
@@ -63,7 +64,8 @@ def init(config={}, config_files=[]):
                              "lib": str(lib_dir),
                              "input": str(input_dir),
                              "output": str(output_dir),
-                             "work": str(work_dir) }})
+                             "work": str(work_dir),
+                             "actions": str(actions_dir) }})
 
     for dir in (config_default_dir, config_dir):
         for stem_part in ("common", stem):
@@ -79,7 +81,7 @@ def init(config={}, config_files=[]):
     # reload custom configuration on top
     for fn in config_files:
         cfg_stack.push_file(fn)
-    cfg_stack.push(config_extra)
+    cfg_stack.push(config)
     cfg_stack.push({'fs': {'stack': { k: [cfg.fs[k]]  for k in ("work",) } } })
     cfg_stack.squash()
 

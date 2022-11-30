@@ -7,6 +7,8 @@ import re
 
 from pathlib import Path
 
+_NO_DEFAULT={"-no-default": True}
+
 class ConfigStack:
 
     def __init__(self):
@@ -27,7 +29,7 @@ class ConfigStack:
             return _ConfigMapping(self, path)
         return val
 
-    def _get(self, path, default=None, _has=False):
+    def _get(self, path, default=_NO_DEFAULT, _has=False):
         anchored = False # Once we go into an array or a non-dict
                          # object we stop the stack lookup-merge
                          # process. This flag indicates that
@@ -48,7 +50,7 @@ class ConfigStack:
                 pass
             if anchored:
                 break
-        if default is None:
+        if default is _NO_DEFAULT:
             raise KeyError(self._path_to_string(path))
         return default
 
@@ -101,11 +103,19 @@ class ConfigStack:
     def squash(self):
         pass
 
-    def push(self, level):
+    def push(self, level, prefix=None):
+        if prefix is not None and prefix != "":
+            path = prefix.split(".")
+            new_level = {}
+            r = new_level
+            for p in path[:-1]:
+                r = r.setdefault(p, {})
+            r[path[-1]] = level
+            level = new_level
         assert isinstance(level, dict)
         self._stack.insert(0, level)
 
-    def push_file(self, fn):
+    def push_file(self, fn, prefix=None):
         logging.debug(f"Reading configuration file {fn}")
         with open(fn, "r+", encoding="utf8") as f:
             if re.search(r'\.ya?ml', fn, re.IGNORECASE):
@@ -114,7 +124,7 @@ class ConfigStack:
             elif re.search(r'\.json', fn, re.IGNORECASE):
                 import json
                 level = json.load(f)
-        self.push(level)
+        self.push(level, prefix)
 
     def pop(self, level):
         self._stack.pop()
@@ -153,6 +163,9 @@ class _ConfigPtr:
 
     def __str__(self):
         return str(self._to_tree())
+
+    def _browse(self, path):
+        return self._stack._get(self._path + path.split("."))
 
 class _ConfigMapping(_ConfigPtr, collections.abc.Mapping):
 
