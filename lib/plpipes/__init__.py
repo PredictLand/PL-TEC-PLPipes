@@ -61,7 +61,7 @@ def init(config={}, config_files=[]):
 
     cfg.squash_frames()
 
-    cfg.setdefault('fs.stem'   , default_stem)
+    cfg.setdefault('fs.stem', default_stem)
 
     # calculate configuration for file system paths and set it
     root_dir = Path(cfg.setdefault('fs.root' , prog.parent.parent.absolute()))
