@@ -90,8 +90,9 @@ def main(args=None):
 
     # print(f"actions {opts.action}")
 
-    plpipes.init(config_files=opts.config,
-                 config_extra=config_extra)
+    plpipes.init(config=config_extra, config_files=opts.config)
 
     for action in opts.actions:
-        print(f"action: {action}")
+        logging.info(f"Executing action {action}")
+        plpipes.run_action(action)
+

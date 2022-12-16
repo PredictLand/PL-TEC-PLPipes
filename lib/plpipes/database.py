@@ -1,6 +1,7 @@
 import plpipes
 from plpipes import cfg
 import pathlib
+import logging
 
 _driver_class = {}
 _registry = {}
@@ -13,9 +14,8 @@ def lookup(name=None):
     return _registry[name]
 
 def _init_driver(name):
-    drv_cfg = cfg.db.instance[name]
+    drv_cfg = cfg.cd(f"db.instance.{name}")
     return _driver_class[drv_cfg.get("driver", "sqlite")](name, drv_cfg)
-
 
 class _Driver:
     def __init__(self, name, drv_cfg, conn=None):
@@ -23,15 +23,18 @@ class _Driver:
         self._cfg = drv_cfg
         self._conn = conn
 
-    def query(self, sql, params=None):
+    def query(self, sql, parameters=()):
+        logging.debug(f"database query code: {repr(sql)}, parameters: {parameters}")
         import pandas
-        return pandas.read_sql_query(sql, self._conn, params=params)
+        return pandas.read_sql_query(sql, self._conn, parameters=parameters)
 
-    def execute(self, sql, params=None):
-        self._conn.execute(sql, params)
+    def execute(self, sql, parameters=None):
+        logging.debug(f"database execute: {repr(sql)}, parameters: {parameters}")
+        self._conn.cursor().execute(sql, parameters)
 
     def execute_script(self, sql):
-        self._conn_executescript(sql)
+        logging.debug(f"database execute_script code: {repr(sql)}")
+        self._conn.executescript(sql)
 
     def read_table(self, table_name):
         return self.query(f"select * from {table_name}")
@@ -39,10 +42,15 @@ class _Driver:
     def create_table_from_pandas(self, table_name, df, if_exists):
         df.to_sql(table_name, self._conn, if_exists=if_exists)
 
-    def create_table_from_sql(self, table_name, sql, params, if_exists):
-        if if_exists='replace':
-            self._conn.execute(f"drop table if exists {table_name}")
-        self._conn.execute(f"create table {table_name} as {sql}", params=params)
+    def create_table_from_sql(self, table_name, sql, parameters, if_exists):
+        if if_exists=='replace':
+            drop_sql = f"drop table if exists {table_name}"
+            logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
+            self._conn.cursor().execute(drop_sql)
+
+        create_sql = f"create table {table_name} as {sql}"
+        logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
+        self._conn.cursor().execute(create_sql, parameters)
 
 class _SQLiteMapAsPandas:
     def __init__(self):
@@ -62,13 +70,15 @@ class _SQLiteMapAsPandas:
 
 class _SQLiteDriver(_Driver):
     def __init__(self, name, drv_cfg):
-        # if there is an entry for the given name in cfg.fs we use
+        # if there is an entry for the given name in cfg["fs"] we use
         # that, otherwise we store the db file in the work directory:
-        root_dir = pathlib.Path(cfg.fs.get(name, "work"))
-        fn = root_dir.joinpath(drv_cfg.get("file", f"{name}.sqlite")).absolute()
+
+        root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
+
+        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.sqlite")).absolute()
         fn.parent.mkdir(exist_ok=True, parents=True)
         import sqlite3
-        conn = sqlite3.connect(fn)
+        conn = sqlite3.connect(str(fn))
         super().__init__(name, drv_cfg, conn=conn)
         self._last_key = 0
 
@@ -153,7 +163,7 @@ class _ODBCDriver(_Driver):
     def __init__(self, name, drv_cfg):
         import pyodbc
 
-        connection_string = f"driver={drv_cfg.driver};Server={drv_cfg.server};Database={drv_cfg.database};UID={drv_cfg.user};PWD={drv_cfg.pwd}"
+        connection_string = f"driver={drv_cfg['driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
         conn = pyodbc.connect(connection_string)
         super().__init__(name, drv_cfg, conn=conn)
 
@@ -161,23 +171,23 @@ class _ODBCDriver(_Driver):
 _driver_class["sqlite"] = _SQLiteDriver
 _driver_class["odbc"] = _ODBCDriver
 
-def query(sql, *params, db=None):
-    return lookup(db).query(sql, params)
+def query(sql, *parameters, db=None):
+    return lookup(db).query(sql, parameters)
 
-def execute(sql, *params, db=None):
-    lookup(db).execute(sql, params)
+def execute(sql, *parameters, db=None):
+    lookup(db).execute(sql, parameters)
 
-def create_table(table_name, sql_or_df, *params, db=None, if_exists="replace"):
+def create_table(table_name, sql_or_df, *parameters, db=None, if_exists="replace"):
     dbh = lookup(db)
     if isinstance(sql_or_df, str):
-        dbh.create_table_from_sql(table_name, sql_or_df, params, if_exists)
+        dbh.create_table_from_sql(table_name, sql_or_df, parameters, if_exists)
     else:
-        if params:
-            raise ValueError("Query params are not supported when creating a table from a dataframe")
+        if parameters:
+            raise ValueError("Query parameters are not supported when creating a table from a dataframe")
         dbh.create_table_from_df(table_name, sql_or_df, if_exists)
 
 def read_table(table_name, db=None):
-    lookup(db).read_table(table_name)
+    return lookup(db).read_table(table_name)
 
 def execute_script(sql_script, db=None):
     lookup(db).execute_script(sql_script)
