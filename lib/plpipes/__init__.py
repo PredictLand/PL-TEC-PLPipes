@@ -6,15 +6,6 @@ import os
 cfg_stack = plpipes.config.ConfigStack()
 cfg = cfg_stack.root()
 
-def _merge_entry(root, dotted_key, value):
-    path = dotted_key.split(".")
-    try:
-        for p in path[:-1]:
-            root = root.setdefault(p, {})
-        root[path[-1]] = value
-    except:
-        raise KeyError(dotted_key)
-
 _config0 = { 'db': { 'instance': { 'work': {},
                                    'input': {},
                                    'output': {} }},
@@ -24,68 +15,67 @@ _config0 = { 'db': { 'instance': { 'work': {},
 def init(config={}, config_files=[]):
     from pathlib import Path
 
-    config_extra = {}
-    for k, v in config.items():
-        _merge_entry(config, k, v)
+    # frame  0: command line arguments
+    # frame -1: custom configuration files
+    # frame -2: standard configuration files
 
-    cfg_stack.push(_config0)
+    cfg.merge(_config0, frame=-2)
+
+    for k, v in config.items():
+        cfg.merge(v, key=k, frame=0)
 
     prog = Path(sys.argv[0])
-    cfg_stack.push({'fs': { 'root': str(prog.parent.parent.absolute()),
-                            'stem': str(prog.stem) } })
+    default_stem = str(prog.stem)
+    default_log_level = "INFO"
 
-    cfg_stack.push(config)
-    logging.getLogger().setLevel(cfg.logging.level.upper())
+    logging.getLogger().setLevel(cfg["logging.level"].upper())
 
     for fn in config_files:
-        cfg_stack.push_file(fn)
-    cfg_stack.push(config)
-    cfg_stack.squash()
+        cfg.merge_file(fn, frame=-1)
+        logging.getLogger().setLevel(cfg["logging.level"].upper())
 
-    logging.getLogger().setLevel(cfg.logging.level.upper())
-
-    stem = cfg.fs.stem
-    env = cfg.env
-    root_dir = Path(cfg.fs.root).absolute()
-    bin_dir = Path(cfg.fs.get("bin", root_dir / "bin"))
-    lib_dir = Path(cfg.fs.get("lib", root_dir / "lib"))
-    config_dir = Path(cfg.fs.get("config", root_dir / "config"))
-    config_default_dir = Path(cfg.fs.get("config_default", config_dir / "default"))
-    input_dir = Path(cfg.fs.get("input", root_dir / "input"))
-    output_dir = Path(cfg.fs.get("output", root_dir / "output"))
-    work_dir = Path(cfg.fs.get("work", root_dir / "work"))
-    actions_dir = Path(cfg.fs.get("actions", root_dir / "actions"))
-
-    # dynamic fs config
-    cfg_stack.push({ 'fs': { "root": str(root_dir),
-                             "config": str(config_dir),
-                             "config_default": str(config_default_dir),
-                             "bin": str(bin_dir),
-                             "lib": str(lib_dir),
-                             "input": str(input_dir),
-                             "output": str(output_dir),
-                             "work": str(work_dir),
-                             "actions": str(actions_dir) }})
-
-    for dir in (config_default_dir, config_dir):
-        for stem_part in ("common", stem):
+    for dir_key in (False, True):
+        for stem_key in (False, True):
             for secrets_part in ("", "-secrets"):
-                for env_part in ("", f"-{env}"):
+                for env_key in (False, True):
                     for ext in ("json", "yaml"):
-                        path = dir / f"{stem_part}{secrets_part}{env_part}.{ext}"
+                        # The following values can be changed as
+                        # config files are read, so they are
+                        # recalculated every time:
+
+                        env         = cfg.get('env', 'dev')
+                        stem        = cfg.get('fs.stem', default_stem)
+                        root_dir    = Path(cfg.get('fs.root'   , prog.parent.parent.absolute()))
+                        config_dir  = Path(cfg.get('fs.config' , root_dir / "config"))
+                        default_dir = Path(cfg.get('fs.default', root_dir / "default"))
+
+                        env_part  = f"-{env}"  if env_key  else ""
+                        stem_part = stem       if stem_key else "common"
+                        dir       = config_dir if dir_key  else default_dir
+                        path      = dir / f"{stem_part}{secrets_part}{env_part}.{ext}"
                         if path.exists():
-                            cfg_stack.push_file(path)
+                            cfg.merge_file(path, frame=-2)
+                            logging.getLogger().setLevel(cfg.logging.level.upper())
                         else:
                             logging.debug(f"Configuration file {path} not found")
 
-    # reload custom configuration on top
-    for fn in config_files:
-        cfg_stack.push_file(fn)
-    cfg_stack.push(config)
-    cfg_stack.push({'fs': {'stack': { k: [cfg.fs[k]]  for k in ("work",) } } })
-    cfg_stack.squash()
+    cfg.squash_frames()
 
-    logging.getLogger().setLevel(cfg.logging.level.upper())
+    # calculate configuration for file system paths and set it
 
+    root_dir = Path(cfg.setdefault('fs.root' , prog.parent.parent.absolute()))
+    cfg.setdefault('fs.bin'    , root_dir   / "bin")
+    cfg.setdefault('fs.lib'    , root_dir   / "lib")
+    cfg.setdefault('fs.config' , root_dir   / "config")
+    cfg.setdefault('fs.default', config_dir / "default")
+    cfg.setdefault('fs.input'  , root_dir   / "input")
+    cfg.setdefault('fs.output' , root_dir   / "output")
+    cfg.setdefault('fs.work'   , root_dir   / "work")
+    cfg.setdefault('fs.actions', root_dir   / "actions")
+    cfg.setdefault('fs.stem'   , default_stem)
 
-    print(cfg)
+    return True
+
+def run_action(name):
+    import plpipes.action
+    plpipes.action.run(name)
