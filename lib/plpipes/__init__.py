@@ -55,24 +55,21 @@ def init(config={}, config_files=[]):
                         path      = dir / f"{stem_part}{secrets_part}{env_part}.{ext}"
                         if path.exists():
                             cfg.merge_file(path, frame=-2)
-                            logging.getLogger().setLevel(cfg.logging.level.upper())
+                            logging.getLogger().setLevel(cfg["logging.level"].upper())
                         else:
                             logging.debug(f"Configuration file {path} not found")
 
     cfg.squash_frames()
 
-    # calculate configuration for file system paths and set it
-
-    root_dir = Path(cfg.setdefault('fs.root' , prog.parent.parent.absolute()))
-    cfg.setdefault('fs.bin'    , root_dir   / "bin")
-    cfg.setdefault('fs.lib'    , root_dir   / "lib")
-    cfg.setdefault('fs.config' , root_dir   / "config")
-    cfg.setdefault('fs.default', config_dir / "default")
-    cfg.setdefault('fs.input'  , root_dir   / "input")
-    cfg.setdefault('fs.output' , root_dir   / "output")
-    cfg.setdefault('fs.work'   , root_dir   / "work")
-    cfg.setdefault('fs.actions', root_dir   / "actions")
     cfg.setdefault('fs.stem'   , default_stem)
+
+    # calculate configuration for file system paths and set it
+    root_dir = Path(cfg.setdefault('fs.root' , prog.parent.parent.absolute()))
+    for e in ('bin', 'lib', 'config', 'default',
+              'input', 'output', 'work', 'actions'):
+        cfg.setdefault("fs." + e, root_dir / e)
+
+    logging.debug(f"Configuration: {repr(cfg.to_tree())}")
 
     return True
 

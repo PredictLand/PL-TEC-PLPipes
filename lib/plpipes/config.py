@@ -32,16 +32,16 @@ class _Ptr(collections.abc.MutableMapping):
         return self._stack._cd(self._mkkey(key)) if key else self
 
     def _mkkey(self, key):
-        if key:
-            if self._path:
-                return f"{self._path}.{key}"
+        if key == "":
+            return self._path
+        if self._path == "":
             return key
-        return self._path
+        return f"{self._path}.{key}"
 
     def __getitem__(self, key):
         return self._stack._top._get(self._mkkey(key))
 
-    def __contains__(self, item):
+    def __contains__(self, key):
         return self._stack._top._contains(self._mkkey(key))
 
     def __setitem__(self, key, value):
@@ -59,16 +59,18 @@ class _Ptr(collections.abc.MutableMapping):
     def merge(self, tree, key="", frame=0):
         return self._stack._top._merge(self._mkkey(key), tree, frame)
 
-    def merge_file(self, fn, path="", frame=0):
+    def merge_file(self, fn, key="", frame=0):
         logging.debug(f"Reading configuration file {fn}")
         with open(fn, "r+", encoding="utf8") as f:
-            if re.search(r'\.ya?ml', fn, re.IGNORECASE):
+            if re.search(r'\.ya?ml', str(fn), re.IGNORECASE):
                 import yaml
                 tree = yaml.safe_load(f)
-            elif re.search(r'\.json', fn, re.IGNORECASE):
+            elif re.search(r'\.json', str(fn), re.IGNORECASE):
                 import json
                 tree = json.load(f)
-        self.merge(self._mkkey(key), tree, path, frame)
+            else:
+                raise ValueError(f"Can't determine file type for {str(fn)}")
+        self.merge(tree, key, frame=frame)
 
     def fs(self, key, set_default=None):
         if default:
@@ -78,7 +80,7 @@ class _Ptr(collections.abc.MutableMapping):
         self._stack._top._squash_frames()
 
     def __iter__(self):
-        ...
+        return self._stack._top._keys_iter(self._mkkey(""))
 
     def __str__(self):
         return str(self._stack._top._to_tree(""))
@@ -116,6 +118,7 @@ class _Level:
                     if (p not in tree) or (not isinstance(tree[p], dict)):
                         tree[p] = {}
                     tree = tree[p]
+
                 tree[last] = _merge_any(tree.get(last, None), value)
             else:
                 if not isinstance(value, dict):
@@ -127,8 +130,8 @@ class _Level:
         ...
 
     def _set(self, key, value):
-        if isinstance(value, dict) or isinstance(value, list):
-            raise ValueError("It is not possible to set a configuration entry to a dictionary or list, use merge instead")
+        if isinstance(value, dict):
+            raise ValueError("It is not possible to set a configuration entry to a dictionary, use merge instead")
         elif not isinstance(value, int):
             value = str(value)
         self._merge(key, value)
@@ -146,7 +149,7 @@ class _Level:
                     return self._parent._get(key)
                 raise ex
 
-        if isinstance(v, dict) or isinstance(v, list):
+        if isinstance(v, dict):
             raise KeyError(f"config key '{key}' does not point to a terminal node")
         return v
 
@@ -200,5 +203,42 @@ class _Level:
 
     def _squash_frames(self):
         if self._parent:
-            self._tree = _merge_any(self._parent._steal_root(), self._root)
+            self._root = _merge_any(self._parent._steal_root(), self._root)
             self._parent = None
+
+    def _keys_iter(self, key):
+        found = True
+        tree = self._root
+        if key:
+            parts = key.split(".")
+            for p in parts:
+                try:
+                    tree = tree[p]
+                except KeyError:
+                    found = False
+                    break
+                except:
+                    raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
+
+        seen = {}
+        if found:
+            if isinstance(tree, dict):
+                keys = tree.keys()
+            else:
+                raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
+
+            for k in keys:
+                if k not in seen:
+                    seen[k] = True
+                    yield k
+
+        if self._parent:
+            try:
+                for k in self._parent._keys_iter(key):
+                    if k not in seen:
+                        seen[k] = True
+                        yield k
+            except Exception as ex:
+                if not found:
+                    raise ex
+

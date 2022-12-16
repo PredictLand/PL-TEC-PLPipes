@@ -24,7 +24,17 @@ def _find_action_files(fn_start):
                 break
     return files
 
-def lookup(name):
+def resolve_action_name(name, parent):
+    if name.startswith("."):
+        if parent:
+            return(f"{parent}{name}")
+        else:
+            raise ValueError("Can't resolve relative action name without a parent")
+    return name
+
+def lookup(name, parent=""):
+
+    name = resolve_action_name(name, parent)
 
     if name not in _cache:
         actions_dir = pathlib.Path(cfg["fs.actions"])
@@ -44,6 +54,8 @@ def lookup(name):
             acfg.setdefault("type", "python_script")
         elif "table_sql" in files:
             acfg.setdefault("type", "sql_table_creator")
+        elif "sequence" in acfg:
+            acfg.setdefault("type", "sequencer")
 
         try:
             action_type = acfg["type"]
@@ -134,3 +146,12 @@ class _PythonRunner(Action):
         self._new_action._do_it(indent)
 
 register_class("python_script", _PythonRunner)
+
+class _Sequencer(Action):
+    def do_it(self):
+        name = self._name
+
+        for child_name in self._cfg["sequence"]:
+            lookup(child_name, parent=name).run()
+
+register_class("sequencer", _Sequencer)
