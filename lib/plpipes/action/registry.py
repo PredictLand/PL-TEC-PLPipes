@@ -11,7 +11,7 @@ def register_class(action_type, action_class, *suffixes):
     for suffix in suffixes:
         _suffix_registry.append((suffix, action_type))
 
-    _suffix_registry.sort(key=lambda x: len(x[0]))
+    _suffix_registry.sort(key=lambda x: len(x[0]), reverse=True)
 
 def _action_type_lookup(files):
 
