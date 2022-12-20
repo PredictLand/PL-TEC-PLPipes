@@ -20,3 +20,6 @@
   - Template autoquoting
 
 - Dependency management
+
+- Configuration
+  - Improve handling of lists
