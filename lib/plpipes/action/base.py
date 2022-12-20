@@ -9,6 +9,9 @@ class Action:
     def name(self):
         return self._name
 
+    def short_name(self):
+        return self._name.split(".")[-1]
+
     def _do_it(self, indent):
         self.do_it()
 
