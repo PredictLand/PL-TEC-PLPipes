@@ -1,5 +1,4 @@
-import plpipes
-from plpipes import cfg
+from plpipes.config import cfg
 import pathlib
 import logging
 

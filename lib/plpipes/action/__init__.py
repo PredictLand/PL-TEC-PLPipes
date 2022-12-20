@@ -3,8 +3,7 @@ import logging
 import time
 import re
 
-from plpipes import cfg
-from plpipes import database
+from plpipes.config import cfg
 from plpipes.action.registry import _action_class_lookup, _action_type_lookup
 
 import plpipes.action.simple

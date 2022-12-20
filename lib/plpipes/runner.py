@@ -1,4 +1,5 @@
-import plpipes
+import plpipes.init
+import plpipes.action
 import sys
 import argparse
 import os
@@ -34,7 +35,7 @@ class _PairAction(argparse.Action):
                 except:
                     raise argparse.ArgumentError(self, f"Can not unpack value part of '{pair}' as {self.unpack}.")
             try:
-                plpipes._merge_entry(getattr(namespace, self.dest), k, v)
+                _merge_entry(getattr(namespace, self.dest), k, v)
             except:
                 raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}'")
 
@@ -90,9 +91,9 @@ def main(args=None):
 
     # print(f"actions {opts.action}")
 
-    plpipes.init(config=config_extra, config_files=opts.config)
+    plpipes.init.init(config=config_extra, config_files=opts.config)
 
     for action in opts.actions:
         logging.info(f"Executing action {action}")
-        plpipes.run_action(action)
+        plpipes.action.run(action)
 

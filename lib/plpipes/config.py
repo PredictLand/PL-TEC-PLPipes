@@ -242,3 +242,6 @@ class _Level:
                 if not found:
                     raise ex
 
+
+cfg_stack = ConfigStack()
+cfg = cfg_stack.root()

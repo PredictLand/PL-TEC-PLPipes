@@ -6,7 +6,7 @@
 - Action loops for grid search and similar approaches
   - grid search driver
   - gradient descent search driver
-  - nested database and working directory support
+  - nested config, database and working directory support
   - join actions afterwards
   - parallelization actions
 
