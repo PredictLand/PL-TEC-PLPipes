@@ -1,5 +1,9 @@
+import logging
+
+from plpipes.config import cfg
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
+import plpipes.database
 
 class _PythonRunner(Action):
     def _do_it(self, indent):
@@ -14,7 +18,7 @@ class _PythonRunner(Action):
                 raise ex
         try:
             logging.debug(f"Running python code at {self._path}")
-            exec(self._code, {"cfg": cfg, "action_cfg": self._cfg, "db": database})
+            exec(self._code, {"cfg": cfg, "action_cfg": self._cfg, "db": plpipes.database})
         except Exception as ex:
             logging.error(f"Action of type python_script failed while executing {self._path}")
             raise ex
