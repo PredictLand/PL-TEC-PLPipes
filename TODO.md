@@ -1,5 +1,9 @@
 # TODO
 
+- Documentation
+  - Tutorial
+  - Reference
+
 - Add tests!!!
 
 - mlflow integration:
@@ -20,6 +24,8 @@
 - SQL parsing and manipulation:
   - For instance: SQL table creators with multiple sentences.
   - Template autoquoting.
+  - SQL subidiom translation
+  - Automatic table dependencies detection
 
 - Dependency management
 
@@ -28,4 +34,14 @@
 
 - Logging:
   - Set some rules about when and what to log and apply them in the
-    framwork.
+    framework.
+
+- Downloaders
+  - Explore the downloaders idea further.
+  - Add support for many more.
+
+- Jupyter support
+
+- Add support for documentation generation.
+
+- Databricks/Spark integration?
