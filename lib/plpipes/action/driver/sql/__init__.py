@@ -4,6 +4,8 @@ import pathlib
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
 
+from plpipes.config import cfg
+
 class _SqlTemplated(Action):
     def do_it(self):
         fn = self._source_fn()
@@ -17,8 +19,8 @@ class _SqlTemplated(Action):
             src = f.read()
 
         if engine == "jinja2":
-            import plpipes.action.sql.jinja2
-            return plpipes.action.sql.jinja2.render_template(src)
+            from . import jinja2
+            return jinja2.render_template(src, {'cfg': cfg, 'acfg': self._cfg})
 
         raise ValueError(f"Unsupported SQL template engine {engine}")
 

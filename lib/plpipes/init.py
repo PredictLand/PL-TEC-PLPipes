@@ -10,7 +10,7 @@ _config0 = { 'db': { 'instance': { 'work': {},
              'env': os.environ.get("PLPIPES_ENV", "dev"),
              'logging': { 'level': os.environ.get("PLPIPES_LOGLEVEL", "info") } }
 
-def init(config={}, config_files=[]):
+def init(*configs, config_files=[]):
     from pathlib import Path
 
     # frame  0: command line arguments
@@ -19,8 +19,9 @@ def init(config={}, config_files=[]):
 
     cfg.merge(_config0, frame=-2)
 
-    for k, v in config.items():
-        cfg.merge(v, key=k, frame=0)
+    for config in configs:
+        for k, v in config.items():
+            cfg.merge(v, key=k, frame=0)
 
     prog = Path(sys.argv[0])
     default_stem = str(prog.stem)
@@ -31,6 +32,16 @@ def init(config={}, config_files=[]):
     for fn in config_files:
         cfg.merge_file(fn, frame=-1)
         logging.getLogger().setLevel(cfg["logging.level"].upper())
+
+    global_cfg_dir = Path.home() / ".config/plpipes"
+    for suffix in ("", "-secrets"):
+        for ext in ("json", "yaml"):
+            path = global_cfg_dir / f"plpipes{suffix}.{ext}"
+            if path.exists():
+                cfg.merge_file(path, frame=-2)
+                logging.getLogger().setLevel(cfg["logging.level"].upper())
+            else:
+                logging.debug("Configuration file {path} not found")
 
     for dir_key in (False, True):
         for stem_key in (False, True):

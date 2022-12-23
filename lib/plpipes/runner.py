@@ -35,9 +35,9 @@ class _PairAction(argparse.Action):
                 except:
                     raise argparse.ArgumentError(self, f"Can not unpack value part of '{pair}' as {self.unpack}.")
             try:
-                _merge_entry(getattr(namespace, self.dest), k, v)
-            except:
-                raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}'")
+                getattr(namespace, self.dest).append({k:v})
+            except Exception as ex:
+                raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}': {ex}") from ex
 
 def main(args=None):
     if args is None:
@@ -50,8 +50,8 @@ def main(args=None):
     stem = prog_path.stem
     root_dir = prog_path.parent
 
-    config_extra = { 'fs': { 'stem': str(prog_path.stem),
-                             'root': str(prog_path.parent.parent) }}
+    config_extra = [{ 'fs': { 'stem': str(prog_path.stem),
+                              'root': str(prog_path.parent.parent) }}]
 
     parser = argparse.ArgumentParser(description="PLPipes runner")
 
@@ -91,7 +91,7 @@ def main(args=None):
 
     # print(f"actions {opts.action}")
 
-    plpipes.init.init(config=config_extra, config_files=opts.config)
+    plpipes.init.init(*config_extra, config_files=opts.config)
 
     for action in opts.actions:
         logging.info(f"Executing action {action}")

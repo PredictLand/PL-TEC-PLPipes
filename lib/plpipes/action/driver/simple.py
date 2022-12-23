@@ -3,6 +3,7 @@ import logging
 from plpipes.config import cfg
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
+from plpipes.action.runner import lookup
 import plpipes.database
 
 class _PythonRunner(Action):
@@ -31,4 +32,4 @@ class _Sequencer(Action):
             lookup(child_name, parent=name).run()
 
 register_class("python_script", _PythonRunner, "py")
-register_class("sequencer", _Sequencer, "dir")
+register_class("sequence", _Sequencer, "dir")
