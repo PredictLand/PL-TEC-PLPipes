@@ -47,3 +47,5 @@
 - Add an Action Standard Library.
 
 - Databricks/Spark integration?
+
+- Release as Open Source?
