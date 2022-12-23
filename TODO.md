@@ -44,4 +44,6 @@
 
 - Add support for documentation generation.
 
+- Add an Action Standard Library.
+
 - Databricks/Spark integration?
