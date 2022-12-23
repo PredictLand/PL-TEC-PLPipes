@@ -183,7 +183,7 @@ def create_table(table_name, sql_or_df, *parameters, db=None, if_exists="replace
     else:
         if parameters:
             raise ValueError("Query parameters are not supported when creating a table from a dataframe")
-        dbh.create_table_from_df(table_name, sql_or_df, if_exists)
+        dbh.create_table_from_pandas(table_name, sql_or_df, if_exists)
 
 def read_table(table_name, db=None):
     return lookup(db).read_table(table_name)
