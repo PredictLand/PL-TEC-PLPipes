@@ -87,7 +87,7 @@ def main(args=None):
     if opts.env is not None:
         config_extra["env"] = opts.env
     if opts.debug:
-        config_extra.setdefault("logging", {})["level"] = "debug"
+        config_extra.append({"logging.level": "debug"})
 
     # print(f"actions {opts.action}")
 

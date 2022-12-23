@@ -23,17 +23,24 @@ class _Driver:
         self._conn = conn
 
     def query(self, sql, parameters=()):
-        logging.debug(f"database query code: {repr(sql)}, parameters: {parameters}")
+        logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
         return pandas.read_sql_query(sql, self._conn, parameters=parameters)
 
-    def execute(self, sql, parameters=None):
-        logging.debug(f"database execute: {repr(sql)}, parameters: {parameters}")
+    def execute(self, sql, parameters=None, commit=True):
+        logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         self._conn.cursor().execute(sql, parameters)
+        if commit:
+            self._conn.commit()
 
-    def execute_script(self, sql):
+    def execute_script(self, sql, commit=True):
         logging.debug(f"database execute_script code: {repr(sql)}")
         self._conn.executescript(sql)
+        if commit:
+            self._conn.commit()
+
+    def commit(self):
+        self._conn.commit()
 
     def read_table(self, table_name):
         return self.query(f"select * from {table_name}")
@@ -41,15 +48,27 @@ class _Driver:
     def create_table_from_pandas(self, table_name, df, if_exists):
         df.to_sql(table_name, self._conn, if_exists=if_exists)
 
-    def create_table_from_sql(self, table_name, sql, parameters, if_exists):
-        if if_exists=='replace':
-            drop_sql = f"drop table if exists {table_name}"
-            logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
-            self._conn.cursor().execute(drop_sql)
+    def _drop_table_if_exists(self, table_name):
+        drop_sql = f"drop table if exists {table_name}"
+        logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
+        self._conn.cursor().execute(drop_sql)
 
+    def create_table_from_sql(self, table_name, sql, parameters, if_exists):
+        if if_exists=="replace":
+            self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
         logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
         self._conn.cursor().execute(create_sql, parameters)
+
+    def create_table_from_schema(self, table_name, schema, if_exists):
+        create_sql = "create table"
+        if if_exists=="replace":
+            self._drop_table_if_exists(table_name, if_exists)
+        elif if_exists=="ignore":
+            create_sql += " if not exists"
+        create_sql += f" {table_name} ({schema})"
+        logging.debug(f"database create table from schema: {repr(create_sql)}")
+        self._conn.cursor().execute(create_sql)
 
 class _SQLiteMapAsPandas:
     def __init__(self):
@@ -173,8 +192,11 @@ _driver_class["odbc"] = _ODBCDriver
 def query(sql, *parameters, db=None):
     return lookup(db).query(sql, parameters)
 
-def execute(sql, *parameters, db=None):
+def execute(sql, *parameters, db=None, commit=True):
     lookup(db).execute(sql, parameters)
+
+def commit(db=None):
+    lookup(db).commit()
 
 def create_table(table_name, sql_or_df, *parameters, db=None, if_exists="replace"):
     dbh = lookup(db)
@@ -185,10 +207,13 @@ def create_table(table_name, sql_or_df, *parameters, db=None, if_exists="replace
             raise ValueError("Query parameters are not supported when creating a table from a dataframe")
         dbh.create_table_from_pandas(table_name, sql_or_df, if_exists)
 
+def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
+    return lookup(db).create_table_from_schema(table_name, schema, if_exists=if_exists)
+
 def read_table(table_name, db=None):
     return lookup(db).read_table(table_name)
 
-def execute_script(sql_script, db=None):
+def execute_script(sql_script, db=None, commit=True):
     lookup(db).execute_script(sql_script)
 
 def download_table(from_table_name, to_table_name=None, from_db="input", to_db="work"):
