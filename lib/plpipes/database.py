@@ -14,7 +14,7 @@ def lookup(name=None):
 
 def _init_driver(name):
     drv_cfg = cfg.cd(f"db.instance.{name}")
-    return _driver_class[drv_cfg.get("driver", "sqlite")](name, drv_cfg)
+    return _driver_class[drv_cfg.get("driver", "duckdb")](name, drv_cfg)
 
 class _Driver:
     def __init__(self, name, drv_cfg, conn=None):
@@ -25,7 +25,7 @@ class _Driver:
     def query(self, sql, parameters=()):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
-        return pandas.read_sql_query(sql, self._conn, parameters=parameters)
+        return pandas.read_sql_query(sql, self._conn, params=parameters)
 
     def execute(self, sql, parameters=None, commit=True):
         logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
@@ -85,6 +85,14 @@ class _SQLiteMapAsPandas:
         except Exception as ex:
             logging.error(f"Exception caught: {ex}")
             raise ex
+
+class _DuckDBDriver(_Driver):
+    def __init__(self, name, drv_cfg):
+        root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
+        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.duckdb")).absolute()
+        import duckdb
+        conn = duckdb.connect(database=str(fn), read_only=False)
+        super().__init__(name, drv_cfg, conn=conn)
 
 class _SQLiteDriver(_Driver):
     def __init__(self, name, drv_cfg):
@@ -186,6 +194,7 @@ class _ODBCDriver(_Driver):
         super().__init__(name, drv_cfg, conn=conn)
 
 # Register drivers
+_driver_class["duckdb"] = _DuckDBDriver
 _driver_class["sqlite"] = _SQLiteDriver
 _driver_class["odbc"] = _ODBCDriver
 
