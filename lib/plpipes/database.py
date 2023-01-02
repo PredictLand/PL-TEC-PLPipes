@@ -85,6 +85,9 @@ class _Driver:
     def connection(self):
         return self._engine.begin()
 
+    def url(self):
+        return self._url
+
 class _SQLiteMapAsPandas:
     def __init__(self):
         self.rows = []
