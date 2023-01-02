@@ -17,15 +17,17 @@ def _init_driver(name):
     return _driver_class[drv_cfg.get("driver", "duckdb")](name, drv_cfg)
 
 class _Driver:
+
     def __init__(self, name, drv_cfg, conn=None):
         self._name = name
         self._cfg = drv_cfg
         self._conn = conn
+        self._sqlalchemy_engine = None
 
     def query(self, sql, parameters=()):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
-        return pandas.read_sql_query(sql, self._conn, params=parameters)
+        return pandas.read_sql_query(sql, self.sqlalchemy_engine(), params=parameters)
 
     def execute(self, sql, parameters=None, commit=True):
         logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
@@ -46,7 +48,7 @@ class _Driver:
         return self.query(f"select * from {table_name}")
 
     def create_table_from_pandas(self, table_name, df, if_exists):
-        df.to_sql(table_name, self._conn, if_exists=if_exists)
+        df.to_sql(table_name, self.sqlalchemy_engine(), if_exists=if_exists)
 
     def _drop_table_if_exists(self, table_name):
         drop_sql = f"drop table if exists {table_name}"
@@ -70,6 +72,14 @@ class _Driver:
         logging.debug(f"database create table from schema: {repr(create_sql)}")
         self._conn.cursor().execute(create_sql)
 
+    def sqlalchemy_engine(self):
+        if not self._sqlalchemy_engine:
+            self._sqlalchemy_engine = self._allocate_sqlalchemy_engine()
+        return self._sqlalchemy_engine
+
+    def _allocate_sqlalchemy_engine(self):
+        raise Exception("Unimplemented")
+
 class _SQLiteMapAsPandas:
     def __init__(self):
         self.rows = []
@@ -86,14 +96,6 @@ class _SQLiteMapAsPandas:
             logging.error(f"Exception caught: {ex}")
             raise ex
 
-class _DuckDBDriver(_Driver):
-    def __init__(self, name, drv_cfg):
-        root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
-        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.duckdb")).absolute()
-        import duckdb
-        conn = duckdb.connect(database=str(fn), read_only=False)
-        super().__init__(name, drv_cfg, conn=conn)
-
 class _SQLiteDriver(_Driver):
     def __init__(self, name, drv_cfg):
         # if there is an entry for the given name in cfg["fs"] we use
@@ -106,6 +108,7 @@ class _SQLiteDriver(_Driver):
         import sqlite3
         conn = sqlite3.connect(str(fn))
         super().__init__(name, drv_cfg, conn=conn)
+        self._file = fn
         self._last_key = 0
 
     def _next_key(self):
@@ -184,6 +187,9 @@ group by {', '.join(by)}
         finally:
             self._conn.create_aggregate(agg_name, len(args), None)
 
+    def _allocate_sqlalchemy_engine(self):
+        import sqlalchemy
+        return sqlalchemy.create_engine(f"sqlite:///{self._file}")
 
 class _ODBCDriver(_Driver):
     def __init__(self, name, drv_cfg):
@@ -192,6 +198,19 @@ class _ODBCDriver(_Driver):
         connection_string = f"driver={drv_cfg['driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
         conn = pyodbc.connect(connection_string)
         super().__init__(name, drv_cfg, conn=conn)
+
+class _DuckDBDriver(_Driver):
+    def __init__(self, name, drv_cfg):
+        root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
+        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.duckdb")).absolute()
+        import duckdb
+        conn = duckdb.connect(database=str(fn), read_only=False)
+        super().__init__(name, drv_cfg, conn=conn)
+        self._file = fn
+
+    def _allocate_sqlalchemy_engine(self):
+        import sqlalchemy
+        return sqlalchemy.create_engine(f"duckdb:///{self._file}")
 
 # Register drivers
 _driver_class["duckdb"] = _DuckDBDriver
@@ -265,3 +284,5 @@ def query_group_and_map(sql,
                                    function, args,
                                    if_exists)
 
+def sqlalchemy_engine(db=None):
+    return lookup(db).sqlalchemy_engine()
