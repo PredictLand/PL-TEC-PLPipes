@@ -20,10 +20,11 @@ def _init_driver(name):
     return _driver_class[drv_cfg.get("driver", "duckdb")](name, drv_cfg)
 
 class _Driver:
-    def __init__(self, name, drv_cfg, engine):
+    def __init__(self, name, drv_cfg, url):
         self._name = name
         self._cfg = drv_cfg
-        self._engine = engine
+        self._url = url
+        self._engine = sqlalchemy.create_engine(url)
         self._last_key = 0
 
     def _next_key(self):
@@ -101,19 +102,20 @@ class _SQLiteMapAsPandas:
             raise ex
 
 class _LocalFileDriver(_Driver):
-    def _init_dbpath(self, name, ext, drv_cfg):
+    def __init__(self, name, drv_cfg, driver):
         # if there is an entry for the given name in cfg["fs"] we use
         # that, otherwise we store the db file in the work directory:
         root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
-        self._fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.{ext}")).absolute()
-        self._fn.parent.mkdir(exist_ok=True, parents=True)
-        return self._fn
+        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.{driver}")).absolute()
+        fn.parent.mkdir(exist_ok=True, parents=True)
+
+        url = f"{driver}:///{fn}"
+        super().__init__(name, drv_cfg, url)
+        self._fn = fn
 
 class _SQLiteDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
-        fn = self._init_dbpath(name, "sqlite", drv_cfg)
-        engine = sqlalchemy.engine(f"sqlite:///{fn}")
-        super().__init__(name, drv_cfg, engine)
+        super().__init__(name, drv_cfg, "sqlite")
 
     def create_table_from_query_group_and_map(self,
                                               name, sql, by,
@@ -192,17 +194,14 @@ group by {', '.join(by)}
 class _ODBCDriver(_Driver):
     def __init__(self, name, drv_cfg):
         connection_string = f"driver={drv_cfg['driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
-        connection_url = sqlalchemy.engine.URL.create("mssql+pyodbc",
-                                                      query={"odbc_connect": connection_string})
+        url = sqlalchemy.engine.URL.create("mssql+pyodbc",
+                                           query={"odbc_connect": connection_string})
 
-        engine = sqlalchemy.create_engine(connection_url)
-        super().__init__(name, drv_cfg, engine)
+        super().__init__(name, drv_cfg, url)
 
 class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
-        fn = self._init_dbpath(name, "duckdb", drv_cfg)
-        engine = sqlalchemy.create_engine(f"duckdb:///{fn}")
-        super().__init__(name, drv_cfg, engine)
+        super().__init__(name, drv_cfg, "duckdb")
 
 # Register drivers
 _driver_class["duckdb"] = _DuckDBDriver
