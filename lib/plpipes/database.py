@@ -4,9 +4,20 @@ import logging
 import sqlalchemy
 import sqlalchemy.sql
 import sqlalchemy.engine
+import pandas
+import polars
+import pyarrow.lib
 
 _driver_class = {}
 _registry = {}
+
+_create_table_methods = {
+    pyarrow.lib.Table: '_create_table_from_arrow',
+    polars.LazyFrame:  '_create_table_from_lazy_polars',
+    polars.DataFrame:  '_create_table_from_polars',
+    pandas.DataFrame:  '_create_table_from_pandas',
+    str:               '_create_table_from_sql'
+}
 
 def lookup(name=None):
     if name is None:
@@ -31,12 +42,12 @@ class _Driver:
         self._last_key += 1
         return self._last_key
 
-    def query(self, sql, parameters=()):
+    def query(self, sql, parameters={}):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
         return pandas.read_sql_query(sql, self._engine, params=parameters)
 
-    def execute(self, sql, parameters=None):
+    def execute(self, sql, parameters={}):
         logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
 
         with self._engine.begin() as conn:
@@ -54,15 +65,24 @@ class _Driver:
     def read_table(self, table_name):
         return self.query(f"select * from {table_name}")
 
-    def create_table_from_pandas(self, table_name, df, if_exists):
+    def _create_table_from_arrow(self, table_name, df, _, if_exists):
+        _create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
+
+    def _create_table_from_pandas(self, table_name, df, _, if_exists):
         df.to_sql(table_name, self._engine, if_exists=if_exists)
+
+    def _create_table_from_polars(self, table_name, df, _, if_exists):
+        self._create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
+
+    def _create_table_from_lazy_polars(self, table_name, df, _, if_exists):
+        self._create_table_from_polars(table_name, df.collect(), None, if_exists)
 
     def _drop_table_if_exists(self, table_name):
         drop_sql = f"drop table if exists {table_name}"
         logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
         self.execute(drop_sql)
 
-    def create_table_from_sql(self, table_name, sql, parameters, if_exists):
+    def _create_table_from_sql(self, table_name, sql, parameters, if_exists):
         if if_exists=="replace":
             self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
@@ -206,6 +226,17 @@ class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg, "duckdb")
 
+    def query(self, sql, parameters={}):
+        with self.connection() as conn:
+            out = conn.connection.query(sql)
+            return polars.DataFrame(out.arrow()).lazy()
+
+    def _create_table_from_polars(self, table_name, df, _, if_exists):
+        you_dont_have_a_table_named_like_this_in_the_database_arrow = df.to_arrow()
+        self._create_table_from_sql(table_name,
+                                    "select * from you_dont_have_a_table_named_like_this_in_the_database_arrow",
+                                    {}, if_exists)
+
 # Register drivers
 _driver_class["duckdb"] = _DuckDBDriver
 _driver_class["sqlite"] = _SQLiteDriver
@@ -222,12 +253,12 @@ def commit(db=None):
 
 def create_table(table_name, sql_or_df, db=None, if_exists="replace", **parameters):
     dbh = lookup(db)
-    if isinstance(sql_or_df, str):
-        dbh.create_table_from_sql(table_name, sql_or_df, parameters, if_exists)
-    else:
-        if parameters:
-            raise ValueError("Query parameters are not supported when creating a table from a dataframe")
-        dbh.create_table_from_pandas(table_name, sql_or_df, if_exists)
+    try:
+        method_name = _create_table_methods[type(sql_or_df)]
+    except:
+        raise ValueError(f"Unsupported DataFrame type {type(sql_or_df)}")
+    method = getattr(dbh, method_name)
+    method(table_name, sql_or_df, parameters, if_exists)
 
 def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
     return lookup(db).create_table_from_schema(table_name, schema, if_exists=if_exists)
