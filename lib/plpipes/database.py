@@ -226,10 +226,10 @@ class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg, "duckdb")
 
-    def query(self, sql, parameters={}):
-        with self.connection() as conn:
-            out = conn.connection.query(sql)
-            return polars.DataFrame(out.arrow()).lazy()
+    #def query(self, sql, parameters={}):
+    #    with self.connection() as conn:
+    #        out = conn.connection.query(sql)
+    #        return polars.DataFrame(out.arrow()).lazy()
 
     def _create_table_from_polars(self, table_name, df, _, if_exists):
         you_dont_have_a_table_named_like_this_in_the_database_arrow = df.to_arrow()
