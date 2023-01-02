@@ -1,6 +1,9 @@
 from plpipes.config import cfg
 import pathlib
 import logging
+import sqlalchemy
+import sqlalchemy.sql
+import sqlalchemy.engine
 
 _driver_class = {}
 _registry = {}
@@ -17,50 +20,53 @@ def _init_driver(name):
     return _driver_class[drv_cfg.get("driver", "duckdb")](name, drv_cfg)
 
 class _Driver:
-
-    def __init__(self, name, drv_cfg, conn=None):
+    def __init__(self, name, drv_cfg, engine):
         self._name = name
         self._cfg = drv_cfg
-        self._conn = conn
-        self._sqlalchemy_engine = None
+        self._engine = engine
+        self._last_key = 0
+
+    def _next_key(self):
+        self._last_key += 1
+        return self._last_key
 
     def query(self, sql, parameters=()):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
-        return pandas.read_sql_query(sql, self.sqlalchemy_engine(), params=parameters)
+        return pandas.read_sql_query(sql, self._engine, params=parameters)
 
-    def execute(self, sql, parameters=None, commit=True):
+    def execute(self, sql, parameters=None):
         logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
-        self._conn.cursor().execute(sql, parameters)
-        if commit:
-            self._conn.commit()
 
-    def execute_script(self, sql, commit=True):
+        with self._engine.begin() as conn:
+            conn.execute(sqlalchemy.sql.text(sql), **parameters)
+
+    def execute_script(self, sql):
         logging.debug(f"database execute_script code: {repr(sql)}")
-        self._conn.executescript(sql)
-        if commit:
-            self._conn.commit()
-
-    def commit(self):
-        self._conn.commit()
+        conn = self._engine.raw_connection()
+        try:
+            conn.executescript(sql)
+            conn.commit()
+        finally:
+            conn.close()
 
     def read_table(self, table_name):
         return self.query(f"select * from {table_name}")
 
     def create_table_from_pandas(self, table_name, df, if_exists):
-        df.to_sql(table_name, self.sqlalchemy_engine(), if_exists=if_exists)
+        df.to_sql(table_name, self._engine, if_exists=if_exists)
 
     def _drop_table_if_exists(self, table_name):
         drop_sql = f"drop table if exists {table_name}"
         logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
-        self._conn.cursor().execute(drop_sql)
+        self.execute(drop_sql)
 
     def create_table_from_sql(self, table_name, sql, parameters, if_exists):
         if if_exists=="replace":
             self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
         logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
-        self._conn.cursor().execute(create_sql, parameters)
+        self.execute(create_sql, parameters)
 
     def create_table_from_schema(self, table_name, schema, if_exists):
         create_sql = "create table"
@@ -70,15 +76,13 @@ class _Driver:
             create_sql += " if not exists"
         create_sql += f" {table_name} ({schema})"
         logging.debug(f"database create table from schema: {repr(create_sql)}")
-        self._conn.cursor().execute(create_sql)
+        self.execute(create_sql)
 
-    def sqlalchemy_engine(self):
-        if not self._sqlalchemy_engine:
-            self._sqlalchemy_engine = self._allocate_sqlalchemy_engine()
-        return self._sqlalchemy_engine
+    def engine(self):
+        return self._engine
 
-    def _allocate_sqlalchemy_engine(self):
-        raise Exception("Unimplemented")
+    def connection(self):
+        return self._engine.begin()
 
 class _SQLiteMapAsPandas:
     def __init__(self):
@@ -96,24 +100,20 @@ class _SQLiteMapAsPandas:
             logging.error(f"Exception caught: {ex}")
             raise ex
 
-class _SQLiteDriver(_Driver):
-    def __init__(self, name, drv_cfg):
+class _LocalFileDriver(_Driver):
+    def _init_dbpath(self, name, ext, drv_cfg):
         # if there is an entry for the given name in cfg["fs"] we use
         # that, otherwise we store the db file in the work directory:
-
         root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
+        self._fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.{ext}")).absolute()
+        self._fn.parent.mkdir(exist_ok=True, parents=True)
+        return self._fn
 
-        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.sqlite")).absolute()
-        fn.parent.mkdir(exist_ok=True, parents=True)
-        import sqlite3
-        conn = sqlite3.connect(str(fn))
-        super().__init__(name, drv_cfg, conn=conn)
-        self._file = fn
-        self._last_key = 0
-
-    def _next_key(self):
-        self._last_key += 1
-        return self._last_key
+class _SQLiteDriver(_LocalFileDriver):
+    def __init__(self, name, drv_cfg):
+        fn = self._init_dbpath(name, "sqlite", drv_cfg)
+        engine = sqlalchemy.engine(f"sqlite:///{fn}")
+        super().__init__(name, drv_cfg, engine)
 
     def create_table_from_query_group_and_map(self,
                                               name, sql, by,
@@ -149,13 +149,14 @@ class _SQLiteDriver(_Driver):
 
         logging.debug(f"SQL code: {repr(full_sql)}")
 
-        if if_exists:
-            self.execute(f"drop table if exists {name}")
-        self._conn.create_aggregate(agg_name, len(args), _C)
-        try:
-            self.execute(full_sql)
-        finally:
-            self._conn.create_aggregate(agg_name, len(args), None)
+        with self.connection() as conn:
+            if if_exists:
+                self.execute(f"drop table if exists {name}")
+            conn.connection.create_aggregate(agg_name, len(args), _C)
+            try:
+                conn.execute(full_sql)
+            finally:
+                conn.connection.create_aggregate(agg_name, len(args), None)
 
     def query_group_and_map(self,
                             sql, by,
@@ -181,52 +182,43 @@ group by {', '.join(by)}
         if exists:
             self.execute(f"drop table if exists {name}")
 
-        self._conn.create_aggregate(agg_name, len(args), _C)
-        try:
-            self.query(full_sql)
-        finally:
-            self._conn.create_aggregate(agg_name, len(args), None)
-
-    def _allocate_sqlalchemy_engine(self):
-        import sqlalchemy
-        return sqlalchemy.create_engine(f"sqlite:///{self._file}")
+        with self.connection() as conn:
+            conn.connection.create_aggregate(agg_name, len(args), _C)
+            try:
+                self.query(full_sql)
+            finally:
+                conn.connection.create_aggregate(agg_name, len(args), None)
 
 class _ODBCDriver(_Driver):
     def __init__(self, name, drv_cfg):
-        import pyodbc
-
         connection_string = f"driver={drv_cfg['driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
-        conn = pyodbc.connect(connection_string)
-        super().__init__(name, drv_cfg, conn=conn)
+        connection_url = sqlalchemy.engine.URL.create("mssql+pyodbc",
+                                                      query={"odbc_connect": connection_string})
 
-class _DuckDBDriver(_Driver):
+        engine = sqlalchemy.create_engine(connection_url)
+        super().__init__(name, drv_cfg, engine)
+
+class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
-        root_dir = pathlib.Path(cfg.get(f"fs.{name}", cfg["fs.work"]))
-        fn = root_dir.joinpath(drv_cfg.setdefault("file", f"{name}.duckdb")).absolute()
-        import duckdb
-        conn = duckdb.connect(database=str(fn), read_only=False)
-        super().__init__(name, drv_cfg, conn=conn)
-        self._file = fn
-
-    def _allocate_sqlalchemy_engine(self):
-        import sqlalchemy
-        return sqlalchemy.create_engine(f"duckdb:///{self._file}")
+        fn = self._init_dbpath(name, "duckdb", drv_cfg)
+        engine = sqlalchemy.create_engine(f"duckdb:///{fn}")
+        super().__init__(name, drv_cfg, engine)
 
 # Register drivers
 _driver_class["duckdb"] = _DuckDBDriver
 _driver_class["sqlite"] = _SQLiteDriver
-_driver_class["odbc"] = _ODBCDriver
+_driver_class["odbc"]   = _ODBCDriver
 
-def query(sql, *parameters, db=None):
+def query(sql, db=None, **parameters):
     return lookup(db).query(sql, parameters)
 
-def execute(sql, *parameters, db=None, commit=True):
+def execute(sql, db=None, **parameters):
     lookup(db).execute(sql, parameters)
 
 def commit(db=None):
     lookup(db).commit()
 
-def create_table(table_name, sql_or_df, *parameters, db=None, if_exists="replace"):
+def create_table(table_name, sql_or_df, db=None, if_exists="replace", **parameters):
     dbh = lookup(db)
     if isinstance(sql_or_df, str):
         dbh.create_table_from_sql(table_name, sql_or_df, parameters, if_exists)
@@ -241,10 +233,12 @@ def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
 def read_table(table_name, db=None):
     return lookup(db).read_table(table_name)
 
-def execute_script(sql_script, db=None, commit=True):
+def execute_script(sql_script, db=None):
     lookup(db).execute_script(sql_script)
 
 def download_table(from_table_name, to_table_name=None, from_db="input", to_db="work"):
+    ## TODO: use an iterative approach, without dumping everything
+    ## into a pandas dataframe.
     if to_table_name is None:
         to_table_name = from_table_name
     df = read_table(from_table_name, db=from_db)
@@ -284,5 +278,8 @@ def query_group_and_map(sql,
                                    function, args,
                                    if_exists)
 
-def sqlalchemy_engine(db=None):
-    return lookup(db).sqlalchemy_engine()
+def engine(db=None):
+    return lookup(db).engine()
+
+def connection(db=None):
+    return lookup(db).connection()
