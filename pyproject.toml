@@ -17,6 +17,7 @@ description = "PredictLand Data Science Framwork"
 dependencies = [
     "requests >=2.0",
     "duckdb >=0.6",
+    "duckdb-engine >=0.6",
     "numpy >=1.14",
     "PyYAML >=6.0",
     "Jinja2 >=3.1",
@@ -24,9 +25,16 @@ dependencies = [
     "SQLAlchemy >=1.4",
     "polars >=0.15",
     "pyarrow >=10.0",
+    "prql-python >=0.3"
 ]
 
 [project.optional-dependencies]
 odbc = [
     "pyodbc >=4.0"
+]
+
+jupyter = [
+    "jupyterlab >=1.0",
+    "pyprql >=0.5",
+    "ipython-sql >=0.4"
 ]
