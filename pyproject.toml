@@ -2,6 +2,9 @@
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
+[project.urls]
+Home = "https://github.com/PredictLand/PL-TEC-PLPipes"
+
 [project]
 name = "plpipes"
 authors = [{name = "PredictLand", email = "info@predictland.com"}]
@@ -11,5 +14,19 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 version = "0.1"
 description = "PredictLand Data Science Framwork"
 
-[project.urls]
-Home = "https://github.com/PredictLand/PL-TEC-PLPipes"
+dependencies = [
+    "requests >=2.0",
+    "duckdb >=0.6",
+    "numpy >=1.14",
+    "PyYAML >=6.0",
+    "Jinja2 >=3.1",
+    "pandas >=1.5",
+    "SQLAlchemy >=1.4",
+    "polars >=0.15",
+    "pyarrow >=10.0",
+]
+
+[project.optional-dependencies]
+odbc = [
+    "pyodbc >=4.0"
+]
