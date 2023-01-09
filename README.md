@@ -53,3 +53,18 @@ Several things:
    different projects in the past (or in some cases, just copied them
    from other 3rd party projects), the framework is very new and most
    of it should still be considered experimental!
+
+
+# Project Setup
+
+
+
+
+
+# Modules
+
+## Configuration
+
+## Database
+
+## Actions
