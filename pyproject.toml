@@ -8,7 +8,8 @@ authors = [{name = "PredictLand", email = "info@predictland.com"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
+version = "0.01"
+description = "PredictLand Data Science Framwork"
 
 [project.urls]
 Home = "https://github.com/PredictLand/PL-TEC-PLPipes"
