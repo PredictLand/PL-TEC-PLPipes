@@ -48,10 +48,13 @@ def main(args=None):
 
     prog_path = pathlib.Path(args[0])
     stem = prog_path.stem
-    root_dir = prog_path.parent
+    if "PLPIPES_ROOT_DIR" in os.environ:
+        root_dir = libpath.Path(os.environ["PLPIPES_ROOT_DIR"]).resolve(strict=True)
+    else:
+        root_dir = prog_path.parent.parent
 
     config_extra = [{ 'fs': { 'stem': str(prog_path.stem),
-                              'root': str(prog_path.parent.parent) }}]
+                              'root': str(root_dir) }}]
 
     parser = argparse.ArgumentParser(description="PLPipes runner")
 
