@@ -57,6 +57,47 @@ Several things:
 
 # Project Setup
 
+## Directory structure
+
+* `lib`
+
+* `bin`
+
+* `actions`
+
+* `notebooks`
+
+* `config`
+
+* `defaults`
+
+* `input`
+
+* `work`
+
+* `output`
+
+
+## The main script (`run.py`)
+
+This file is the entry point for PLPipes and should be created by hand
+with the following contents:
+
+```
+#!/usr/bin/env python3
+from plpipes.runner import main
+main()
+```
+
+## Installing PLPipes
+
+### Installing a packed version
+
+### Installing from git
+
+
+
+
 ## Environment variables
 
 The following environment variables can be used to configure the framework:
@@ -69,7 +110,7 @@ The following environment variables can be used to configure the framework:
   `warning` or `error`).
 
 
-# Modules
+# Features
 
 ## Configuration
 
@@ -152,11 +193,17 @@ Currently, `plpipes` is packed with
 [flit](https://flit.pypa.io/en/stable/) (which can be installed with
 the usual `pip` command: `pip install flit`).
 
-A python wheel file for `plpipes` can be generated running the
-following command from inside `plpipes` root directory:
+A python wheel file for `plpipes` is generated running the following
+command from inside `plpipes` root directory:
 
 ```
 flint build
 ```
 
-The generated wheel file is placed inside `dist`.
+The generated wheel file is placed inside `dist`. That file is a
+standard (pure) Python package that can be installed in anywhere. For
+instance:
+
+```
+pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
+```
