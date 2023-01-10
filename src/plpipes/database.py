@@ -69,7 +69,7 @@ class _Driver:
         _create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
 
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
-        df.to_sql(table_name, self._engine, if_exists=if_exists)
+        df.to_sql(table_name, self._engine, if_exists=if_exists, index=False)
 
     def _create_table_from_polars(self, table_name, df, _, if_exists):
         self._create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
