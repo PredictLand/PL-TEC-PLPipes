@@ -197,7 +197,7 @@ A python wheel file for `plpipes` is generated running the following
 command from inside `plpipes` root directory:
 
 ```
-flint build
+flit build
 ```
 
 The generated wheel file is placed inside `dist`. That file is a
