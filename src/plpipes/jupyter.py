@@ -1,27 +1,73 @@
 
-from IPython.core.magic import Magics, magics_class, line_cell_magic
+from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
+
+import os
+import logging
+import pathlib
+
+import plpipes.init
+import plpipes.config
+import plpipes.database
+
 
 @magics_class
-class MyMagics(Magics):
-    @line_cell_magic
-    def lcmagic(self, line, cell=None):
-        "Magic that works both as %lcmagic and as %%lcmagic"
-        if cell is None:
-            cell = ""
-        if line is None:
-            line = ""
-        lines = [x
-                 for l in (cell, line)
-                 if l is not None
-                 for x in l.split("\n")]
+class PLPipesMagics(Magics):
 
-        return repr(lines)
+    def __init__(self, shell):
+        super().__init__(shell)
+        self.initialized = False
+
+    @needs_local_scope
+    @line_magic
+    def plpipes(self, line, local_ns):
+        if self.initialized:
+            logging.warn("PLPipes framework already initialized. You will have to restart the kernel if you want to load a new configuration")
+        else:
+            if "PLPIPES_ROOT_DIR" in os.environ:
+                root_dir = pathlib.Path(os.environ["PLPIPES_ROOT_DIR"]).resolve(strict=True)
+            else:
+                root_dir = pathlib.Path(os.getcwd()).resolve(strict=True)
+                while not (root_dir/"config").is_dir():
+                    old_root_dir = root_dir
+                    root_dir = root_dir.parent
+                    if old_root_dir == root_dir:
+                        raise RuntimeError(f"PLPipes project root dir not found (cwd: {os.getcwd()}")
+
+            stem = line.strip()
+            if stem == "":
+                stem = "jupyter"
+            logging.info("Initializing PLPipes framework")
+            plpipes.init.init({"fs.stem": stem, "fs.root": str(root_dir)})
+            self.initialized = True
+
+        local_ns["cfg"] = plpipes.config.cfg
+        local_ns["db"] = plpipes.database
+        local_ns["create_table"] = plpipes.database.create_table
+        local_ns["query"] = plpipes.database.query
+
+        for dir in ("root", "input", "work", "output"):
+            local_ns[f"{dir}_dir"] = pathlib.Path(plpipes.config.cfg[f"fs.{dir}"])
+
+        import sql.connection
+        sql.connection.Connection.set("@@work", False)
+
 
 def load_ipython_extension(ipython):
-    """
-    Any module file that define a function named `load_ipython_extension`
-    can be loaded via `%load_ext module.path` or be configured to be
-    autoloaded by IPython at startup time.
-    """
+    global former_connection_class
+    ipython.register_magics(PLPipesMagics)
 
-    ipython.register_magics(MyMagics)
+    ipython.extension_manager.load_extension("sql")
+
+    import sql.connection
+    class MyConnection(sql.connection.Connection):
+
+        @classmethod
+        def set(cls, descriptor, *args, **argkw):
+            # Introduce @@name shortcut for referring to PLPipes databases
+            if isinstance(descriptor, str) and descriptor.startswith("@@"):
+                dbname = descriptor[2:]
+                descriptor = str(plpipes.database.engine(dbname).url)
+            return super().set(descriptor, *args, **argkw)
+    sql.connection.Connection = MyConnection
+
+
