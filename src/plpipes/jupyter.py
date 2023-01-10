@@ -11,9 +11,10 @@ class MyMagics(Magics):
         if line is None:
             line = ""
         lines = [x
-                 for x in l.split("\n")
                  for l in (cell, line)
-                 if l is not None]
+                 if l is not None
+                 for x in l.split("\n")]
+
         return repr(lines)
 
 def load_ipython_extension(ipython):
