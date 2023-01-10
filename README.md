@@ -84,13 +84,13 @@ The following environment variables can be used to configure the framework:
 
 # Jupyter integration
 
-PLPipes includes an IPython extension which exposed the framework
+PLPipes includes an IPython extension which exposes the framework
 functionality in Jupyter notebooks.
 
 ## Initialization
 
-It can be loaded adding the following lines at the beginning of your
-notebook:
+The extension is loaded adding the following lines at the beginning of
+your notebook:
 
 ```
 %load plpipes.jupyter
@@ -98,17 +98,17 @@ notebook:
 ```
 
 Where `$stem` is the name used as the main key when looking for
-configuration files. Defaults to `jupyter`.
+configuration files (defaults to `jupyter`).
 
 In order to find the project configuration, the extension looks into
-the environment variable `PLPIPES_ROOT_DIR`. If it is not defined it
-looks for a `config` directory in the current working directory of the
-IPython kernel (usually the directory from where `jupyter-lab` was
-launched) and walks up the file system until such directory is found.
+the environment variable `PLPIPES_ROOT_DIR`. If that variable is not
+defined then it looks for a `config` directory in the current working
+directory of the IPython kernel (usually the directory from where
+`jupyter-lab` was launched) and walks up the file system until such
+directory is found.
 
 Once the extension is loaded and initialized, the features described
 in the following sections can be used.
-
 
 ## Variable, packages and method shortcuts
 
@@ -144,3 +144,19 @@ at sign (`@@`) followed by the database name.  For instance:
 select * from customers
 limit 100
 ```
+
+
+# Packing PLPipes
+
+Currently, `plpipes` is packed with
+[flit](https://flit.pypa.io/en/stable/) (which can be installed with
+the usual `pip` command: `pip install flit`).
+
+A python wheel file for `plpipes` can be generated running the
+following command from inside `plpipes` root directory:
+
+```
+flint build
+```
+
+The generated wheel file is placed inside `dist`.
