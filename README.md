@@ -59,29 +59,38 @@ Several things:
 
 ## Directory structure
 
-* `lib`
+A PLPipes project is structured in the following directories:
 
-* `bin`
+* `lib` (optional): This is where reusable Python modules specific to
+  the project are stored.
 
-* `actions`
+* `bin`: This is the place where to place scripts for the
+  project. Though, usually if just contains [the main
+  script](#The-main-script) `run.py`.
 
-* `notebooks`
+  Other scripts can be placed here, but it should be noted that the
+  [Actions](#Actions) mechanism available through `run.py` is the
+  preferred way to organise the project operations.
+
+* `actions`: Action definitions. See [Actions](#Actions) bellow.
+
+* `notebooks` (optional): Jupyter notebooks should be stored here.
 
 * `config`
 
-* `defaults`
+* `defaults` (optional):
 
-* `input`
+* `input` (optional):
 
 * `work`
 
-* `output`
+* `output` (optional):
 
 
-## The main script (`run.py`)
+## The main script
 
-This file is the entry point for PLPipes and should be created by hand
-with the following contents:
+ `bin/run.py` is the main entry point for PLPipes and should be
+created by hand with the following content:
 
 ```
 #!/usr/bin/env python3
