@@ -35,13 +35,13 @@ def init(*configs, config_files=[]):
 
     global_cfg_dir = Path.home() / ".config/plpipes"
     for suffix in ("", "-secrets"):
-        for ext in ("json", "yaml"):
+        for ext in ("json", "yml", "yaml"):
             path = global_cfg_dir / f"plpipes{suffix}.{ext}"
             if path.exists():
                 cfg.merge_file(path, frame=-2)
                 logging.getLogger().setLevel(cfg["logging.level"].upper())
             else:
-                logging.debug("Configuration file {path} not found")
+                logging.debug(f"Configuration file {path} not found")
 
     for dir_key in (False, True):
         for stem_key in (False, True):
