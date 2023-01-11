@@ -148,7 +148,8 @@ Somehow (!) obtain the module wheel and install it using pip:
 pip install /path/to/.../plpipes-0.1-py2.py3-none-any.whl
 ```
 
-Hopefully, `plpipes` would be directly available from [PyPI] soon!
+Hopefully, `plpipes` would be directly available from
+[PyPI](https://pypi.org/) soon!
 
 ### Installing from git
 
@@ -195,21 +196,79 @@ main()
 Or you could also set `PYTHONPATH` from your shell startup script
 (`~/.profile`) or in the Windows registry.
 
-## Environment variables
+# Using PLPipes
 
-The following environment variables can be used to configure the framework:
-
-* `PLPIPES_ROOT_DIR`: The project root directory.
-
-* `PLPIPES_ENV`: The environment (usually `DEV`, `PRE` or `PRO`).
-
-* `PLPIPES_LOGLEVEL`: The default log level (`debug`, `info`,
-  `warning` or `error`).
-
-
-# Features
+PLPipes is comprised of several modules which can be used together or
+independently.
 
 ## Configuration
+
+The configuration module is one of the core components of PLPipes
+pervasively used by `plpipes` itself, so even if you don't want to use
+it directly in your project it would be used internally by the
+framework.
+
+Configuration data is structured in a global tree-like object which is
+initialized from data read from several files in sequence and from the
+command line.
+
+Both YAML and JSON files are supported (though, we recomended YAML
+usage as it is usually easier to read).
+
+### File structure
+
+The list of files from with the configuration is read is dynamically
+calculated based on two settings:
+
+* The script "stem": It is the name of the script run without the
+  extension (i.e. the stem for `run.py` is `run`).
+
+  When plpipes is used from a Jupyter notebook, the stem can be passed
+  on the %plpipes line magic:
+
+  ```
+  %plpipes foobalizer
+  ```
+
+- The deployment environment (`dev`, `pre`, `pro`, etc.): this can be
+  set from the command line or using the environment variable
+  `PLPIPES_ENV` (see [Environment variables](#Environmen-variables)
+  below). It defaults to `dev`.
+
+Also, there are two main directories where configuration files are
+stored:
+
+- `default`: This directory should contain configuration files that
+  are considered defaults and that are not going to be changed by the
+  project users. We think of it as the place where to place setting
+  that otherwise would be hard-coded.
+
+- `config`: This directory contains configuration files which are
+  editable by the project users or where developers can put temporary
+  settings they don't want to push into git.
+
+*We are currently considering whether this division makes sense or if
+we should otherwise replace it by something better*
+
+When PLPipes configuration module is initialized it looks in those two
+directories for files whose names follow the following rules:
+
+1. Base name: the base name is taken as `common` or the stem so that,
+   for instance, when loading the configuration from `run.py`, both
+   `common.yaml` and `run.yaml` files would be taken into account.
+
+2. Secrets: files with a `-secrets` postfix are also loaded (for
+   instance, `common-secrets.yaml` and `run-secrets.yaml`).
+
+2. Environment: files with the deployment environment attached as a
+   postfix are also loaded (`run-dev.yaml` or `run-secrets-dev.yaml`).
+
+
+
+
+### Python usage
+
+### Initialization
 
 ## Database
 
@@ -217,6 +276,19 @@ The following environment variables can be used to configure the framework:
 
 ## Runner
 
+### Environment variables
+
+The following environment variables can be used to configure the framework:
+
+* `PLPIPES_ROOT_DIR`: The project root directory.
+
+* `PLPIPES_ENV`: The deployment environment (usually `DEV`, `PRE` or
+  `PRO`).
+
+* `PLPIPES_LOGLEVEL`: The default log level (`debug`, `info`,
+  `warning` or `error`).
+
+## Logging
 
 
 
@@ -284,7 +356,7 @@ limit 100
 ```
 
 
-# Packing PLPipes
+# Packing `plpipes`
 
 Currently, `plpipes` is packed with
 [flit](https://flit.pypa.io/en/stable/) (which can be installed with
