@@ -47,7 +47,7 @@ def init(*configs, config_files=[]):
         for stem_key in (False, True):
             for secrets_part in ("", "-secrets"):
                 for env_key in (False, True):
-                    for ext in ("json", "yaml"):
+                    for ext in ("json", "yml", "yaml"):
                         # The following values can be changed as
                         # config files are read, so they are
                         # recalculated every time:
