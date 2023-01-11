@@ -1,5 +1,6 @@
 import plpipes.init
 import plpipes.action
+import plpipes.config
 import sys
 import argparse
 import os
@@ -95,6 +96,8 @@ def main(args=None):
     # print(f"actions {opts.action}")
 
     plpipes.init.init(*config_extra, config_files=opts.config)
+
+    sys.path.append(plpipes.config.cfg["fs.lib"])
 
     for action in opts.actions:
         logging.info(f"Executing action {action}")

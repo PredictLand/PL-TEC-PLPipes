@@ -1,6 +1,7 @@
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
+import sys
 import os
 import logging
 import pathlib
@@ -50,6 +51,8 @@ class PLPipesMagics(Magics):
                         descriptor = str(plpipes.database.engine(dbname).url)
                     return super().set(descriptor, *args, **argkw)
             sql.connection.Connection = MyConnection
+
+            sys.path.append(plpipes.config.cfg["fs.lib"])
 
             self.initialized = True
 
