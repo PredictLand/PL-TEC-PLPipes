@@ -57,9 +57,19 @@ Several things:
 
 # Project Setup
 
+This is how to setup a PLPipes project from scratch.
+
+PLPipes is quite configurable and most of its workings can be changed
+and redefined, but that doesn't preclude it from offering some sane
+defaults that we advise you to follow.
+
+Specifically, by default it expects some directory structure.
+
 ## Directory structure
 
-A PLPipes project is structured in the following directories:
+A PLPipes project is structured in the following directories which
+should be created by hand (development of a utility to do it
+automatically is planed).
 
 * `lib` (optional): This is where reusable Python modules specific to
   the project are stored.
@@ -74,17 +84,25 @@ A PLPipes project is structured in the following directories:
 
 * `actions`: Action definitions. See [Actions](#Actions) bellow.
 
-* `notebooks` (optional): Jupyter notebooks should be stored here.
+* `notebooks` (optional): Jupyter notebooks go here
 
-* `config`
+* `config`: Configuration files are stored here. See
+  [Configuration](#Configuration).
 
-* `defaults` (optional):
+* `defaults` (optional): Default configuration files go here (the
+  contents of this directory should be commited to git).
 
-* `input` (optional):
+  The semantic distinction between `defaults` and `config` is
+  something we are still considering and that may change.
 
-* `work`
+* `input` (optional): Project input files.
 
-* `output` (optional):
+* `work`: Working directory, intermediate files go here.
+
+  Also, the default working database is stored here as
+  `work/work.duckdb`.
+
+* `output` (optional): Final output files generated can go here.
 
 
 ## The main script
