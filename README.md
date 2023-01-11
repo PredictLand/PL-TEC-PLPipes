@@ -32,8 +32,9 @@ So, what is exactly PLPipes?
 
 Several things:
 
-1. It is a thin layer integrating several technologies so they can be
-   used easily and efficiently to solve common data science problems.
+1. It is a thin layer integrating several technologies so that they
+   can be used easily and efficiently to solve common data science
+   problems.
 
 2. It is an automation framework for creating data processing
    pipelines.
@@ -41,8 +42,8 @@ Several things:
 3. It is a programming framework for reducing boilerplate, enforcing
    some best-practices and providing support for common tasks.
 
-4. It is also a way to standardize Data Science projects and a
-   mindset.
+4. It is also a mindset and a way to standardize Data Science
+   project development.
 
 5. It is a very customizable framework with sane defaults, so that you
    can start working on your projects right there without having to
@@ -51,9 +52,14 @@ Several things:
 6. It is a work in process yet! Even if the ideas behind PLPipes are
    not new and we have used/implemented them in different forms and in
    different projects in the past (or in some cases, just copied them
-   from other 3rd party projects), the framework is very new and most
-   of it should still be considered experimental!
+   from other 3rd party projects), the framework is still very new and
+   most of it should be considered experimental!
 
+# Nomenclature
+
+We use `PLPipes` to refer to the framework as a whole (projects, code,
+conventions, mindset, etc.) and `plpipes` to refer specifically to the
+Python package.
 
 # Project Setup
 
@@ -63,7 +69,9 @@ PLPipes is quite configurable and most of its workings can be changed
 and redefined, but that doesn't preclude it from offering some sane
 defaults that we advise you to follow.
 
-Specifically, by default it expects some directory structure.
+Specifically, by default, it expects some directory structure and a
+main script which is used to organize the project operations as
+described in the following sections:
 
 ## Directory structure
 
@@ -104,6 +112,9 @@ automatically is planed).
 
 * `output` (optional): Final output files generated can go here.
 
+* `venv` (optional): Even if `plpipes` does not depend on it, we
+  recomend to use a virtual environment for the project whit that
+  name.
 
 ## The main script
 
@@ -116,14 +127,73 @@ from plpipes.runner import main
 main()
 ```
 
-## Installing PLPipes
+## Installing `plpipes`
+
+The Python module `plpipes` can be installed in two ways.
 
 ### Installing a packed version
 
+This is the way to install the module we recomend when you don't want
+to contribute to the development of the framework and just want to use
+it.
+
+*Note that In practice, as `plpipes` is still in a very early
+development stage, that may not be a realistic asumption and you may
+be required to switch to the development version available from git
+quite soon!*
+
+Somehow (!) obtain the module wheel and install it using pip:
+
+```
+pip install /path/to/.../plpipes-0.1-py2.py3-none-any.whl
+```
+
+Hopefully, `plpipes` would be directly available from [PyPI] soon!
+
 ### Installing from git
 
+1. Clone the repository outside of your project directory and switch
+   to the `development` branch:
 
+   ```
+   git clone git@github.com:PredictLand/PL-TEC-PLPipes.git
+   cd PL-TEC-PLPipes
+   git checkout development
+   ```
 
+2. Add the `src` subdirectory to Python search path.
+
+   ```
+   # Linux and/or bash:
+   export PYTHONPATH=path/to/.../PL-TEC-PLPipes/src
+
+   # Windows
+   set PYTHONPATH=C:\path\to\...\PL-TEC-PLPipes\src
+   ```
+
+3. Check that it works:
+
+   ```
+   python -m plpipes -c "print('ok')"
+   ```
+
+Alternatively you can modify your project main script to append
+the`src` directory to the module search path so that you don't need to
+set `PYTHONPATH` by hand everytime you start a new session.
+
+For instance:
+
+```
+from pathlib import Path
+import sys
+sys.path.append(str(Path.cwd().parent.parent.parent / "PL-TEC-PLPipes/src"))
+
+from plpipes.runner import main
+main()
+```
+
+Or you could also set `PYTHONPATH` from your shell startup script
+(`~/.profile`) or in the Windows registry.
 
 ## Environment variables
 
@@ -201,8 +271,8 @@ The following variables and methods are made available in the session:
 ## SQL integration
 
 The IPython SQL extension (see https://pypi.org/project/ipython-sql/)
-is automatically loaded and the configured PLPipes `work` database
-configured as the default one.
+is automatically loaded and the configured PLPipes `work` database set
+as the default one.
 
 Other databases configured in PLPipes can be selected using a double
 at sign (`@@`) followed by the database name.  For instance:
