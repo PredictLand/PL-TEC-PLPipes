@@ -20,6 +20,8 @@ class PLPipesMagics(Magics):
     @needs_local_scope
     @line_magic
     def plpipes(self, line, local_ns):
+        import sql.connection
+
         if self.initialized:
             logging.warn("PLPipes framework already initialized. You will have to restart the kernel if you want to load a new configuration")
         else:
@@ -38,6 +40,17 @@ class PLPipesMagics(Magics):
                 stem = "jupyter"
             logging.info("Initializing PLPipes framework")
             plpipes.init.init({"fs.stem": stem, "fs.root": str(root_dir)})
+
+            class MyConnection(sql.connection.Connection):
+                @classmethod
+                def set(cls, descriptor, *args, **argkw):
+                    # Introduce @@name shortcut for referring to PLPipes databases
+                    if isinstance(descriptor, str) and descriptor.startswith("@@"):
+                        dbname = descriptor[2:]
+                        descriptor = str(plpipes.database.engine(dbname).url)
+                    return super().set(descriptor, *args, **argkw)
+            sql.connection.Connection = MyConnection
+
             self.initialized = True
 
         local_ns["cfg"] = plpipes.config.cfg
@@ -48,26 +61,15 @@ class PLPipesMagics(Magics):
         for dir in ("root", "input", "work", "output"):
             local_ns[f"{dir}_dir"] = pathlib.Path(plpipes.config.cfg[f"fs.{dir}"])
 
-        import sql.connection
         sql.connection.Connection.set("@@work", False)
 
 
 def load_ipython_extension(ipython):
     global former_connection_class
     ipython.register_magics(PLPipesMagics)
-
     ipython.extension_manager.load_extension("sql")
 
-    import sql.connection
-    class MyConnection(sql.connection.Connection):
 
-        @classmethod
-        def set(cls, descriptor, *args, **argkw):
-            # Introduce @@name shortcut for referring to PLPipes databases
-            if isinstance(descriptor, str) and descriptor.startswith("@@"):
-                dbname = descriptor[2:]
-                descriptor = str(plpipes.database.engine(dbname).url)
-            return super().set(descriptor, *args, **argkw)
-    sql.connection.Connection = MyConnection
+
 
 
