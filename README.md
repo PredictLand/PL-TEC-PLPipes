@@ -213,7 +213,10 @@ initialized from data read from several files in sequence and from the
 command line.
 
 Both YAML and JSON files are supported (though, we recomended YAML
-usage as it is usually easier to read).
+usage as it is usually easier to read by humans).
+
+When the same setting appears in several configuration files, the last
+one read is the one that prevails.
 
 ### File structure
 
@@ -221,10 +224,10 @@ The list of files from with the configuration is read is dynamically
 calculated based on two settings:
 
 * The script "stem": It is the name of the script run without the
-  extension (i.e. the stem for `run.py` is `run`).
+  extension (for instance, the stem for `run.py` is `run`).
 
-  When plpipes is used from a Jupyter notebook, the stem can be passed
-  on the %plpipes line magic:
+  When `plpipes` is used from a Jupyter notebook, the stem can be
+  passed on the `%plpipes` line magic:
 
   ```
   %plpipes foobalizer
@@ -263,7 +266,58 @@ directories for files whose names follow the following rules:
 2. Environment: files with the deployment environment attached as a
    postfix are also loaded (`run-dev.yaml` or `run-secrets-dev.yaml`).
 
+Additionally two user-specific configuration files are
+considered. Those are expected to contain global configuration
+settings which are not project specific as API keys, common database
+definitions, etc.
 
+```
+~/.config/plpipes/plpipes.yaml
+~/.config/plpipes/plpipes-secrets.yaml
+```
+
+In summary, the full set of files which are consider for instance,
+when the `run.py` script is invoked in the `dev` environemnt is as
+follows (and in that order):
+
+```
+~/.config/plpipes/plpipes.json
+~/.config/plpipes/plpipes.yaml
+~/.config/plpipes/plpipes-secrets.json
+~/.config/plpipes/plpipes-secrets.yaml
+default/common.json
+default/common.yaml
+default/common-dev.json
+default/common-dev.yaml
+default/common-secrets.json
+default/common-secrets.yaml
+default/common-secrets-dev.json
+default/common-secrets-dev.yaml
+default/run.json
+default/run.yaml
+default/run-dev.json
+default/run-dev.yaml
+default/run-secrets.json
+default/run-secrets.yaml
+default/run-secrets-dev.json
+default/run-secrets-dev.yaml
+config/common.json
+config/common.yaml
+config/common-dev.json
+config/common-dev.yaml
+config/common-secrets.json
+config/common-secrets.yaml
+config/common-secrets-dev.json
+config/common-secrets-dev.yaml
+config/run.json
+config/run.yaml
+config/run-dev.json
+config/run-dev.yaml
+config/run-secrets.json
+config/run-secrets.yaml
+config/run-secrets-dev.json
+config/run-secrets-dev.yaml
+```
 
 
 ### Python usage
