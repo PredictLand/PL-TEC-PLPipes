@@ -276,9 +276,12 @@ definitions, etc.
 ~/.config/plpipes/plpipes-secrets.yaml
 ```
 
+Finally, when using the default runner (See [Runner](#Runner) below),
+the user can request additional configuration files to be loaded.
+
 In summary, the full set of files which are consider for instance,
-when the `run.py` script is invoked in the `dev` environemnt is as
-follows (and in that order):
+when the `run.py` script is invoked in the `dev` environment is as
+follows (and in this particular order):
 
 ```
 ~/.config/plpipes/plpipes.json
@@ -319,12 +322,117 @@ config/run-secrets-dev.json
 config/run-secrets-dev.yaml
 ```
 
+### Automatic configuration
+
+There are some special settings that are automatically set by the
+framework when the configuration is initialized:
+
+- `fs`: The file system subtree, contains entries for the main project
+  subdirectories (`root` which points to the project root directory,
+  `bin`, `lib`, `config`, `default`, `input`, `work`, `output` and
+  `actions`).
+
+- `env`: The deployment environment
+
+- `logging.level`: The logging level.
+
+All those entries can be overriden in the configuration files.
 
 ### Python usage
 
+The configuration is exposed through the `plpipes.cfg` object.
+
+It works as a dictionary which accepts dotted entries as keys. For
+instance:
+
+```
+from plpipes import cfg
+print(f"Project root dir: {cfg['fs.root']}")
+```
+
+A subtree view can be created using the `cd` method:
+
+```
+cfs = cfg.cd('fs')
+print(f"Project root dir: {cfs['root']}")
+```
+
+Most dictionary methods work as expected. For instance it is possible
+to mutate the configuration or to set defaults:
+
+```
+cfg["my.conf.key"] = 7
+cfg.setdefault("my.other.conf.key", 8)
+```
+
+Though note that configuration changes are not backed to disk.
+
 ### Initialization
 
+The method `init` of the module `plpipes.init` is the one in charge of
+populating the `cfg` object and should be called explicitly in scripts
+that want to use the configuration module without relying in other
+parts of the framework.
+
+`plpipes.init.init` is where the set of files to be loaded based on
+the stem and on the deployment environment is calculated and where
+they are loaded into the configuration object.
+
+[Automatic configuration](#Automatic-configuration) is also performed by
+this method.
+
+When using the standard `plpipes` runner (usually via the `run.py`
+script), `plpipes.init.init` is called automatically under the hood
+and should not be called again from user code.
+
 ## Database
+
+`plpipes` provides a simple way to declare and use multiple database
+connections and a set of shortcuts for simplifying some procedures
+common in a Data Science context (i.e. running a query and getting
+back a DataFrame or creating a new table from a DataFrame).
+
+### Default database
+
+One of the key points of the framework is that a locally stored
+[DuckDB](https://duckdb.org/) database is always available for usage
+with zero setup work.
+
+Also, as most things in PLPipes, that default database (AKA as `work`
+database) is also configurable, so for instance, it can be changed to
+be a PostgreSQL one running in AWS for the production environment or
+to use a SQLite one because of its GIS support or whatever.
+
+### Database configuration
+
+Database configuration goes under the `db.instance` subtree where the
+different database connections can be defined.
+
+For instance, a `input` database connection backed by a SQL Server
+database runnign in Azure can be declared as follows:
+
+```
+db:
+  instance:
+    input:
+      driver: odbc
+      odbc_driver: "{ODBC Driver 18 for SQL Server}"
+      server: my-sql-server.database.windows.net
+      database: customer-db
+      user: predictland
+```
+
+#### Database driver configuration
+
+
+
+
+### Database usage
+
+
+
+
+
 
 ## Actions
 
