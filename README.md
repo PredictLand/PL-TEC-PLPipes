@@ -82,7 +82,7 @@ automatically is planed).
   [Actions](#Actions) mechanism available through `run.py` is the
   preferred way to organise the project operations.
 
-* `actions`: Action definitions. See [Actions](#Actions) bellow.
+* `actions`: Action definitions. See [Actions](#Actions) below.
 
 * `notebooks` (optional): Jupyter notebooks go here
 
