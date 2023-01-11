@@ -93,8 +93,6 @@ def main(args=None):
     if opts.debug:
         config_extra.append({"logging.level": "debug"})
 
-    # print(f"actions {opts.action}")
-
     plpipes.init.init(*config_extra, config_files=opts.config)
 
     sys.path.append(plpipes.config.cfg["fs.lib"])

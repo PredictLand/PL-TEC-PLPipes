@@ -10,7 +10,6 @@ import plpipes.init
 import plpipes.config
 import plpipes.database
 
-
 @magics_class
 class PLPipesMagics(Magics):
 
