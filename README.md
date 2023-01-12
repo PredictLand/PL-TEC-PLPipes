@@ -382,9 +382,9 @@ they are loaded into the configuration object.
 [Automatic configuration](#Automatic-configuration) is also performed by
 this method.
 
-When using the standard `plpipes` runner (usually via the `run.py`
-script), `plpipes.init.init` is called automatically under the hood
-and should not be called again from user code.
+When using the standard `plpipes` [runner](#Runner) (usually via the
+`run.py` script), `plpipes.init.init` is called automatically under
+the hood and should not be called again from user code.
 
 ## Database
 
