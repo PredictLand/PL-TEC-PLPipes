@@ -588,6 +588,32 @@ or for using other `SQLAlchemy` methods not directly wrapped by
 
 ## Runner
 
+The purpose of the runner is to offer a unified entry point for the
+project actions and pipelines.
+
+It extracts information from a set of environment variables and also
+parsers command line arguments in a standard way that is identical for
+all the projects using it.
+
+### Command line arguments
+
+The accepted command line arguments are as follow:
+
+- `-d`, `--debug`: Sets the logging level to debug.
+
+- `-c file`, `--config file`: Reads configuration settings from the
+  given file.
+
+- `-s key=value`, `--set key=value`: sets the given configuration. For
+  instance: `-s fs.output=/var/storage/ai-output`.
+
+- `-S key=value, --set-json key=value`: parses the given value as JSON
+  an sets the related configuration entry.
+
+- `-e env`, `--env env`: defined the deployment environment.
+
+- `action1 action2 ...`: set of actions to execute.
+
 ### Environment variables
 
 The following environment variables can be used to configure the framework:
@@ -600,9 +626,24 @@ The following environment variables can be used to configure the framework:
 * `PLPIPES_LOGLEVEL`: The default log level (`debug`, `info`,
   `warning` or `error`).
 
+
+### Under the hood
+
+The runner has two parts. The little `run.py` script that is just a
+wrapper for `plpipes.runner.main`. and the later which is the real
+thing!
+
+`run.py` is required because `plpipes` uses that program path to
+locate the project root directory and the rest of the files.
+
+
 ## Logging
 
+Python standard logging framework is instantiated by the framework and
+can be used directly from actions code.
 
+If you need some particular configuration not yet supported, just ask
+for it!
 
 # Jupyter integration
 
