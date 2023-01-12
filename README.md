@@ -77,7 +77,7 @@ depending on the deployment environment, the configuration, command
 line arguements, etc.
 
 Another key concept of PLPipes is that a relational
-[**database](#Database) is used to pass information between actions
+[**database**](#Database) is used to pass information between actions
 (alternatively the file system can be used, but the database is
 preferred).
 
