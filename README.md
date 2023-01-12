@@ -92,7 +92,7 @@ of actions that use a relational database to store intermediate data
 and we use a standardized python script to get everything running.
 
 Finally other of the key features available from PLPipes is a powerful
-[configuration](#Configuration).
+[configuration](#Configuration) system.
 
 # Project Setup
 
@@ -456,13 +456,13 @@ db:
 ```
 
 The `db.instance.driver` is used to find out which driver to use to
-stablish the connection. The remaining configuratin entries are driver
-specific and as follow:
+stablish the connection. The remaining configuration entries are
+driver specific and as follow:
 
 #### DuckDB configuration
 
 - `file`: name of the database file. Defaults to
-  `$instance_name.duckdb`.
+  `{instance_name}.duckdb`.
 
 If the instance is named `input` or `output`, the database file is
 placed inside the matching directory (for instance,
@@ -615,10 +615,10 @@ your notebook:
 
 ```
 %load plpipes.jupyter
-%plpipes $stem
+%plpipes {stem}
 ```
 
-Where `$stem` is the name used as the main key when looking for
+Where `{stem}` is the name used as the main key when looking for
 configuration files (defaults to `jupyter`).
 
 In order to find the project configuration, the extension looks into
