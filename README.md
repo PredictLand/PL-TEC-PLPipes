@@ -87,7 +87,7 @@ able to handle command line arguments, configuration files and
 environment variables in a unified way.
 
 In summary, when using PLPipes, instead of a bunch of scripts, every
-one doing something different, we have a set of pipelines build on top
+one doing something different, we have a set of pipelines built on top
 of actions that use a relational database to store intermediate data
 and we use a standardized python script to get everything running.
 
