@@ -818,7 +818,7 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
 
   Then, inside the model training, we could have still some data
   manipulation actions in order to adapt the generic gold format to
-  what the requirements of the specific model, then an action that
+  the format required by the specific model, then an action that
   trains and saves the model to disk and finally some action that
   calculates some KPIs.
 
