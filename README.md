@@ -64,9 +64,39 @@ Python package.
 
 # Overview
 
+So, how is the typical PLPipes project?
+
+PLPipes projects are organized around [**actions**](#Actions) which
+can be considered as atomit units of work. Examples of actions are
+downloading a file, transforming some data or training a model.
+
+Actions are grouped in sequences to create data processing
+pipelines. Several pipelines can be defined inside one project, and it
+is even possible to change which actions form a pipeline dynamically
+depending on the deployment environment, the configuration, command
+line arguements, etc.
+
+Another key concept of PLPipes is that a relational
+[**database](#Database) is used to pass information between actions
+(alternatively the file system can be used, but the database is
+preferred).
+
+The pipelines are launched by the [**runner**](#Runner), which is
+nothing else than a Python script that calls into `plpipes` and is
+able to handle command line arguments, configuration files and
+environment variables in a unified way.
+
+In summary, when using PLPipes, instead of a bunch of scripts, every
+one doing something different, we have a set of pipelines build on top
+of actions that use a relational database to store intermediate data
+and we use a standardized python script to get everything running.
+
+Finally other of the key features available from PLPipes is a powerful
+[configuration](#Configuration).
+
 # Project Setup
 
-This is how to setup a PLPipes project from scratch.
+This chapter describes how to set up a PLPipes project from scratch.
 
 PLPipes is quite configurable and most of its workings can be changed
 and redefined, but that doesn't preclude it from offering some sane
