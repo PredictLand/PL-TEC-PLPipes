@@ -508,7 +508,8 @@ df = query("select * from order when date >= '2018-01-01'", db="input")
 create_table('recent_orders', df, db="output")
 ```
 
-A list of the most common methods follows:
+A list of the most commonly used functions from `plpipes.database`
+follows:
 
 ##### `query`
 
