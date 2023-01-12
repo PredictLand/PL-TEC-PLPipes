@@ -586,7 +586,7 @@ or for using other `SQLAlchemy` methods not directly wrapped by
 
 ## Actions
 
-Actions are the atomic units of work that when combined allow on to
+Actions are the atomic units of work that when combined allow one to
 perform the tasks required by the project.
 
 They are defined inside the `actions` directory in a hierarchical way.
