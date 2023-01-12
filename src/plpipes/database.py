@@ -216,7 +216,7 @@ group by {', '.join(by)}
 
 class _ODBCDriver(_Driver):
     def __init__(self, name, drv_cfg):
-        connection_string = f"driver={drv_cfg['driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
+        connection_string = f"driver={drv_cfg['odbc_driver']};Server={drv_cfg['server']};Database={drv_cfg['database']};UID={drv_cfg['user']};PWD={drv_cfg['pwd']}"
         url = sqlalchemy.engine.URL.create("mssql+pyodbc",
                                            query={"odbc_connect": connection_string})
 
@@ -247,9 +247,6 @@ def query(sql, db=None, **parameters):
 
 def execute(sql, db=None, **parameters):
     lookup(db).execute(sql, parameters)
-
-def commit(db=None):
-    lookup(db).commit()
 
 def create_table(table_name, sql_or_df, db=None, if_exists="replace", **parameters):
     dbh = lookup(db)
