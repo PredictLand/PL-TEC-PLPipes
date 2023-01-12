@@ -422,16 +422,131 @@ db:
       user: predictland
 ```
 
-#### Database driver configuration
+The `db.instance.driver` is used to find out which driver to use to
+stablish the connection. The remaining configuratin entries are driver
+specific and as follow:
 
+#### DuckDB configuration
 
+- `file`: name of the database file. Defaults to
+  `$instance_name.duckdb`.
 
+If the instance is named `input` or `output`, the database file is
+placed inside the matching directory (for instance,
+`input/input.duckdb`).
+
+Otherwise it is placed in the `work` directory (example:
+`work/other.duckdb`).
+
+#### SQLite configuration
+
+Works in exactly the same way as DuckDB but using `sqlite` as the
+database file extension.
+
+#### ODBC configuration
+
+*ODBC is a WIP yet!*
+
+- `odbc_driver`: ODBC driver name
+- `server`
+- `database`
+- `user`
+- `pwd`
+
+#### Other databases configuration
+
+*Not implemented yet, but just ask for them!!!*
 
 ### Database usage
 
+`plpipes.database` provides a set of functions for accessing the
+databases declared in the configuration.
 
+Most of the functions provided accept an optional `db` argument, for
+selecting the database instance. When `db` is ommited, `work` is used
+as the default.
 
+For example:
 
+```
+from pipipes.database import query, create_table
+
+df = query("select * from order when date >= '2018-01-01'", db="input")
+create_table('recent_orders', df, db="output")
+```
+
+A list of the most common methods follows:
+
+##### `query`
+
+```
+query(sql, db='work', **parameters)
+```
+
+Submits the query to the database and return a pandas dataframe as the result.
+
+*We are currently considering whether using pandas as the default
+output format is a good idea*
+
+### `read_table`
+
+```
+read_table(table_name, db="work")
+```
+
+Reads the contents of the table as a dataframe.
+
+#### `execute`
+
+```
+execute(sql, db='work', **parameters)
+```
+Runs a SQL sentence that does not generate a result set.
+
+#### `execute_script`
+
+```
+execute_script(sql_script, db='work')
+```
+
+Runs a sequence of SQL sentences.
+
+*This method is currently only implemented by the SQLite backend.*
+
+#### `create_table`
+
+```
+create_table(table_name, df, db="work",
+             if_exists="replace")
+
+create_table(table_name, sql, db="work",
+             if_exists="replace,
+             **parameters")
+```
+
+This method can be used to create a new table both from a dataframe or
+from a SQL sentence.
+
+#### `engine`
+
+```
+engine(db='work')
+```
+
+Returns the underlying `SQLAlchemy` object representing the engine
+(useful for integrating `plpipes` with other frameworks).
+
+#### `connection`
+
+```
+connection(db='work')
+```
+
+Returns a SQLAlchemy connection (created by `begin`).
+
+Also useful for integrating `plpipes` with other third party modules
+or for using other `SQLAlchemy` methods not directly wrapped by
+`plpipes`.
 
 
 ## Actions
