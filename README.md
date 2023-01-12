@@ -488,7 +488,7 @@ Submits the query to the database and return a pandas dataframe as the result.
 *We are currently considering whether using pandas as the default
 output format is a good idea*
 
-### `read_table`
+#### `read_table`
 
 ```
 read_table(table_name, db="work")
