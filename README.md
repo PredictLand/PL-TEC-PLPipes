@@ -796,8 +796,8 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
 
 * *How should I break my program into actions?*
 
-  Well, the truth is We are still at the point of learning about how
-  is the best way to structure a data science project around actions!
+  Well, the truth is we are still learning about how are the best ways
+  to structure data science projects around actions!
 
   Tipically, there are three clear parts in a Data Science project:
 
