@@ -601,7 +601,7 @@ Inside this configuration file the action type must be declared using
 the `type` setting. For instance:
 
 ```
-type: bewitch
+type: python_script
 ```
 
 Alternatively, `plpipes` can autodetect an action type when it finds a
@@ -609,6 +609,92 @@ file with the action name and some recognized extension (for example,
 `model_training.py`). In that case the configuration file is not
 required.
 
+The list of currently supported action types follows:
+
+### `python_script`
+
+Extension: `.py`
+
+The python code in the file is executed.
+
+The following objects are directly available in the script:
+
+- `plpipes`: the main `plpipes` package.
+
+- `cfg`: the configuration object.
+
+- `action_cfg`: the action configuration (read from the action yaml
+  file or from the global configuration).
+
+- `db`: a shortcut for the `plpipes.database` package.
+
+### `sql_script`
+
+Extension `.sql`
+
+Runs the SQL sentences in the action file agains the `work` database.
+
+The SQL code is preprocessed using
+[Jinja](https://jinja.palletsprojects.com/en/3.1.x/). That feature can
+be used to for instance, set values from the configuration:
+
+```
+CREATE TABLE foo AS
+SELECT * FROM bar
+WHERE data >= "{{ cfg["data.limits.date.low.cutoff"] }}"
+```
+
+*Currently this action type is only supported when `work` is backed by
+a SQLite database.*
+
+### `sql_table_creator`
+
+Extension `.table.sql`
+
+Runs the SQL query in the file and stores the output data frame in a
+new table with the name of the action.
+
+Jinja is also used to preprocess the SQL statement.
+
+### `qrql_script`
+
+Extension: `.prql`
+
+[PRQL](https://prql-lang.org/) (Pipelined Relational Query Language)
+is an alternative query language for relational databases.
+
+This action runs the PRQL sentences in the file against the `work`
+database.
+
+Jinja is used to preprocess the PRQL statement.
+
+*Currently this action type is only supported when `work` is backed up
+by a SQLite database.*
+
+### `qrql_table_creator`
+
+Runs the PRQL query in the file and stores the output data frame in a
+new table with the name of the action.
+
+Jinja is also used to preprocess the PRQL statement.
+
+### `sequence`
+
+Runs a set of actions in sequence.
+
+The list of actions to be run are declared as an array under the
+`sequence` setting.
+
+Relative action names (starting by a dot) are also accepted.
+
+Example `yaml` configuration:
+
+```
+type: sequence
+sequence:
+    - .bar
+    - miau.gloglo
+```
 
 ## Runner
 
