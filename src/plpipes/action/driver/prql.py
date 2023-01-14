@@ -10,6 +10,7 @@ class _PrqlTemplated:
 
     def _read_and_render_sql_template(self, fn):
         prql_code = super()._read_and_render_sql_template(fn)
+        import prql
         return prql.to_sql(prql_code)
 
 class _PrqlTableCreator(_PrqlTemplated, _SqlTableCreator):
