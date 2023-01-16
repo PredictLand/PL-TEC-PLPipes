@@ -32,6 +32,14 @@ class _SqlTableCreator(_SqlTemplated):
         from plpipes.database import create_table
         create_table(self.short_name(), sql_code)
 
+class _SqlViewCreator(_SqlTemplated):
+    def _source_fn(self):
+        return self._cfg["files.view_sql"]
+
+    def _run_sql(self, sql_code):
+        from plpipes.database import create_table
+        create_view(self.short_name(), sql_code)
+
 class _SqlRunner(_SqlTemplated):
     def _source_fn(self):
         return self._cfg["files.sql"]
@@ -42,3 +50,4 @@ class _SqlRunner(_SqlTemplated):
 
 register_class("sql_script", _SqlRunner, "sql")
 register_class("sql_table_creator", _SqlTableCreator, "table_sql", "table.sql")
+register_class("sql_view_creator", _SqlViewCreator, "view_sql", "view.sql")

@@ -78,15 +78,23 @@ class _Driver:
         self._create_table_from_polars(table_name, df.collect(), None, if_exists)
 
     def _drop_table_if_exists(self, table_name):
-        drop_sql = f"drop table if exists {table_name}"
-        logging.debug(f"database create table from sql drop code: {repr(drop_sql)}")
-        self.execute(drop_sql)
+        self.execute(f"drop table if exists {table_name}")
+
+    def _drop_view_if_exists(self, view_name):
+        self.execute(f"drop view if exists {view_name}")
 
     def _create_table_from_sql(self, table_name, sql, parameters, if_exists):
         if if_exists=="replace":
             self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
         logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
+        self.execute(create_sql, parameters)
+
+    def _create_view_from_sql(self, view_name, sql, parameters, if_exists):
+        if if_exists=="replace":
+            self._drop_view_if_exists(view_name)
+        create_sql = f"create view {view_name} as {sql}"
+        logging.debug(f"database create view from sql code: {repr(create_sql)}, parameters: {parameters}")
         self.execute(create_sql, parameters)
 
     def create_table_from_schema(self, table_name, schema, if_exists):
@@ -256,6 +264,9 @@ def create_table(table_name, sql_or_df, db=None, if_exists="replace", **paramete
         raise ValueError(f"Unsupported DataFrame type {type(sql_or_df)}")
     method = getattr(dbh, method_name)
     method(table_name, sql_or_df, parameters, if_exists)
+
+def create_view(view_name, sql, db=None, if_exists="replace", **parameters):
+    lookup(db).create_view_from_sql(view_name, sql, parameters, if_exists)
 
 def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
     return lookup(db).create_table_from_schema(table_name, schema, if_exists=if_exists)

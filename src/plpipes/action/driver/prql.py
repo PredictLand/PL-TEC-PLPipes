@@ -17,10 +17,14 @@ class _PrqlTableCreator(_PrqlTemplated, _SqlTableCreator):
     def _source_fn(self):
         return self._cfg["files.table_prql"]
 
+class _PrqlViewCreator(_PrqlTemplated, _SqlViewCreator):
+    def _source_fn(self):
+        return self._cfg["files.view_prql"]
+
 class _PrqlRunner(_PrqlTemplated, _SqlRunner):
     def _source_fn(self):
         return self._cfg["files.prql"]
 
 register_class("prql_script", _PrqlRunner, "prql")
 register_class("prql_table_creator", _PrqlTableCreator, "table_prql", "table.prql")
-
+register_class("prql_view_creator", _PrqlTableCreator, "view_prql", "view.prql")
