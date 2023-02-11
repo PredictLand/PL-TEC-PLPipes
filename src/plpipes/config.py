@@ -1,5 +1,6 @@
 
 import yaml
+import json
 import logging
 import sys
 import re
@@ -56,6 +57,9 @@ class _Ptr(collections.abc.MutableMapping):
     def to_tree(self, key=""):
         return self._stack._top._to_tree(self._mkkey(key))
 
+    def to_json(self, key=""):
+        return json.dumps(self.to_tree(key))
+
     def merge(self, tree, key="", frame=0):
         return self._stack._top._merge(self._mkkey(key), tree, frame)
 
@@ -84,6 +88,15 @@ class _Ptr(collections.abc.MutableMapping):
 
     def __str__(self):
         return str(self._stack._top._to_tree(""))
+
+    def copydefaults(self, src, *keys, **keys_with_default):
+        for key in keys:
+            if key not in self:
+                self[key] = src[key]
+        for key, default in keys_with_default.items():
+            if key not in self:
+                self[key] = src.get(key, default)
+
 
 def _merge_any(tree, new):
     if isinstance(new, dict):
