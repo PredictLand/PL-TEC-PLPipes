@@ -1,7 +1,6 @@
 from plpipes.config import cfg
 
 import plpipes.cloud.azure.auth
-# from msgraph.core import GraphClient
 from dateutil.parser import isoparse as __dt
 import json
 import pathlib
@@ -10,7 +9,18 @@ import httpx
 import os
 import time
 
-GRAPH_URL = "https://graph.microsoft.com/v1.0"
+from plpipes.exceptions import CloudFSError, CloudAccessError
+
+_GRAPH_URL = "https://graph.microsoft.com/v1.0"
+
+_TRANSITORY_HTTP_CODES = {
+    httpx.codes.REQUEST_TIMEOUT,
+    httpx.codes.TOO_MANY_REQUESTS,
+    httpx.codes.INTERNAL_SERVER_ERROR,
+    httpx.codes.BAD_GATEWAY,
+    httpx.codes.SERVICE_UNAVAILABLE,
+    httpx.codes.GATEWAY_TIMEOUT
+}
 
 _graph_registry = {}
 _fs_registry = {}
@@ -43,6 +53,7 @@ def graph(account_name):
     return _graph_registry[account_name]
 
 def _init_graph(account_name):
+    from msgraph.core import GraphClient
     graph = GraphClient(credential=_cred(account_name))
     _graph_registry[account_name] = graph
 
@@ -69,13 +80,14 @@ class _Node:
         e = self
         parts = [x
                  for x in path.split("/")
-                 if x != '' ]
+                 if x != '']
         for ix, p in enumerate(parts):
             try:
                 e = e._go(p)
-            except:
-                logging.exception(f"Unable to go into {'/'.join(parts[0:(1+ix)])}")
-                raise
+            except Exception as ex:
+                msg = f"Unable to go into {path}"
+                logging.exception(msg)
+                raise CloudFSError(msg) from ex
         return e
 
     def __str__(self):
@@ -107,18 +119,18 @@ class _DirNode(_Node):
     def is_dir(self):
         return True
 
-    def _rget(self, dest=None, dir=None, fn=None, **kwargs):
+    def _rget(self, dest=None, dir=None, name=None, **kwargs):
         if dest is None:
             if dir is None:
                 dir = cfg["fs.work"]
-            if fn is None:
-                fn = pathlib.Path(self._path).name
-            dest = pathlib.Path(dir) / fn
+            if name is None:
+                name = pathlib.Path(self._path).name
+            dest = pathlib.Path(dir) / name
         else:
             dest = pathlib.Path(dest)
         dest.mkdir(parents=True, exist_ok=True)
         for name, child in self.ls().items():
-            child._rget(dir=dest, fn=name, **kwargs)
+            child._rget(dir=dest, name=name, **kwargs)
 
 class _SyntheticNode:
     def is_remote(self):
@@ -136,7 +148,7 @@ class _RemoteNode:
             self.modified = _dt(res.get("lastModifiedDateTime"))
             self._res = res
         self._drive = drive
-        logging.info(f"node initialized from {json.dumps(res)}")
+        logging.debug(f"node initialized from {json.dumps(res)}")
 
     def _is_remote(self):
         return True
@@ -183,14 +195,15 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
         self._fs._get_to_file(self._url("/content"), path, follow_redirects=True, **kwargs)
         os.utime(path, (time.time(), self.modified.timestamp()))
 
-    def _get(self, dest=None, dir=None, fn=None, **kwargs):
+    def _get(self, dest=None, dir=None, name=None, **kwargs):
         if dest is None:
-            if fn is None:
+            if name is None:
                 dir = cfg["fs.work"]
-            if fn is None:
-                fn = pathlib.Path(self._path).name
-            dest = pathlib.Path(dir) / fn
+            if name is None:
+                name = pathlib.Path(self._path).name
+            dest = pathlib.Path(dir) / name
         self._get_to_file(dest, **kwargs)
+        logging.info(f"File {self._path} copied to {dest}")
 
     def _rget(self, **kwargs):
         self._get(**kwargs)
@@ -213,9 +226,10 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
             if k in res:
                 try:
                     return klass(self._fs, self._path / name, res, self._child_drive())
-                except:
-                    logging.exception(f"Unable to instantiate object of type {klass}")
-                    raise
+                except Exception as ex:
+                    msg = f"Unable to instantiate object of type {klass}"
+                    logging.exception(msg)
+                    raise CloudFSError(msg) from ex
         print(json.dumps(res, indent=True))
         raise Exception(f"Unknown remote entry type {json.dumps(res)}")
 
@@ -227,7 +241,6 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         return {v["name"]: v for v in r["value"]}
 
 class _FolderNode(_RemoteDirNode):
-
     _child_classes = {'folder': _FolderNode,
                       'file': _RemoteFileNode}
 
@@ -344,10 +357,9 @@ class _FS:
                 time.sleep(delay)
             try:
                 res = self._send_raw('GET', url, stream=True, max_retries=1, **kwargs)
-                logging.warn(f"copying response body from {res}")
+                logging.debug(f"copying response body from {res}")
                 with open(path, "wb") as f:
                     for chunk in res.iter_bytes():
-                        logging.warn(f"{len(chunk)} bytes read")
                         if len(chunk) > 0:
                             f.write(chunk)
                 return True
@@ -362,10 +374,11 @@ class _FS:
     def _send_raw(self, method, url, headers={},
                   data=None, content=None, timeout=None,
                   max_retries=None, stream=False,
+                  accepted_codes=None,
                   follow_redirects=False, **kwargs):
         headers = {**headers, "Authorization": f"Bearer {self._token}"}
         if url.startswith("/"):
-            url = f"{GRAPH_URL}{url}"
+            url = f"{_GRAPH_URL}{url}"
         if data is not None:
             content = json.dumps(data)
             headers["Content-Type"] = "application/json"
@@ -380,24 +393,36 @@ class _FS:
                                          **kwargs)
 
         res = None
-        for i in range(max_retries):
-            if i:
+        attempt = 0
+        while True:
+            attempt += 1
+            if attempt > 1:
                 delay = cfg.setdefault("net.http.retry_delay", 2)
                 time.sleep(delay)
             try:
                 res = self._client.send(req, stream=stream, follow_redirects=follow_redirects)
-            except httpx.RequestError:
-                if i + 1 == max_retries:
-                    raise
+            except httpx.RequestError as ex:
+                if attempt < max_retries:
+                    continue
+                raise CloudFSError(f"HTTP call {method} {url} failed") from ex
+
+            code = res.status_code
+            if accepted_codes is None:
+                if code < 300:
+                    return res
             else:
-                if res.status_code < 400:
-                    logging.debug(f"HTTP {method} {url} --> {res.status_code}, attempt {i+1}")
+                if code in accepted_codes:
                     return res
 
-                logging.warning(f"HTTP {method} {url} --> {res.status_code}")
-                logging.debug(f"Full response: headers: {res.headers}, body: {res.text}")
+            msg = f"HTTP call {method} {url} failed with code {code}"
+            if code in _TRANSITORY_HTTP_CODES and attempt < max_retries:
+                logging.warn(f"{msg}, retrying (attempt: {attempt}")
+                continue
 
-                if res.status_code not in _transitory_http_codes:
-                    break
+            if code == 403:
+                msg = f"Access to {url} forbidden"
+                logging.error(msg)
+                raise CloudAccessError(msg)
 
-        res.raise_for_status()
+            logging.error(msg)
+            raise CloudFSError(msg)
