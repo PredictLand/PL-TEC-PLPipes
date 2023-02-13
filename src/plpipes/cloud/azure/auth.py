@@ -3,6 +3,8 @@ from azure.identity import InteractiveBrowserCredential, TokenCachePersistenceOp
 import pathlib
 import logging
 
+from plpipes.exceptions import AuthenticationError
+
 _registry = {}
 
 def credentials(account_name):
@@ -24,10 +26,12 @@ def _authenticate(account_name):
         logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
         ar = None
 
+    expected_user = acfg.get("username")
     redirect_uri = f"http://localhost:{acfg['authentication_callback_port']}"
     cred = InteractiveBrowserCredential(tenant_id=acfg["tenant_id"],
                                         client_id=acfg["client_id"],
                                         client_credential=acfg["client_secret"],
+                                        login_hint=expected_user,
                                         redirect_uri=redirect_uri,
                                         cache_persistence_options=TokenCachePersistenceOptions(),
                                         authentication_record=ar)
@@ -38,6 +42,8 @@ def _authenticate(account_name):
             scopes = " ".join(scopes)
 
         ar = cred.authenticate(scopes)
+        if expected_user not in (None, ar.username):
+            AuthenticationError(f"Authenticating as user {expected_user} expected but {ar.username} found!")
         try:
             with open(ar_fn, "wb") as f:
                 f.write(ar.serialize())
