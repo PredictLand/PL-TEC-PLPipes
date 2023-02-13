@@ -20,7 +20,7 @@ def _authenticate(account_name):
                       authentication_callback_port=8282)
     ar_fn = pathlib.Path.home() / f".config/plpipes/cloud/azure/auth/{account_name}.json"
     try:
-        with open(ar_fn, "rb") as f:
+        with open(ar_fn, "r") as f:
             ar = AuthenticationRecord.deserialize(f.read())
     except:
         logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
@@ -38,18 +38,22 @@ def _authenticate(account_name):
 
     if "scopes" in acfg:
         scopes = acfg["scopes"]
-        if not isinstance(scopes, str):
-            scopes = " ".join(scopes)
+        if isinstance(scopes, str):
+            scopes = scopes.split(" ")
 
-        ar = cred.authenticate(scopes)
+        logging.debug("Calling authenticate(scopes={scopes})")
+        ar = cred.authenticate(scopes=scopes)
+
         if expected_user not in (None, ar.username):
             AuthenticationError(f"Authenticating as user {expected_user} expected but {ar.username} found!")
         try:
-            with open(ar_fn, "wb") as f:
+            logging.debug(f"Saving authentication record to {ar_fn}")
+            ar_fn.parent.mkdir(parents=True, exist_ok=True)
+            with open(ar_fn, "w") as f:
                 f.write(ar.serialize())
         except:
-            logging.exception("Unable to save authentication record for {account_name} at {ar_fn}")
+            logging.warning(f"Unable to save authentication record for {account_name} at {ar_fn}", exc_info=True)
     else:
-        logging.warning("'{cfg_path}.scopes' not configured, credentials for {account_name} are not going to be cached!")
+        logging.warning(f"'{cfg_path}.scopes' not configured, credentials for {account_name} are not going to be cached!")
 
     _registry[account_name] = cred

@@ -25,7 +25,8 @@ dependencies = [
     "SQLAlchemy >=1.4",
     "polars >=0.15",
     "pyarrow >=10.0",
-    "prql-python >=0.3"
+    "prql-python >=0.3",
+    "httpx >=0.23"
 ]
 
 [project.optional-dependencies]
@@ -37,4 +38,13 @@ jupyter = [
     "jupyterlab >=1.0",
     "pyprql >=0.5",
     "ipython-sql >=0.4"
+]
+
+azure = [
+    "azure-identity",
+]
+
+msgraph = [
+    "azure-identity",
+    "ms-graph-client"
 ]

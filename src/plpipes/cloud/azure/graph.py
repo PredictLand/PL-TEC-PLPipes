@@ -96,10 +96,10 @@ class _Node:
                           if k not in ('_fs')])
         return f"{type(self).__name__[1:]}({attr})"
 
-    def get(self, path, **kwargs):
+    def get(self, path="", **kwargs):
         self.go(path)._get(**kwargs)
 
-    def rget(self, path, **kwargs):
+    def rget(self, path="", **kwargs):
         self.go(path)._rget(**kwargs)
 
     def _get(self, **_):
@@ -241,13 +241,15 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         return {v["name"]: v for v in r["value"]}
 
 class _FolderNode(_RemoteDirNode):
-    _child_classes = {'folder': _FolderNode,
-                      'file': _RemoteFileNode}
+    _child_classes = {}
 
     def _init_remote(self, res, drive=None):
         super()._init_remote(res, drive)
         if res:
             self.child_count = res.get("folder", {}).get("childCount", 0)
+
+_FolderNode._child_classes['folder'] = _FolderNode
+_FolderNode._child_classes['file'] = _RemoteFileNode
 
 class _MeNode(_FolderNode):
     def __init__(self, fs, path):

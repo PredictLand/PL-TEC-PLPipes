@@ -883,7 +883,7 @@ methods:
 - `is_file()` and `is_dir()`: Determines where the current file system
   object is pointing to a file or a directory respectively.
 
-- `get(path, dest=None, dir=None, name=None)`: downloads the remote
+- `get(path="", dest=None, dir=None, name=None)`: downloads the remote
   object pointed by the current file system object.
 
   When `dest` is given it is used as the local destination path.
@@ -893,7 +893,7 @@ methods:
   path. `name` defaults to the remote file name. `dir` defaults to the
   working directory (i.e. `cfg['fs.work']`).
 
-- `rget(path, dest=None, dir=None, name=None)`: recursively downloads
+- `rget(path="", dest=None, dir=None, name=None)`: recursively downloads
   the remote object (typically a directory) to the current file
   system.
 
