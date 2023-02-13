@@ -1,7 +1,7 @@
 from plpipes.config import cfg
 
 import plpipes.cloud.azure.auth
-#from msgraph.core import GraphClient
+# from msgraph.core import GraphClient
 from dateutil.parser import isoparse as __dt
 import json
 import pathlib
@@ -27,7 +27,7 @@ def _dt(t):
         logging.exception(f"Unable to parse datetime {t}")
 
 def _cred(account_name):
-    if not account_name in _cred_registry:
+    if account_name not in _cred_registry:
         _init_cred(account_name)
     return _cred_registry[account_name]
 
@@ -38,7 +38,7 @@ def _init_cred(account_name):
     _cred_registry[account_name] = plpipes.cloud.azure.auth.credentials(creds_account_name)
 
 def graph(account_name):
-    if not account_name in _graph_registry:
+    if account_name not in _graph_registry:
         _init_graph(account_name)
     return _graph_registry[account_name]
 
@@ -47,7 +47,7 @@ def _init_graph(account_name):
     _graph_registry[account_name] = graph
 
 def fs(account_name):
-    if not account_name in _fs_registry:
+    if account_name not in _fs_registry:
         _init_fs(account_name)
     return _fs_registry[account_name].root()
 
@@ -67,9 +67,9 @@ class _Node:
 
     def go(self, path):
         e = self
-        parts = [ x
-                  for x in path.split("/")
-                  if x != '' ]
+        parts = [x
+                 for x in path.split("/")
+                 if x != '' ]
         for ix, p in enumerate(parts):
             try:
                 e = e._go(p)
@@ -79,9 +79,9 @@ class _Node:
         return e
 
     def __str__(self):
-        attr = ", ".join([ f"{k}={v}"
-                           for k, v in self.__dict__.items()
-                           if k not in ('_fs')])
+        attr = ", ".join([f"{k}={v}"
+                          for k, v in self.__dict__.items()
+                          if k not in ('_fs')])
         return f"{type(self).__name__[1:]}({attr})"
 
     def get(self, path, **kwargs):
@@ -159,7 +159,7 @@ class _SyntheticDirNode(_DirNode, _SyntheticNode):
     _child_classes = {}
 
     def ls(self):
-        return { k: self._go(k) for k in self._child_classes.keys() }
+        return {k: self._go(k) for k in self._child_classes.keys()}
 
     def _go(self, name):
         klass = self._child_classes[name]
@@ -177,8 +177,8 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
         self.update()
         if (not force_update and path.is_file()):
             st = path.stat()
-            if (st.st_mtime >= self.modified.timestamp() and
-                st.st_size == self.size):
+            if st.st_mtime >= self.modified.timestamp() and \
+               st.st_size == self.size:
                 return
         self._fs._get_to_file(self._url("/content"), path, follow_redirects=True, **kwargs)
         os.utime(path, (time.time(), self.modified.timestamp()))
@@ -205,8 +205,8 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         return self._res2node(name, self._list_children()[name])
 
     def ls(self):
-        return { name: self._res2node(name, value)
-                 for name, value in self._list_children().items() }
+        return {name: self._res2node(name, value)
+                for name, value in self._list_children().items()}
 
     def _res2node(self, name, res):
         for k, klass in self._child_classes.items():
@@ -228,8 +228,8 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
 
 class _FolderNode(_RemoteDirNode):
 
-    _child_classes = { 'folder': _FolderNode,
-                       'file'  : _RemoteFileNode }
+    _child_classes = {'folder': _FolderNode,
+                      'file': _RemoteFileNode}
 
     def _init_remote(self, res, drive=None):
         super()._init_remote(res, drive)
@@ -263,7 +263,7 @@ class _GroupNode(_FolderNode):
         return self
 
 class _GroupsNode(_RemoteDirNode):
-    _child_classes = { 'groupTypes': _GroupNode }
+    _child_classes = {'groupTypes': _GroupNode}
 
     def _children_url(self):
         return "/groups"
@@ -276,33 +276,34 @@ class _TeamNode(_RemoteDirNode):
     pass
 
 class _TeamsNode(_RemoteDirNode):
-    _child_classes = { 'id': _TeamNode }
+    _child_classes = {'id': _TeamNode}
 
     def _children_url(self):
         return "/teams"
 
 class _DrivesNode(_RemoteDirNode):
-    _child_classes = { 'folder': _DriveNode }
+    _child_classes = {'folder': _DriveNode}
 
 class _SiteNode(_DirNode):
-    _child_classes = { 'drives': _DrivesNode }
+    _child_classes = {'drives': _DrivesNode}
 
     def ls(self):
-        return { k: self._go(k) for k in self._child_classes.keys() }
+        return {k: self._go(k) for k in self._child_classes.keys()}
 
     def _child_drive(self):
         return self
 
 class _SitesNode(_RemoteDirNode):
-    _child_classes = { 'root': _SiteNode }
+    _child_classes = {'root': _SiteNode}
 
     def _children_url(self):
         return "/sites"
 
+
 class _RootNode(_SyntheticDirNode):
-    _child_classes = { 'me':     _MeNode,
-                       'sites':  _SitesNode,
-                       'groups': _GroupsNode }
+    _child_classes = {'me': _MeNode,
+                      'sites': _SitesNode,
+                      'groups': _GroupsNode}
 
 
 _transitory_http_codes = {
@@ -333,7 +334,7 @@ class _FS:
         r = self._get(url, **kwargs)
         print(json.dumps(r, indent=True))
 
-    def _get_to_file(self, url, path, max_retries = None, **kwargs):
+    def _get_to_file(self, url, path, max_retries=None, **kwargs):
         if max_retries is None:
             max_retries = cfg.setdefault("net.http.max_retries", 5)
         for i in range(max_retries):
@@ -362,19 +363,21 @@ class _FS:
                   data=None, content=None, timeout=None,
                   max_retries=None, stream=False,
                   follow_redirects=False, **kwargs):
-        headers = {**headers, "Authorization": f"Bearer {self._token}" }
+        headers = {**headers, "Authorization": f"Bearer {self._token}"}
         if url.startswith("/"):
             url = f"{GRAPH_URL}{url}"
         if data is not None:
             content = json.dumps(data)
-            headers["Content-Type"]="application/json"
+            headers["Content-Type"] = "application/json"
 
         if timeout is None:
             timeout = cfg.setdefault("net.http.timeout", 30)
         if max_retries is None:
             max_retries = cfg.setdefault("net.http.max_retries", 5)
 
-        req = self._client.build_request(method, url, headers=headers, content=content, timeout=timeout, **kwargs)
+        req = self._client.build_request(method, url, headers=headers,
+                                         content=content, timeout=timeout,
+                                         **kwargs)
 
         res = None
         for i in range(max_retries):
@@ -398,4 +401,3 @@ class _FS:
                     break
 
         res.raise_for_status()
-
