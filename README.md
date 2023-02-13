@@ -4,9 +4,9 @@ title: PLPipes - PredictLand Data Science Framework
 
 # Introduction
 
-PredicLand is a consultancy firm focused on Data Science and related
+PredictLand is a consultancy firm focused on Data Science and related
 fields, Data Analytics, AI and ML, Big Data, Data Engineering, etc. We
-work for custommers that range from small companies with just a few
+work for customers that range from small companies with just a few
 employees to big corporations and that requires us to be very flexible
 in the way we work as the platforms, IT systems and tools we can use
 in every project vary greatly.
@@ -20,7 +20,7 @@ not just a simple Database server... It is just our laptops, a git
 repository and maybe some Excel files with the data.
 
 So that's one way to think about PLPipes, a Data Science framework
-on the cheap, a poor-man Databricks replacemnent!
+on the cheap, a poor-man Databricks replacement!
 
 But even if that is true, we prefer to think of PLPipes as a **lean
 and very scalable framework**. Something that you can use to train
@@ -67,14 +67,14 @@ Python package.
 So, how is the typical PLPipes project?
 
 PLPipes projects are organized around [**actions**](#Actions) which
-can be considered as atomit units of work. Examples of actions are
+can be considered as atomic units of work. Examples of actions are
 downloading a file, transforming some data or training a model.
 
 Actions are grouped in sequences to create data processing
 pipelines. Several pipelines can be defined inside one project, and it
 is even possible to change which actions form a pipeline dynamically
 depending on the deployment environment, the configuration, command
-line arguements, etc.
+line arguments, etc.
 
 Another key concept of PLPipes is that a relational
 [**database**](#Database) is used to pass information between actions
@@ -121,7 +121,7 @@ automatically is planed).
 
   Other scripts can be placed here, but it should be noted that the
   [Actions](#Actions) mechanism available through `run.py` is the
-  preferred way to organise the project operations.
+  preferred way to organize the project operations.
 
 * `actions`: Action definitions. See [Actions](#Actions) below.
 
@@ -131,7 +131,7 @@ automatically is planed).
   [Configuration](#Configuration).
 
 * `defaults` (optional): Default configuration files go here (the
-  contents of this directory should be commited to git).
+  contents of this directory should be committed to git).
 
   The semantic distinction between `defaults` and `config` is
   something we are still considering and that may change.
@@ -146,7 +146,7 @@ automatically is planed).
 * `output` (optional): Final output files generated can go here.
 
 * `venv` (optional): Even if `plpipes` does not depend on it, we
-  recomend to use a virtual environment for the project whit that
+  recommend to use a virtual environment for the project whit that
   name.
 
 ## The main script
@@ -166,12 +166,12 @@ The Python module `plpipes` can be installed in two ways.
 
 ### Installing a packed version
 
-This is the way to install the module we recomend when you don't want
+This is the way to install the module we recommend when you don't want
 to contribute to the development of the framework and just want to use
 it.
 
 *Note that In practice, as `plpipes` is still in a very early
-development stage, that may not be a realistic asumption and you may
+development stage, that may not be a realistic assumption and you may
 be required to switch to the development version available from git
 quite soon!*
 
@@ -213,7 +213,7 @@ Hopefully, `plpipes` would be directly available from
 
 Alternatively you can modify your project main script to append
 the`src` directory to the module search path so that you don't need to
-set `PYTHONPATH` by hand everytime you start a new session.
+set `PYTHONPATH` by hand every time you start a new session.
 
 For instance:
 
@@ -245,7 +245,7 @@ Configuration data is structured in a global tree-like object which is
 initialized from data read from several files in sequence and from the
 command line.
 
-Both YAML and JSON files are supported (though, we recomended YAML
+Both YAML and JSON files are supported (though, we recommended YAML
 usage as it is usually easier to read by humans).
 
 When the same setting appears in several configuration files, the last
@@ -268,7 +268,7 @@ calculated based on two settings:
 
 - The deployment environment (`dev`, `pre`, `pro`, etc.): this can be
   set from the command line or using the environment variable
-  `PLPIPES_ENV` (see [Environment variables](#Environmen-variables)
+  `PLPIPES_ENV` (see [Environment variables](#Environment-variables)
   below). It defaults to `dev`.
 
 Also, there are two main directories where configuration files are
@@ -293,11 +293,11 @@ directories for files whose names follow the following rules:
    for instance, when loading the configuration from `run.py`, both
    `common.yaml` and `run.yaml` files would be taken into account.
 
-2. Secrets: files with a `-secrets` postfix are also loaded (for
+2. Secrets: files with a `-secrets` post-fix are also loaded (for
    instance, `common-secrets.yaml` and `run-secrets.yaml`).
 
 2. Environment: files with the deployment environment attached as a
-   postfix are also loaded (`run-dev.yaml` or `run-secrets-dev.yaml`).
+   post-fix are also loaded (`run-dev.yaml` or `run-secrets-dev.yaml`).
 
 Additionally two user-specific configuration files are
 considered. Those are expected to contain global configuration
@@ -360,7 +360,7 @@ config/run-secrets-dev.yaml
 There are some special settings that are automatically set by the
 framework when the configuration is initialized:
 
-- `fs`: The file system subtree, contains entries for the main project
+- `fs`: The file system sub-tree, contains entries for the main project
   subdirectories (`root` which points to the project root directory,
   `bin`, `lib`, `config`, `default`, `input`, `work`, `output` and
   `actions`).
@@ -369,7 +369,7 @@ framework when the configuration is initialized:
 
 - `logging.level`: The logging level.
 
-All those entries can be overriden in the configuration files.
+All those entries can be overridden in the configuration files.
 
 ### Python usage
 
@@ -383,7 +383,7 @@ from plpipes import cfg
 print(f"Project root dir: {cfg['fs.root']}")
 ```
 
-A subtree view can be created using the `cd` method:
+A sub-tree view can be created using the `cd` method:
 
 ```
 cfs = cfg.cd('fs')
@@ -438,11 +438,11 @@ to use a SQLite one because of its GIS support or whatever.
 
 ### Database configuration
 
-Database configuration goes under the `db.instance` subtree where the
+Database configuration goes under the `db.instance` sub-tree where the
 different database connections can be defined.
 
 For instance, a `input` database connection backed by a SQL Server
-database runnign in Azure can be declared as follows:
+database running in Azure can be declared as follows:
 
 ```
 db:
@@ -456,7 +456,7 @@ db:
 ```
 
 The `db.instance.driver` is used to find out which driver to use to
-stablish the connection. The remaining configuration entries are
+establish the connection. The remaining configuration entries are
 driver specific and as follow:
 
 #### DuckDB configuration
@@ -496,13 +496,13 @@ database file extension.
 databases declared in the configuration.
 
 Most of the functions provided accept an optional `db` argument, for
-selecting the database instance. When `db` is ommited, `work` is used
+selecting the database instance. When `db` is omitted, `work` is used
 as the default.
 
 For example:
 
 ```
-from pipipes.database import query, create_table
+from plpipes.database import query, create_table
 
 df = query("select * from order when date >= '2018-01-01'", db="input")
 create_table('recent_orders', df, db="output")
@@ -632,7 +632,7 @@ The following objects are directly available in the script:
 
 Extension `.sql`
 
-Runs the SQL sentences in the action file agains the `work` database.
+Runs the SQL sentences in the action file against the `work` database.
 
 The SQL code is preprocessed using
 [Jinja](https://jinja.palletsprojects.com/en/3.1.x/). That feature can
@@ -754,6 +754,174 @@ can be used directly from actions code.
 If you need some particular configuration not yet supported, just ask
 for it!
 
+## Cloud services
+
+PLPipes provides shortcuts for accessing common cloud services.
+
+### Azure
+
+#### Authentication
+
+Package `plpipes.cloud.azure.auth` provides an easy way to manage
+Azure credentials.
+
+##### API
+
+Credential objects of type `azure.identity.MsalCredential` can be
+retrieved using function `credentials` as follows:
+
+```
+import plpipes.cloud.azure.auth
+cred = plpipes.cloud.azure.auth.credentials("predictland")
+```
+
+##### Configuration
+
+Authentication accounts are declared in the configuration files and
+instantiated by the module on demand (which for some kind of
+authentication methods may require user interaction).
+
+For instance, the following configuration snippet defines the
+authorization account `predictland`.
+
+```
+cloud:
+  azure:
+    auth:
+      predictland:
+        driver: InteractiveBrowserCredential
+        tenant_id: 01234567-89ab-cdef-0123-456789abcdef
+        client_id: 01234567-89ab-cdef-0123-456789abcdef
+        client_secret: super-super-super-super-secret
+        authentication_callback_port: 8283
+        username: elvis@predictland.com
+        scopes:
+          - "https://graph.microsoft.com/.default"
+```
+
+The meaning of every key is as follows:
+
+- `driver`: indicates the type of authentication to be used. It
+defaults to `InteractiveBrowserCredential` (which is the only type
+currently supported, if you need something else, just ask for it!!!).
+
+- `client_id` and `client_secret`: are the application credentials
+which must be registered in Azure Active Directory (AAD). See
+[Register
+Application](https://learn.microsoft.com/en-us/azure/healthcare-apis/register-application)
+at MS Learn website.
+
+- `tenant_id`: the tenant where the application has been registered.
+
+- `scopes`: the list of scopes (groups of permissions) to be
+requested. This entry is optional, as most Azure services would re-ask
+for the credentials with the scopes they need.
+
+Every driver may also accept and/or require additional configuration
+entries:
+
+###### InteractiveBrowserCredential:
+
+Launches a browser and lets the use authenticate using her
+account. Credentials are cached when possible.
+
+- `username`: expected user, optional. Note that when Azure shows the
+login page to the user, it allows her to login with any account
+registered in the tenant AD. When this option is used, the framework
+ensures that the user logs with the expected one. Otherwise it throws
+an error.
+
+- `authentication_callback_port`: The framework starts an HTTP server
+at the given port in order to receive the data from the user browser
+(afterwards it is stopped). The port must be the same used to register
+the application in AAD.
+
+### Microsoft Graph
+
+Interaction with MS Graph API, which provides access to OneDrive,
+SharePoint and Teams resources, is available through the package
+`plpipes.cloud.azure.graph`.
+
+#### API
+
+- `graph(account_name)`: returns an object of class
+msgraph.code.GraphClient. Note that the Python Azure SDK is still in
+beta, in a state of flush and so, this method may return objects of a
+different class in the future.
+
+`fs(account_name)`: returns an object that allows to access MS Graph
+resources as a file system.
+
+##### File-system view
+
+The file system facade class exposes MS Graph resources as a file
+system.
+
+Resources are exposed under different routes as follows:
+
+- `me`: Business user OneDrive drive.
+
+- `groups`: Teams group drives.
+
+
+The file system objects returned by `fs` support the following
+methods:
+
+- `go(path)`: You can think of this method as a change dir (`cd`)
+  operation with the particularity that it also allows one to descend
+  into file-like resources.
+
+  The returned value is a new file system object with the root at
+  `path`.
+
+- `ls(path)`: Return a dictionary of file-name and entry pairs
+  representing the entries under the directory `path`.
+
+- `names(path)`: Similar to `ls` but returns only the names of the
+  entries.
+
+- `is_file()` and `is_dir()`: Determines where the current file system
+  object is pointing to a file or a directory respectively.
+
+- `get(path, dest=None, dir=None, name=None)`: downloads the remote
+  object pointed by the current file system object.
+
+  When `dest` is given it is used as the local destination path.
+
+  Alternatively, when `dest` is not given, `dir` and `name` values (or
+  their defaults) are used to construct the local destination
+  path. `name` defaults to the remote file name. `dir` defaults to the
+  working directory (i.e. `cfg['fs.work']`).
+
+- `rget(path, dest=None, dir=None, name=None)`: recursively downloads
+  the remote object (typically a directory) to the current file
+  system.
+
+Example usage:
+
+```
+import plpipes.cloud.azure.graph
+
+fs = plpipes.cloud.azure.graph.fs("predictland")
+group_drive = fs.go("groups/HAL/General")
+group_drive.rget("input-data")
+```
+
+#### Configuration
+
+Currently, the only supported configuration parameter is `credentials`
+with must be the name of an Azure authentication account defined under
+`cloud.azure.auth`. When not given, it defaults to the one of the same
+name.
+
+```
+cloud:
+  azure:
+    graph:
+      predictland:
+        credentials: predictland
+```
+
 # Jupyter integration
 
 PLPipes includes an IPython extension which exposes the framework
@@ -850,21 +1018,21 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
   Usually it is not.
 
   Both SQLite and DuckDB are pretty fast reading and writing data so
-  that the database trip is very rarely the bootleneck.
+  that the database trip is very rarely the bottleneck.
 
   Actually, if you are able to delegate the data transformation tasks
-  to the database (writing SQL code or using some frontend as ibis),
+  to the database (writing SQL code or using some front-end as ibis),
   they would perform way faster than the equivalent pandas code.
 
   Coming back to the *why*. Using a database has several additional
-  beneficts:
+  benefits:
 
   - It is quite easy to inspect intermediate data, just point your
-    favourite SQL GUI (for instance, [DBeaver](https://dbeaver.io/))
+    favorite SQL GUI (for instance, [DBeaver](https://dbeaver.io/))
     to the database and look at the tables you want to see.
 
   - It allows the programmer to easily add pre and post-condition
-    checking scripts which unnitrusively validate the data before and
+    checking scripts which unintrusively validate the data before and
     after every action is run (planed).
 
   - It allows one to switch between functional-equivalent actions
@@ -876,16 +1044,16 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
     as they only need to understand the data in the tables where they
     are going to work.
 
-  - It is easy to stablish guidelines about documenting the
+  - It is easy to establish guidelines about documenting the
     intermediate information structure (something that never happens
-    fot in-process pipelines).
+    for in-process pipelines).
 
 * *How should I break my program into actions?*
 
   Well, the truth is we are still learning about what are the best ways
   to structure data science projects around actions!
 
-  Tipically, there are three clear parts in a Data Science project:
+  Typically, there are three clear parts in a Data Science project:
 
   1. Data preprocessing
   2. Model training and validation
@@ -896,8 +1064,8 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
   retrained every time as it happens with time series data.
 
   Then every one of the actions above may be broken in several
-  subactions. For instance, as part of the preprocessing we would have
-  a data-retrieving action (maybe composed of several subactions as
+  sub-actions. For instance, as part of the preprocessing we would have
+  a data-retrieving action (maybe composed of several sub-actions as
   well). And then two more actions for converting from bronze-quality
   data first to silver and then to gold (see the [Medallion
   architecture](https://www.databricks.com/glossary/medallion-architecture)).
@@ -917,4 +1085,4 @@ pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
   modules inside the `lib` directory and called from multiple actions.
 
   In summary, Common sense should be applied. Actions should not be a
-  straitjacket, but just another element in your toolset!
+  straitjacket, but just another element in your tool-set!
