@@ -1,8 +1,6 @@
 
-import yaml
 import json
 import logging
-import sys
 import re
 import copy
 import collections.abc
@@ -75,10 +73,6 @@ class _Ptr(collections.abc.MutableMapping):
             else:
                 raise ValueError(f"Can't determine file type for {str(fn)}")
         self.merge(tree, key, frame=frame)
-
-    def fs(self, key, set_default=None):
-        if default:
-            return Path(self[f"fs.{key}"])
 
     def squash_frames(self):
         self._stack._top._squash_frames()
