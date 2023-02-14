@@ -20,9 +20,10 @@ class _PairAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if self.unpack:
             if self.unpack == "json":
-                unpacker = lambda x: json.loads(x)
+                def unpacker(x):
+                    return json.loads(x)
             else:
-                raise Exception(f"Bad unpacker {unpack}")
+                raise Exception(f"Bad unpacker {self.unpack}")
         else:
             unpacker = None
         for pair in values:
@@ -36,7 +37,7 @@ class _PairAction(argparse.Action):
                 except:
                     raise argparse.ArgumentError(self, f"Can not unpack value part of '{pair}' as {self.unpack}.")
             try:
-                getattr(namespace, self.dest).append({k:v})
+                getattr(namespace, self.dest).append({k: v})
             except Exception as ex:
                 raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}': {ex}") from ex
 
@@ -48,14 +49,14 @@ def main(args=None):
         raise Exception("Unable to infer config stem. Program name missing from argument list")
 
     prog_path = pathlib.Path(args[0])
-    stem = prog_path.stem
     if "PLPIPES_ROOT_DIR" in os.environ:
-        root_dir = libpath.Path(os.environ["PLPIPES_ROOT_DIR"]).resolve(strict=True)
+        root_dir = pathlib.Path(os.environ["PLPIPES_ROOT_DIR"]).resolve(strict=True)
     else:
         root_dir = prog_path.parent.parent
+    root_dir = root_dir.absolute()
 
-    config_extra = [{ 'fs': { 'stem': str(prog_path.stem),
-                              'root': str(root_dir) }}]
+    config_extra = [{'fs': {'stem': str(prog_path.stem),
+                            'root': str(root_dir)}}]
 
     parser = argparse.ArgumentParser(description="PLPipes runner")
 
@@ -97,7 +98,8 @@ def main(args=None):
 
     sys.path.append(plpipes.config.cfg["fs.lib"])
 
+    os.environ.setdefault("PLPIPES_ROOT_DIR", plpipes.config.cfg["fs.root"])
+
     for action in opts.actions:
         logging.info(f"Executing action {action}")
         plpipes.action.run(action)
-
