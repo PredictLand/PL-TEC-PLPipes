@@ -191,9 +191,10 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
             st = path.stat()
             if st.st_mtime >= self.modified.timestamp() and \
                st.st_size == self.size:
-                return
+                return False
         self._fs._get_to_file(self._url("/content"), path, follow_redirects=True, **kwargs)
         os.utime(path, (time.time(), self.modified.timestamp()))
+        return True
 
     def _get(self, dest=None, dir=None, name=None, **kwargs):
         if dest is None:
@@ -202,8 +203,11 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
             if name is None:
                 name = pathlib.Path(self._path).name
             dest = pathlib.Path(dir) / name
-        self._get_to_file(dest, **kwargs)
-        logging.info(f"File {self._path} copied to {dest}")
+        updated = self._get_to_file(dest, **kwargs)
+        msg = f"File {self._path} copied to {dest}"
+        if not updated:
+            msg += " (cached)"
+        logging.info(msg)
 
     def _rget(self, **kwargs):
         self._get(**kwargs)
