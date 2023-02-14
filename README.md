@@ -678,6 +678,27 @@ new table with the name of the action.
 
 Jinja is also used to preprocess the PRQL statement.
 
+### `quarto`
+
+Extension: `.qmd`
+
+Processes the file using [quarto](https://quarto.org/).
+
+The following configuration options can be used:
+
+- `dest`:
+  - `key`: any of `work`, `input` or `output`
+
+  - `dir`: destination dir to store the generated files.
+
+  - `file`: destination file name. Defaults to the action name with
+    the extension associated to the output format.
+
+  - `format`: output format.
+
+The action configuration can also be included directly in the `qmd`
+yaml header, under the `plpipes` branch.
+
 ### `sequence`
 
 Runs a set of actions in sequence.
