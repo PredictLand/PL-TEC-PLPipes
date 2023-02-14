@@ -23,9 +23,8 @@ class Action:
         logging.info(f"{' '*indent}Action {name} started")
         start = time.time()
         self._do_it(indent=indent)
-        lapse = int(10*(time.time() - start) + 0.5)/10.0
+        lapse = int(10 * (time.time() - start) + 0.5) / 10.0
         logging.info(f"{' '*indent}Action {name} done ({lapse}s)")
 
     def __str__(self):
         return f"<Action {self._name}>"
-
