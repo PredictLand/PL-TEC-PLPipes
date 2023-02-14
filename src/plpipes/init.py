@@ -4,11 +4,11 @@ import sys
 import os
 import logging
 
-_config0 = { 'db': { 'instance': { 'work': {},
-                                   'input': {},
-                                   'output': {} }},
-             'env': os.environ.get("PLPIPES_ENV", "dev"),
-             'logging': { 'level': os.environ.get("PLPIPES_LOGLEVEL", "info") } }
+_config0 = {'db': {'instance': {'work': {},
+                                'input': {},
+                                'output': {}}},
+            'env': os.environ.get("PLPIPES_ENV", "dev"),
+            'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL", "info")}}
 
 def init(*configs, config_files=[]):
     from pathlib import Path
@@ -73,7 +73,7 @@ def init(*configs, config_files=[]):
     cfg.setdefault('fs.stem', default_stem)
 
     # calculate configuration for file system paths and set it
-    root_dir = Path(cfg.setdefault('fs.root' , prog.parent.parent.absolute()))
+    root_dir = Path(cfg.setdefault('fs.root', prog.parent.parent.absolute()))
     for e in ('bin', 'lib', 'config', 'default',
               'input', 'output', 'work', 'actions'):
         cfg.setdefault("fs." + e, root_dir / e)
