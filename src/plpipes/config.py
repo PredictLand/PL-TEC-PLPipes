@@ -5,8 +5,6 @@ import re
 import copy
 import collections.abc
 
-from pathlib import Path
-
 class ConfigStack:
     def __init__(self, top=None):
         if not top:
@@ -86,7 +84,10 @@ class _Ptr(collections.abc.MutableMapping):
     def copydefaults(self, src, *keys, **keys_with_default):
         for key in keys:
             if key not in self:
-                self[key] = src[key]
+                if key in src:
+                    self[key] = src[key]
+                else:
+                    logging.debug(f"key {key} not found!")
         for key, default in keys_with_default.items():
             if key not in self:
                 self[key] = src.get(key, default)
