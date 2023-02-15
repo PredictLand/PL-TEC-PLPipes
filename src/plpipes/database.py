@@ -7,6 +7,7 @@ import sqlalchemy.engine
 import pandas
 import polars
 import pyarrow.lib
+import json
 
 _driver_class = {}
 _registry = {}
@@ -66,7 +67,7 @@ class _Driver:
         return self.query(f"select * from {table_name}")
 
     def _create_table_from_arrow(self, table_name, df, _, if_exists):
-        _create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
+        df._create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
 
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
         df.to_sql(table_name, self._engine, if_exists=if_exists, index=False, chunksize=1000)
@@ -84,14 +85,14 @@ class _Driver:
         self.execute(f"drop view if exists {view_name}")
 
     def _create_table_from_sql(self, table_name, sql, parameters, if_exists):
-        if if_exists=="replace":
+        if if_exists == "replace":
             self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
         logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
         self.execute(create_sql, parameters)
 
     def _create_view_from_sql(self, view_name, sql, parameters, if_exists):
-        if if_exists=="replace":
+        if if_exists == "replace":
             self._drop_view_if_exists(view_name)
         create_sql = f"create view {view_name} as {sql}"
         logging.debug(f"database create view from sql code: {repr(create_sql)}, parameters: {parameters}")
@@ -99,9 +100,9 @@ class _Driver:
 
     def create_table_from_schema(self, table_name, schema, if_exists):
         create_sql = "create table"
-        if if_exists=="replace":
+        if if_exists == "replace":
             self._drop_table_if_exists(table_name, if_exists)
-        elif if_exists=="ignore":
+        elif if_exists == "ignore":
             create_sql += " if not exists"
         create_sql += f" {table_name} ({schema})"
         logging.debug(f"database create table from schema: {repr(create_sql)}")
