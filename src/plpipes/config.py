@@ -176,8 +176,8 @@ class _Level:
                 v = v[p]
             except TypeError:
                 return False
-            except KeyError as ex:
-                return self._parent._contains(self, key) if self._parent else False
+            except KeyError:
+                return self._parent._contains(key) if self._parent else False
         return True
 
     def _to_tree(self, key):
