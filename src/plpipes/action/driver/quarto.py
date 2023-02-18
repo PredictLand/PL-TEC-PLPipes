@@ -100,6 +100,7 @@ class _QuartoRunner(Action):
         stem = target_path.stem
 
         with tempfile.TemporaryDirectory() as workdir:
+            # workdir = "/home/salva/tmp/report"
             workdir = Path(workdir)
             temp_target_path = workdir / target_path.name
             temp_cfg_path = workdir / "config.json"
