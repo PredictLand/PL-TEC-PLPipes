@@ -43,16 +43,16 @@ class _Driver:
         self._last_key += 1
         return self._last_key
 
-    def query(self, sql, parameters={}):
+    def query(self, sql, parameters):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         import pandas
         return pandas.read_sql_query(sql, self._engine, params=parameters)
 
-    def execute(self, sql, parameters={}):
+    def execute(self, sql, parameters):
         logging.debug(f"database execute: {repr(sql)}, parameters: {str(parameters)[0:40]}")
 
         with self._engine.begin() as conn:
-            conn.execute(sqlalchemy.sql.text(sql), **parameters)
+            conn.execute(sqlalchemy.sql.text(sql))
 
     def execute_script(self, sql):
         logging.debug(f"database execute_script code: {repr(sql)}")
@@ -88,14 +88,14 @@ class _Driver:
         if if_exists == "replace":
             self._drop_table_if_exists(table_name)
         create_sql = f"create table {table_name} as {sql}"
-        logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {parameters}")
+        logging.debug(f"database create table from sql code: {repr(create_sql)}, parameters: {str(parameters)[0:40]}")
         self.execute(create_sql, parameters)
 
     def _create_view_from_sql(self, view_name, sql, parameters, if_exists):
         if if_exists == "replace":
             self._drop_view_if_exists(view_name)
         create_sql = f"create view {view_name} as {sql}"
-        logging.debug(f"database create view from sql code: {repr(create_sql)}, parameters: {parameters}")
+        logging.debug(f"database create view from sql code: {repr(create_sql)}, parameters: {str(parameters)[0:40]}")
         self.execute(create_sql, parameters)
 
     def create_table_from_schema(self, table_name, schema, if_exists):
@@ -257,11 +257,6 @@ class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg, "duckdb")
 
-    #def query(self, sql, parameters={}):
-    #    with self.connection() as conn:
-    #        out = conn.connection.query(sql)
-    #        return polars.DataFrame(out.arrow()).lazy()
-
     def _create_table_from_polars(self, table_name, df, _, if_exists):
         you_dont_have_a_table_named_like_this_in_the_database_arrow = df.to_arrow()
         self._create_table_from_sql(table_name,
@@ -275,13 +270,22 @@ _driver_class["odbc"]   = _ODBCDriver
 _driver_class["sql_server"] = _SQLServerDriver
 _driver_class["azure_sql"] = _AzureSQLDriver
 
-def query(sql, db=None, **parameters):
+def __mkparams(ps, kwps):
+    if ps:
+        if kwps:
+            raise ValueError("Both indexed and keyword parameters were given")
+        return ps
+    if kwps:
+        return kwps
+    return None
+
+def query(sql, parameters=None, db=None):
     return lookup(db).query(sql, parameters)
 
-def execute(sql, db=None, **parameters):
+def execute(sql, parameters=None, db=None):
     lookup(db).execute(sql, parameters)
 
-def create_table(table_name, sql_or_df, db=None, if_exists="replace", **parameters):
+def create_table(table_name, sql_or_df, parameters=None, db=None, if_exists="replace"):
     dbh = lookup(db)
     try:
         method_name = _create_table_methods[type(sql_or_df)]
@@ -290,7 +294,7 @@ def create_table(table_name, sql_or_df, db=None, if_exists="replace", **paramete
     method = getattr(dbh, method_name)
     method(table_name, sql_or_df, parameters, if_exists)
 
-def create_view(view_name, sql, db=None, if_exists="replace", **parameters):
+def create_view(view_name, sql, parameters=None, db=None, if_exists="replace"):
     lookup(db).create_view_from_sql(view_name, sql, parameters, if_exists)
 
 def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
