@@ -270,15 +270,6 @@ _driver_class["odbc"]   = _ODBCDriver
 _driver_class["sql_server"] = _SQLServerDriver
 _driver_class["azure_sql"] = _AzureSQLDriver
 
-def __mkparams(ps, kwps):
-    if ps:
-        if kwps:
-            raise ValueError("Both indexed and keyword parameters were given")
-        return ps
-    if kwps:
-        return kwps
-    return None
-
 def query(sql, parameters=None, db=None):
     return lookup(db).query(sql, parameters)
 
