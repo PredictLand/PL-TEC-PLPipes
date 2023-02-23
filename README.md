@@ -448,19 +448,19 @@ database running in Azure can be declared as follows:
 db:
   instance:
     input:
-      driver: odbc
-      odbc_driver: "{ODBC Driver 18 for SQL Server}"
+      driver: azure_sql
       server: my-sql-server.database.windows.net
       database: customer-db
       user: predictland
 ```
 
-The `db.instance.driver` is used to find out which driver to use to
+The `db.instance.*.driver` is used to find out which driver to use to
 establish the connection. The remaining configuration entries are
 driver specific and as follow:
 
 #### DuckDB configuration
 
+- `driver`: `duckdb`
 - `file`: name of the database file. Defaults to
   `{instance_name}.duckdb`.
 
@@ -473,18 +473,27 @@ Otherwise it is placed in the `work` directory (example:
 
 #### SQLite configuration
 
+- `driver`: `sqlite`
+- `file`: database file name.
+
 Works in exactly the same way as DuckDB but using `sqlite` as the
 database file extension.
 
-#### ODBC configuration
+#### SQLServer configuration
 
-*ODBC is a WIP yet!*
-
-- `odbc_driver`: ODBC driver name
+- `driver`: `sql_server`
 - `server`
 - `database`
 - `user`
-- `pwd`
+- `password`
+- `encrypt`: defaults to `true`.
+- `trusted_server_certificate`: defaults to `true`.
+- `timeout`: defaults to 60s.
+
+#### AzureSQL configuration
+
+- `driver`: `azure_sql`
+- ...: any other parameters accepted by the SQLServer driver.
 
 #### Other databases configuration
 
@@ -514,7 +523,7 @@ follows:
 ##### `query`
 
 ```
-query(sql, db='work', **parameters)
+query(sql, parameters=None, db='work')
 ```
 
 Submits the query to the database and returns a pandas dataframe as
@@ -534,7 +543,7 @@ Reads the contents of the table as a dataframe.
 #### `execute`
 
 ```
-execute(sql, db='work', **parameters)
+execute(sql, parameters=None, db='work')
 ```
 Runs a SQL sentence that does not generate a result set.
 
@@ -554,9 +563,10 @@ Runs a sequence of SQL sentences.
 create_table(table_name, df, db="work",
              if_exists="replace")
 
-create_table(table_name, sql, db="work",
-             if_exists="replace,
-             **parameters")
+create_table(table_name, sql,
+             parameters=None,
+             db="work",
+             if_exists="replace)
 ```
 
 This method can be used to create a new table both from a dataframe or
