@@ -24,7 +24,7 @@ def lookup(name=None):
 
 def _init_driver(name):
     drv_cfg = cfg.cd(f"db.instance.{name}")
-    return _driver_class[drv_cfg.get("driver", "duckdb")](name, drv_cfg)
+    return _driver_class[drv_cfg.get("driver", "sqlite")](name, drv_cfg)
 
 class _Driver:
     def __init__(self, name, drv_cfg, url):
