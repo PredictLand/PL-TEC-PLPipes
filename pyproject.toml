@@ -23,8 +23,6 @@ dependencies = [
     "Jinja2 >=3.1",
     "pandas >=1.5",
     "SQLAlchemy >=1.4 <2.0",
-    "polars >=0.15",
-    "pyarrow >=10.0",
     "prql-python >=0.3",
     "httpx >=0.23"
 ]

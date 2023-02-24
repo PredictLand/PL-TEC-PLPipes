@@ -5,17 +5,12 @@ import sqlalchemy
 import sqlalchemy.sql
 import sqlalchemy.engine
 import pandas
-import polars
-import pyarrow.lib
 import json
 
 _driver_class = {}
 _registry = {}
 
 _create_table_methods = {
-    pyarrow.lib.Table: '_create_table_from_arrow',
-    polars.LazyFrame:  '_create_table_from_lazy_polars',
-    polars.DataFrame:  '_create_table_from_polars',
     pandas.DataFrame:  '_create_table_from_pandas',
     str:               '_create_table_from_sql'
 }
@@ -66,17 +61,8 @@ class _Driver:
     def read_table(self, table_name):
         return self.query(f"select * from {table_name}")
 
-    def _create_table_from_arrow(self, table_name, df, _, if_exists):
-        df._create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
-
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
         df.to_sql(table_name, self._engine, if_exists=if_exists, index=False, chunksize=1000)
-
-    def _create_table_from_polars(self, table_name, df, _, if_exists):
-        self._create_table_from_pandas(table_name, df.to_pandas(), None, if_exists)
-
-    def _create_table_from_lazy_polars(self, table_name, df, _, if_exists):
-        self._create_table_from_polars(table_name, df.collect(), None, if_exists)
 
     def _drop_table_if_exists(self, table_name):
         self.execute(f"drop table if exists {table_name}")
@@ -256,12 +242,6 @@ class _AzureSQLDriver(_SQLServerDriver):
 class _DuckDBDriver(_LocalFileDriver):
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg, "duckdb")
-
-    def _create_table_from_polars(self, table_name, df, _, if_exists):
-        you_dont_have_a_table_named_like_this_in_the_database_arrow = df.to_arrow()
-        self._create_table_from_sql(table_name,
-                                    "select * from you_dont_have_a_table_named_like_this_in_the_database_arrow",
-                                    {}, if_exists)
 
 # Register drivers
 _driver_class["duckdb"] = _DuckDBDriver
