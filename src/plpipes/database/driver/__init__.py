@@ -43,7 +43,13 @@ class Driver:
         return self.query(f"select * from {table_name}", None)
 
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
-        df.to_sql(table_name, self._engine, if_exists=if_exists, index=False, chunksize=1000)
+        if "." in table_name:
+            schema, table_name = table_name.split(".", 1)
+        else:
+            schema = None
+        df.to_sql(table_name, self._engine,
+                  schema=schema, if_exists=if_exists,
+                  index=False, chunksize=1000)
 
     def _drop_table_if_exists(self, table_name):
         self.execute(f"drop table if exists {table_name}")
