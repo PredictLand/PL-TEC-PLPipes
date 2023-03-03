@@ -40,7 +40,7 @@ class Driver:
             conn.close()
 
     def read_table(self, table_name):
-        return self.query(f"select * from {table_name}")
+        return self.query(f"select * from {table_name}", None)
 
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
         df.to_sql(table_name, self._engine, if_exists=if_exists, index=False, chunksize=1000)
