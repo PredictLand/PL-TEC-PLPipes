@@ -1,9 +1,16 @@
 from plpipes.config import cfg
 import logging
 import plpipes.plugin
+import pandas
+
 _driver_registry = plpipes.plugin.Registry("db_driver", "plpipes.database.driver.plugin")
 
 _db_registry = {}
+
+_create_table_methods = {
+    pandas.DataFrame: '_create_table_from_pandas',
+    str: '_create_table_from_sql'
+}
 
 def lookup(name=None):
     if name is None:

@@ -2,11 +2,6 @@ import logging
 import sqlalchemy
 import pandas
 
-_create_table_methods = {
-    pandas.DataFrame: '_create_table_from_pandas',
-    str:              '_create_table_from_sql'
-}
-
 class Driver:
     def __init__(self, name, drv_cfg, url):
         self._name = name
@@ -21,7 +16,6 @@ class Driver:
 
     def query(self, sql, parameters):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
-        import pandas
         return pandas.read_sql_query(sql, self._engine, params=parameters)
 
     def execute(self, sql, parameters):

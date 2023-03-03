@@ -490,10 +490,16 @@ database file extension.
 - `trusted_server_certificate`: defaults to `true`.
 - `timeout`: defaults to 60s.
 
+Also, in order to connect to a SQL-Server database the ODBC driver
+must be installed. It is available from
+[here](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server).
+
 #### AzureSQL configuration
 
 - `driver`: `azure_sql`
 - ...: any other parameters accepted by the SQLServer driver.
+
+Again, the SQL-Server ODBC driver must also be installed.
 
 #### Other databases configuration
 
