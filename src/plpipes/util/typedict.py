@@ -24,5 +24,6 @@ def dispatcher(seed, ix=0):
             name = td[args[ix]]
             target_method = getattr(self, name)
             return target_method(*args, **kwargs)
+        wrapped_method.type_dict = td
         return wrapped_method
     return dispatcher
