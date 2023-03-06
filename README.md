@@ -519,8 +519,8 @@ For example:
 ```
 from plpipes.database import query, create_table
 
-df = query("select * from order when date >= '2018-01-01'", db="input")
-create_table('recent_orders', df, db="output")
+df = query("select * from order when date >= :ld", {'ld': '2018-01-01'}, db='input')
+create_table('recent_orders', df, db='output')
 ```
 
 A list of the most commonly used functions from `plpipes.database`
@@ -534,9 +534,6 @@ query(sql, parameters=None, db='work')
 
 Submits the query to the database and returns a pandas dataframe as
 the result.
-
-*We are currently considering whether using pandas as the default
-output format is a good idea*
 
 #### `read_table`
 

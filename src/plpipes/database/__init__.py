@@ -2,13 +2,16 @@ from plpipes.config import cfg
 import logging
 import plpipes.plugin
 import pandas
+import sqlalchemy.sql
 
 _driver_registry = plpipes.plugin.Registry("db_driver", "plpipes.database.driver.plugin")
 
 _db_registry = {}
 
-_create_table_methods = {
+_create_table_methods = {}
+_create_table_methods_seed = {
     pandas.DataFrame: '_create_table_from_pandas',
+    sqlalchemy.sql.elements.ClauseElement: '_create_table_from_sqlalchemy_clause',
     str: '_create_table_from_sql'
 }
 
@@ -33,19 +36,10 @@ def execute(sql, parameters=None, db=None):
     lookup(db).execute(sql, parameters)
 
 def create_table(table_name, sql_or_df, parameters=None, db=None, if_exists="replace"):
-    dbh = lookup(db)
-    try:
-        method_name = _create_table_methods[type(sql_or_df)]
-    except:
-        raise ValueError(f"Unsupported DataFrame type {type(sql_or_df)}")
-    method = getattr(dbh, method_name)
-    method(table_name, sql_or_df, parameters, if_exists)
+    return lookup(db).create_table(table_name, sql_or_df, parameters, if_exists)
 
 def create_view(view_name, sql, parameters=None, db=None, if_exists="replace"):
-    lookup(db).create_view_from_sql(view_name, sql, parameters, if_exists)
-
-def create_empty_table(table_name, schema, db=None, if_exists="ignore"):
-    return lookup(db).create_table_from_schema(table_name, schema, if_exists=if_exists)
+    lookup(db).create_view(view_name, sql, parameters, if_exists)
 
 def read_table(table_name, db=None):
     return lookup(db).read_table(table_name)
@@ -98,3 +92,6 @@ def engine(db=None):
 
 def connection(db=None):
     return lookup(db).connection()
+
+def driver(db=None):
+    return lookup(db)
