@@ -1,4 +1,5 @@
 import logging
+import os
 
 from plpipes.database.driver.sqlite import SQLiteDriver
 from plpipes.plugin import plugin
@@ -9,6 +10,8 @@ from sqlalchemy import event
 class SpatialiteDriver(SQLiteDriver):
 
     def __init__(self, name, drv_cfg):
+        os.environ["SPATIALITE_SECURITY"] = "relaxed"
+
         super().__init__(name, drv_cfg)
 
         @event.listens_for(self._engine, "connect")
