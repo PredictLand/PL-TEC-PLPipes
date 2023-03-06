@@ -1,6 +1,7 @@
 import logging
 import sqlalchemy
 import pandas
+import types
 
 from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView
 from plpipes.util.typedict import dispatcher
@@ -9,6 +10,13 @@ def _wrap(sql):
     if isinstance(sql, str):
         return sqlalchemy.sql.text(sql)
     return sql
+
+def _split_table_name(table_name):
+    if "." in table_name:
+        schema, table_name = table_name.split(".", 1)
+    else:
+        schema = None
+    return (schema, table_name)
 
 class Driver:
     def __init__(self, name, drv_cfg, url):
@@ -43,17 +51,15 @@ class Driver:
 
     @dispatcher({pandas.DataFrame: '_create_table_from_pandas',
                  str: '_create_table_from_str',
-                 sqlalchemy.sql.elements.ClauseElement: '_create_table_from_clause'},
+                 sqlalchemy.sql.elements.ClauseElement: '_create_table_from_clause',
+                 types.GeneratorType: '_create_table_from_generator'},
                 ix=1)
     def create_table(self, table_name, sql_or_df, parameters, if_exists):
         ...
 
     def _create_table_from_pandas(self, table_name, df, _, if_exists):
-        if "." in table_name:
-            schema, table_name = table_name.split(".", 1)
-        else:
-            schema = None
-        df.to_sql(table_name, self._engine,
+        schema, table_name = _split_table_name(table_name)
+        df.to_sql(table_name, self._engine.connect(),
                   schema=schema, if_exists=if_exists,
                   index=False, chunksize=1000)
 
@@ -69,6 +75,18 @@ class Driver:
                 if_not_exists = True
             conn.execute(CreateTableAs(table_name, clause, if_not_exists=if_not_exists),
                          parameters)
+
+    def _create_table_from_generator(self, table_name, gen, _, if_exists):
+        schema, table_name = _split_table_name(table_name)
+        first = True
+        with self._engine.begin() as conn:
+            for df in gen:
+                df.to_sql(table_name, conn,
+                          schema=schema,
+                          if_exists=if_exists if first else "append",
+                          index=False, chunksize=1000)
+                first = False
+                # conn.commit()
 
     @dispatcher({sqlalchemy.sql.elements.ClauseElement: '_create_view_from_clause',
                  str: '_create_view_from_str'},
@@ -97,3 +115,8 @@ class Driver:
 
     def url(self):
         return self._url
+
+    def query_chunked(self, sql, parameters, chunksize):
+        with self._engine.connect() as conn:
+            for chunk in pandas.read_sql(_wrap(sql), conn, chunksize=chunksize):
+                yield chunk
