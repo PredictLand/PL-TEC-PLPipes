@@ -50,6 +50,9 @@ def execute_script(sql_script, db=None):
 def query_chunked(sql, parameters=None, db=None, chunksize=1000):
     return lookup(db).query_chunked(sql, parameters, chunksize)
 
+def query_group(sql, parameters=None, db=None, by=None):
+    return lookup(db).query_group(sql, parameters, by)
+
 def create_table_from_query_and_map(to_table_name, sql, parameters=None, function=None,
                                     from_db=None, to_db=None, db=None,
                                     if_exists="replace", chunksize=1000):

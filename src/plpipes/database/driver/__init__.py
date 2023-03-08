@@ -3,12 +3,14 @@ import sqlalchemy
 import pandas
 import types
 
-from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView
+import sqlalchemy.sql as sas
+
+from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, AsSubquery
 from plpipes.util.typedict import dispatcher
 
 def _wrap(sql):
     if isinstance(sql, str):
-        return sqlalchemy.sql.text(sql)
+        return sas.text(sql)
     return sql
 
 def _split_table_name(table_name):
@@ -32,7 +34,7 @@ class Driver:
 
     def query(self, sql, parameters):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
-        return pandas.read_sql_query(sqlalchemy.sql.text(sql), self._engine, params=parameters)
+        return pandas.read_sql_query(sas.text(sql), self._engine, params=parameters)
 
     def execute(self, sql, parameters=None):
         self._engine.execute(_wrap(sql), parameters)
@@ -51,7 +53,7 @@ class Driver:
 
     @dispatcher({pandas.DataFrame: '_create_table_from_pandas',
                  str: '_create_table_from_str',
-                 sqlalchemy.sql.elements.ClauseElement: '_create_table_from_clause',
+                 sas.elements.ClauseElement: '_create_table_from_clause',
                  types.GeneratorType: '_create_table_from_generator'},
                 ix=1)
     def create_table(self, table_name, sql_or_df, parameters, if_exists):
@@ -64,7 +66,7 @@ class Driver:
                   index=False, chunksize=1000)
 
     def _create_table_from_str(self, table_name, sql, parameters, if_exists):
-        return self._create_table_from_clause(table_name, sqlalchemy.sql.text(sql), parameters, if_exists)
+        return self._create_table_from_clause(table_name, sas.text(sql), parameters, if_exists)
 
     def _create_table_from_clause(self, table_name, clause, parameters, if_exists):
         with self._engine.begin() as conn:
@@ -88,14 +90,14 @@ class Driver:
                 first = False
                 # conn.commit()
 
-    @dispatcher({sqlalchemy.sql.elements.ClauseElement: '_create_view_from_clause',
+    @dispatcher({sas.elements.ClauseElement: '_create_view_from_clause',
                  str: '_create_view_from_str'},
                 ix=1)
     def create_view(self, table_name, sql, parameters, if_exists):
         ...
 
     def _create_view_from_str(self, view_name, sql, parameters, if_exists):
-        return self._create_view_from_clause(view_name, sqlalchemy.sql.text(sql), parameters, if_exists)
+        return self._create_view_from_clause(view_name, sas.text(sql), parameters, if_exists)
 
     def _create_view_from_clause(self, view_name, clause, parameters, if_exists):
         with self._engine.begin() as conn:
@@ -120,3 +122,17 @@ class Driver:
         with self._engine.connect() as conn:
             for chunk in pandas.read_sql(_wrap(sql), conn, chunksize=chunksize):
                 yield chunk
+
+    def query_group(self, sql, parameters, by):
+        wrapped_sql = sas.select("*").select_from(AsSubquery(_wrap(sql))).order_by(*[sas.column(c) for c in by])
+
+        tail = None
+        for chunk in self.query_chunked(wrapped_sql, parameters, 1000):
+            if tail is not None:
+                chunk = pandas.concat([tail, chunk])
+            groups =  [g for _, g in chunk.groupby(by)]
+            tail = groups.pop()
+            for group in groups:
+                yield group
+        if tail is not None:
+            yield tail

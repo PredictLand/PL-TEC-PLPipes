@@ -1,5 +1,5 @@
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql.expression import ClauseElement, Executable
+from sqlalchemy.sql.expression import ClauseElement, Executable, FromClause
 
 import logging
 
@@ -58,3 +58,12 @@ def _drop_something(element, compiler, **kwargs):
         sql = f"DROP {element._table_or_view} {element._table_name}"
     logging.debug(f"SQL code: {sql}")
     return sql
+
+class AsSubquery(FromClause):
+    def __init__(self, txt):
+        self._txt = txt
+
+@compiles(AsSubquery)
+def _as_subquery(element, compiler, **kwargs):
+    txt = compiler.process(element._txt)
+    return f"({txt})"
