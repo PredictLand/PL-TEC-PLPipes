@@ -133,6 +133,7 @@ class Driver:
             groups =  [g for _, g in chunk.groupby(by)]
             tail = groups.pop()
             for group in groups:
+                group = group.reset_index()
                 yield group
         if tail is not None:
             yield tail
