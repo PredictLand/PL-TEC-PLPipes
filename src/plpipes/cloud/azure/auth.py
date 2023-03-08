@@ -26,6 +26,9 @@ def _authenticate(account_name):
         logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
         ar = None
 
+    allow_unencrypted_storage = acfg.get("allow_unencrypted_storage", False)
+    cache_persistence_options = TokenCachePersistenceOptions(allow_unencrypted_storage=allow_unencrypted_storage)
+
     expected_user = acfg.get("username")
     redirect_uri = f"http://localhost:{acfg['authentication_callback_port']}"
     cred = InteractiveBrowserCredential(tenant_id=acfg["tenant_id"],
@@ -33,7 +36,7 @@ def _authenticate(account_name):
                                         client_credential=acfg["client_secret"],
                                         login_hint=expected_user,
                                         redirect_uri=redirect_uri,
-                                        cache_persistence_options=TokenCachePersistenceOptions(),
+                                        cache_persistence_options=cache_persistence_options,
                                         authentication_record=ar)
 
     if "scopes" in acfg:
