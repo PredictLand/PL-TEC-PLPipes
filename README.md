@@ -967,7 +967,7 @@ The extension is loaded adding the following lines at the beginning of
 your notebook:
 
 ```
-%load plpipes.jupyter
+%load_ext plpipes.jupyter
 %plpipes {stem}
 ```
 
