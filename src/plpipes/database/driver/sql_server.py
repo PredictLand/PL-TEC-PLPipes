@@ -8,7 +8,7 @@ class SQLServerDriver(ODBCDriver):
             port = drv_cfg.setdefault('port', 1433)
             low_level_proto = drv_cfg.setdefault('low_level_proto', 'tcp')
             encrypt = 'yes' if drv_cfg.setdefault('encrypt', True) else 'no'
-            trusted_server_certificate = 'yes' if drv_cfg.setdefault('trusted_server_sertificate', True) else 'no'
+            trusted_server_certificate = 'yes' if drv_cfg.setdefault('trusted_server_certificate', True) else 'no'
             timeout = drv_cfg.setdefault('timeout', 60)
             server = drv_cfg['server']
             database = drv_cfg['database']
