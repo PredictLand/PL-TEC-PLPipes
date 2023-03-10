@@ -154,7 +154,7 @@ automatically is planed).
  `bin/run.py` is the main entry point for PLPipes and should be
 created by hand with the following content:
 
-```{python}
+```python
 #!/usr/bin/env python3
 from plpipes.runner import main
 main()
@@ -177,7 +177,7 @@ quite soon!*
 
 Somehow (!) obtain the module wheel and install it using pip:
 
-```{bash}
+```bash
 pip install /path/to/.../plpipes-0.1-py2.py3-none-any.whl
 ```
 
@@ -189,7 +189,7 @@ Hopefully, `plpipes` would be directly available from
 1. Clone the repository outside of your project directory and switch
    to the `development` branch:
 
-   ```{bash}
+   ```bash
    git clone git@github.com:PredictLand/PL-TEC-PLPipes.git
    cd PL-TEC-PLPipes
    git checkout development
@@ -197,7 +197,7 @@ Hopefully, `plpipes` would be directly available from
 
 2. Add the `src` subdirectory to Python search path.
 
-   ```{bash}
+   ```bash
    # Linux and/or bash:
    export PYTHONPATH=path/to/.../PL-TEC-PLPipes/src
 
@@ -207,7 +207,7 @@ Hopefully, `plpipes` would be directly available from
 
 3. Check that it works:
 
-   ```{bash}
+   ```bash
    python -m plpipes -c "print('ok')"
    ```
 
@@ -217,7 +217,7 @@ set `PYTHONPATH` by hand every time you start a new session.
 
 For instance:
 
-```{python}
+```python
 from pathlib import Path
 import sys
 sys.path.append(str(Path.cwd().parent.parent.parent / "PL-TEC-PLPipes/src"))
@@ -262,7 +262,7 @@ calculated based on two settings:
   When `plpipes` is used from a Jupyter notebook, the stem can be
   passed on the `%plpipes` line magic:
 
-  ```{python}
+  ```python
   %plpipes foobalizer
   ```
 
@@ -383,7 +383,7 @@ For instance, in the following configuration most of the database
 connection parameters for `input` and `work` instances are obtained
 from the `*` entry.
 
-```{yaml}
+```yaml
 db:
   instance:
     '*':
@@ -406,14 +406,14 @@ The configuration is exposed through the `plpipes.cfg` object.
 It works as a dictionary which accepts dotted entries as keys. For
 instance:
 
-```{python}
+```python
 from plpipes import cfg
 print(f"Project root dir: {cfg['fs.root']}")
 ```
 
 A sub-tree view can be created using the `cd` method:
 
-```{python}
+```python
 cfs = cfg.cd('fs')
 print(f"Project root dir: {cfs['root']}")
 ```
@@ -421,7 +421,7 @@ print(f"Project root dir: {cfs['root']}")
 Most dictionary methods work as expected. For instance it is possible
 to mutate the configuration or to set defaults:
 
-```{python}
+```python
 cfg["my.conf.key"] = 7
 cfg.setdefault("my.other.conf.key", 8)
 ```
@@ -472,7 +472,7 @@ different database connections can be defined.
 For instance, a `input` database connection backed by a SQL Server
 database running in Azure can be declared as follows:
 
-```{yaml}
+```yaml
 db:
   instance:
     input:
@@ -519,7 +519,7 @@ The extension must be installed. If you are using Conda it is
 available from the `conda-forge` repository and can be installed as
 follows:
 
-```{bash}
+```bash
 conda install libspatialite -c conda-forge
 ```
 
@@ -563,7 +563,7 @@ as the default.
 
 For example:
 
-```{python}
+```python
 from plpipes.database import query, create_table
 
 df = query("select * from order when date >= :ld", {'ld': '2018-01-01'}, db='input')
@@ -575,7 +575,7 @@ follows:
 
 ##### `query`
 
-```{python}
+```python
 query(sql, parameters=None, db='work')
 ```
 
@@ -584,7 +584,7 @@ the result.
 
 #### `read_table`
 
-```{python}
+```python
 read_table(table_name, db="work")
 ```
 
@@ -592,14 +592,14 @@ Reads the contents of the table as a dataframe.
 
 #### `execute`
 
-```{python}
+```python
 execute(sql, parameters=None, db='work')
 ```
 Runs a SQL sentence that does not generate a result set.
 
 #### `execute_script`
 
-```{python}
+```python
 execute_script(sql_script, db='work')
 ```
 
@@ -609,7 +609,7 @@ Runs a sequence of SQL sentences.
 
 #### `create_table`
 
-```{python}
+```python
 create_table(table_name, df, db="work",
              if_exists="replace")
 
@@ -624,7 +624,7 @@ from a SQL sentence.
 
 #### `engine`
 
-```{python}
+```python
 engine(db='work')
 ```
 
@@ -633,7 +633,7 @@ Returns the underlying `SQLAlchemy` object representing the engine
 
 #### `connection`
 
-```{python}
+```python
 connection(db='work')
 ```
 
@@ -660,7 +660,7 @@ action, for instance `preprocessor.yaml`.
 Inside this configuration file the action type must be declared using
 the `type` setting. For instance:
 
-```{yaml}
+```yaml
 type: python_script
 ```
 
@@ -698,7 +698,7 @@ The SQL code is preprocessed using
 [Jinja](https://jinja.palletsprojects.com/en/3.1.x/). That feature can
 be used to for instance, set values from the configuration:
 
-```{sql}
+```sql
 CREATE TABLE foo AS
 SELECT * FROM bar
 WHERE data >= "{{ cfg["data.limits.date.low.cutoff"] }}"
@@ -770,7 +770,7 @@ Relative action names (starting by a dot) are also accepted.
 
 Example `yaml` configuration:
 
-```{yaml}
+```yaml
 type: sequence
 sequence:
     - .bar
@@ -851,7 +851,7 @@ Azure credentials.
 Credential objects of type `azure.identity.MsalCredential` can be
 retrieved using function `credentials` as follows:
 
-```{python}
+```python
 import plpipes.cloud.azure.auth
 cred = plpipes.cloud.azure.auth.credentials("predictland")
 ```
@@ -865,7 +865,7 @@ authentication methods may require user interaction).
 For instance, the following configuration snippet defines the
 authorization account `predictland`.
 
-```{yaml}
+```yaml
 cloud:
   azure:
     auth:
@@ -980,7 +980,7 @@ methods:
 
 Example usage:
 
-```{python}
+```python
 import plpipes.cloud.azure.graph
 
 fs = plpipes.cloud.azure.graph.fs("predictland")
@@ -995,7 +995,7 @@ with must be the name of an Azure authentication account defined under
 `cloud.azure.auth`. When not given, it defaults to the one of the same
 name.
 
-```{yaml}
+```yaml
 cloud:
   azure:
     graph:
@@ -1013,7 +1013,7 @@ functionality in Jupyter notebooks.
 The extension is loaded adding the following lines at the beginning of
 your notebook:
 
-```{python}
+```python
 %load_ext plpipes.jupyter
 %plpipes {stem}
 ```
@@ -1041,7 +1041,7 @@ The following variables and methods are made available in the session:
   to the input, work and output directories.
 
   For instance:
-  ```{python}
+  ```python
   df = pandas.read_csv(input_dir / "data001.csv")
   ```
 
@@ -1060,7 +1060,7 @@ as the default one.
 Other databases configured in PLPipes can be selected using a double
 at sign (`@@`) followed by the database name.  For instance:
 
-```{sql}
+```sql
 %%sql @@input
 select * from customers
 limit 100
@@ -1076,7 +1076,7 @@ the usual `pip` command: `pip install flit`).
 A python wheel file for `plpipes` is generated running the following
 command from inside `plpipes` root directory:
 
-```{bash}
+```bash
 flit build
 ```
 
@@ -1084,7 +1084,7 @@ The generated wheel file is placed inside `dist`. That file is a
 standard (pure) Python package that can be installed in anywhere. For
 instance:
 
-```{bash}
+```bash
 pip install ../PL-TEC-PLPipes/dist/plpipes-0.1-py2.py3-none-any.whl
 ```
 
