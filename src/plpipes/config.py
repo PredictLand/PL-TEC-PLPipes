@@ -42,6 +42,20 @@ class ConfigStack:
             return self._get_nocache(key, frame)
 
     def _get_nocache(self, key, frame):
+        # As we have to take into account wildcards at different
+        # levels, we use a search algorithm that explores the problem
+        # space taking into account the specificity of the entries (no
+        # wildcards, or wildcards nearer to the right side) and the
+        # frame position. The rules are as follows:
+        #
+        # 1. More specific entries always win over less specific ones.
+        #
+        # 2. For entries with the same specificity, the one from the
+        # lowest frame (the last loaded) wins.
+        #
+        # This is implemented using a mix of A*/depth-first search
+        # algorithm.
+
         (key_part, *right) = key.split(".")
         # queue structure:
         #   specificity, frame_ix, tree, left_path, frozen_key, rigth_path
