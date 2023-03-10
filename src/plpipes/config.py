@@ -32,7 +32,6 @@ class ConfigStack:
     def reset_cache(self):
         self._cache = {}
 
-
     def _get(self, key, frame=0):
         if frame == 0:
             if key not in self._cache:
@@ -51,7 +50,7 @@ class ConfigStack:
         # 1. More specific entries always win over less specific ones.
         #
         # 2. For entries with the same specificity, the one from the
-        # lowest frame (the last loaded) wins.
+        # lowest frame (last loaded) wins.
         #
         # This is implemented using a mix of A*/depth-first search
         # algorithm.
@@ -61,7 +60,7 @@ class ConfigStack:
         #   specificity, frame_ix, tree, left_path, frozen_key, rigth_path
         queue = [(('!', '*')[k], ix, f, (key_part, '*')[k], (key_part, '*')[k], right)
                  for ix, f in enumerate(self._frames[frame:])
-                 for k in (0,1)]
+                 for k in (0, 1)]
         while queue:
             queue.sort(reverse=True)
             (specifity, frame_ix, tree, left, key_part, right) = queue.pop()
@@ -82,7 +81,7 @@ class ConfigStack:
 
                 if right:
                     (key_part, *right) = right
-                    queue.append((specifity + "*", frame_ix, tree, left+".*", '*', right))
+                    queue.append((specifity + "*", frame_ix, tree, left + ".*", '*', right))
                     left = left + "." + key_part
                     specifity += "!"
                 else:
@@ -115,10 +114,10 @@ class ConfigStack:
                 tree = tree[p]
             tree[last] = _merge_any(tree.get(last, None), newtree)
         else:
-             if not isinstance(newtree, dict):
-                 raise ValueError("Top configuration must be a dictionary")
-             self._frames[frame] = _merge_any(tree, newtree)
-        self._cache={}
+            if not isinstance(newtree, dict):
+                raise ValueError("Top configuration must be a dictionary")
+            self._frames[frame] = _merge_any(tree, newtree)
+        self._cache = {}
 
     def _set(self, key, value):
         if not isinstance(value, (str, int, float, bool, list)):
