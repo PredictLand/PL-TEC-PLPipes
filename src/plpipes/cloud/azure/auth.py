@@ -15,9 +15,6 @@ def credentials(account_name):
 def _authenticate(account_name):
     cfg_path = f"cloud.azure.auth.{account_name}"
     acfg = cfg.cd(cfg_path)
-    acfg.copydefaults(cfg.cd("cloud.azure.defaults"),
-                      "tenant_id", "client_id", "client_secret",
-                      authentication_callback_port=8282)
     ar_fn = pathlib.Path.home() / f".config/plpipes/cloud/azure/auth/{account_name}.json"
     try:
         with open(ar_fn, "r") as f:
@@ -26,11 +23,14 @@ def _authenticate(account_name):
         logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
         ar = None
 
-    allow_unencrypted_storage = acfg.get("allow_unencrypted_storage", False)
+    authentication_callback_port = acfg.setdefault("authentication_callback_port", 8082)
+    redirect_uri = f"http://localhost:{authentication_callback_port}"
+
+    allow_unencrypted_storage = acfg.setdefault("allow_unencrypted_storage", False)
     cache_persistence_options = TokenCachePersistenceOptions(allow_unencrypted_storage=allow_unencrypted_storage)
 
     expected_user = acfg.get("username")
-    redirect_uri = f"http://localhost:{acfg['authentication_callback_port']}"
+
     cred = InteractiveBrowserCredential(tenant_id=acfg["tenant_id"],
                                         client_id=acfg["client_id"],
                                         client_credential=acfg["client_secret"],
