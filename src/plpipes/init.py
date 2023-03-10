@@ -13,11 +13,11 @@ _config0 = {'db': {'instance': {'work': {},
 def init(*configs, config_files=[]):
     from pathlib import Path
 
-    # frame  0: command line arguments
-    # frame -1: custom configuration files
-    # frame -2: standard configuration files
+    # frame 0: command line arguments
+    # frame 1: custom configuration files
+    # frame 2: standard configuration files
 
-    cfg.merge(_config0, frame=-2)
+    cfg.merge(_config0, frame=2)
 
     for config in configs:
         for k, v in config.items():
@@ -30,7 +30,7 @@ def init(*configs, config_files=[]):
     logging.getLogger().setLevel(cfg["logging.level"].upper())
 
     for fn in config_files:
-        cfg.merge_file(fn, frame=-1)
+        cfg.merge_file(fn, frame=1)
         logging.getLogger().setLevel(cfg["logging.level"].upper())
 
     global_cfg_dir = Path.home() / ".config/plpipes"
@@ -38,7 +38,7 @@ def init(*configs, config_files=[]):
         for ext in ("json", "yml", "yaml"):
             path = global_cfg_dir / f"plpipes{suffix}.{ext}"
             if path.exists():
-                cfg.merge_file(path, frame=-2)
+                cfg.merge_file(path, frame=2)
                 logging.getLogger().setLevel(cfg["logging.level"].upper())
             else:
                 logging.debug(f"Configuration file {path} not found")
@@ -63,7 +63,7 @@ def init(*configs, config_files=[]):
                         dir       = config_dir if dir_key  else default_dir
                         path      = dir / f"{stem_part}{secrets_part}{env_part}.{ext}"
                         if path.exists():
-                            cfg.merge_file(path, frame=-2)
+                            cfg.merge_file(path, frame=2)
                             logging.getLogger().setLevel(cfg["logging.level"].upper())
                         else:
                             logging.debug(f"Configuration file {path} not found")

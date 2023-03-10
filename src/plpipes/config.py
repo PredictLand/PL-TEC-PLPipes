@@ -1,15 +1,27 @@
-
 import json
 import logging
 import re
 import copy
 import collections.abc
 
+def _merge_any(tree, new):
+    if isinstance(new, dict):
+        if isinstance(tree, dict):
+            for k, v in new.items():
+                tree[k] = _merge_any(tree[k], v) if k in tree else copy.deepcopy(v)
+            return tree
+        else:
+            return {k: _merge_any(None, v) for k, v in new.items()}
+    if isinstance(new, list):
+        return [_merge_any(None, e) for e in new]
+    if isinstance(new, (int, float, bool)):
+        return new
+    return str(new)
+
 class ConfigStack:
-    def __init__(self, top=None):
-        if not top:
-            top = _Level()
-        self._top = top
+    def __init__(self):
+        self._frames = []
+        self._cache = {}
 
     def _cd(self, path):
         return _Ptr(self, path)
@@ -18,7 +30,142 @@ class ConfigStack:
         return self._cd("")
 
     def reset_cache(self):
-        self._top._reset_cache()
+        self._cache = {}
+
+
+    def _get(self, key, frame=0):
+        if frame == 0:
+            if key not in self._cache:
+                self._cache[key] = self._get_nocache(key, 0)
+            return self._cache[key]
+        else:
+            return self._get_nocache(key, frame)
+
+    def _get_nocache(self, key, frame):
+        (key_part, *right) = key.split(".")
+        # queue structure:
+        #   specificity, frame_ix, tree, left_path, frozen_key, rigth_path
+        queue = [(('!', '*')[k], ix, f, (key_part, '*')[k], (key_part, '*')[k], right)
+                 for ix, f in enumerate(self._frames[frame:])
+                 for k in (0,1)]
+        while queue:
+            queue.sort(reverse=True)
+            (specifity, frame_ix, tree, left, key_part, right) = queue.pop()
+            while True:
+                try:
+                    if isinstance(tree, dict):
+                        tree = tree[key_part]
+                    elif isinstance(tree, list):
+                        queue = []
+                        if key_part.isnumeric():
+                            tree = tree[int(key_part)]
+                        else:
+                            raise IndexError("Expecting numeric key")
+                    else:
+                        raise ValueError(f"Config key '{key}' traversing blocked by a non dictionary object at {left}")
+                except (IndexError, KeyError):
+                    break
+
+                if right:
+                    (key_part, *right) = right
+                    queue.append((specifity + "*", frame_ix, tree, left+".*", '*', right))
+                    left = left + "." + key_part
+                    specifity += "!"
+                else:
+                    if isinstance(tree, dict):
+                        raise ValueError(f"config key '{key}' does not point to a terminal node")
+                    print(f"_get_nocache({key}, {frame}) --> {tree}")
+                    return tree
+        print(f"_get_cache({key}, {frame}) entry not found!")
+        raise KeyError(f"config key '{key}' not found")
+
+    def _contains(self, key):
+        try:
+            self._get(key, 0)
+            return True
+        except KeyError:
+            return False
+
+    def _merge(self, key, newtree, frame=0):
+        # Auto-allocate frames
+        if len(self._frames) <= frame:
+            self._frames += [{} for _ in range(frame - len(self._frames) + 1)]
+        tree = self._frames[frame]
+
+        if key != "":
+            parts = key.split(".")
+            last = parts.pop()
+            for p in parts:
+                if (p not in tree) or (not isinstance(tree[p], dict)):
+                    tree[p] = {}
+                tree = tree[p]
+            tree[last] = _merge_any(tree.get(last, None), newtree)
+        else:
+             if not isinstance(newtree, dict):
+                 raise ValueError("Top configuration must be a dictionary")
+             self._frames[frame] = _merge_any(tree, newtree)
+        self._cache={}
+
+    def _set(self, key, value):
+        if not isinstance(value, (str, int, float, bool, list)):
+            if isinstance(value, dict):
+                raise ValueError("It is not possible to set a configuration entry to a dictionary, use merge instead")
+            value = str(value)
+        self._merge(key, value)
+
+    def _multicd(self, key):
+        # queue structure:
+        #   specificity, frame_ix, tree
+        queue = [("", ix, f) for ix, f in enumerate(self._frames)]
+        if key != "":
+            right = key.split(".")
+            while right:
+                queue.sort()
+                key = right.pop(0)
+                new_queue = []
+                for specifity, ix, tree in queue:
+                    if isinstance(tree, dict):
+                        for s in ('!', '*'):
+                            k = s if s == '*' else key
+                            if k in tree:
+                                new_queue.append((specifity + s, ix, tree[k]))
+                    elif not new_queue:
+                        raise ValueError(f"Config key '{key}' blocked by a non dictionary object")
+                    else:
+                        break
+                queue = new_queue
+        return [t for _, _, t in sorted(queue, reverse=True)]
+
+    def _to_tree(self, key):
+        m = self._multicd(key)
+        tree = {}
+        for other in m:
+            tree = _merge_any(tree, other)
+        return tree
+
+    def _keys(self, key):
+        m = self._multicd(key)
+        seen = set()
+        inner_is_dict = True
+        for other in m:
+            if isinstance(other, dict):
+                if not inner_is_dict:
+                    inner_is_dict = True
+                    seen = set()
+                for k in other.keys():
+                    if k != '*':
+                        seen.add(k)
+            else:
+                inner_is_dict = False
+        if inner_is_dict:
+            return sorted(seen)
+        raise ValueError(f"Config key '{key}' blocked by a non dictionary object")
+
+    def _squash_frames(self):
+        tree = self._frames.pop()
+        while self._frames:
+            tree = _merge_any(tree, self._frames.pop())
+        self._frames.append(tree)
 
 class _Ptr(collections.abc.MutableMapping):
     def __init__(self, stack, path):
@@ -36,28 +183,28 @@ class _Ptr(collections.abc.MutableMapping):
         return f"{self._path}.{key}"
 
     def __getitem__(self, key):
-        return self._stack._top._get(self._mkkey(key))
+        return self._stack._get(self._mkkey(key))
 
     def __contains__(self, key):
-        return self._stack._top._contains(self._mkkey(key))
+        return self._stack._contains(self._mkkey(key))
 
     def __setitem__(self, key, value):
-        return self._stack._top._set(self._mkkey(key), value)
+        return self._stack._set(self._mkkey(key), value)
 
     def __delitem__(self, key):
-        self._stack._level._del(key)
+        self._stack._del(key)
 
     def __len__(self):
-        self._stack._level._len()
+        return len(self._keys())
 
     def to_tree(self, key=""):
-        return self._stack._top._to_tree(self._mkkey(key))
+        return self._stack._to_tree(self._mkkey(key))
 
     def to_json(self, key=""):
         return json.dumps(self.to_tree(key))
 
     def merge(self, tree, key="", frame=0):
-        return self._stack._top._merge(self._mkkey(key), tree, frame)
+        return self._stack._merge(self._mkkey(key), tree, frame)
 
     def merge_file(self, fn, key="", frame=0):
         logging.debug(f"Reading configuration file {fn}")
@@ -73,13 +220,17 @@ class _Ptr(collections.abc.MutableMapping):
         self.merge(tree, key, frame=frame)
 
     def squash_frames(self):
-        self._stack._top._squash_frames()
+        self._stack._squash_frames()
 
     def __iter__(self):
-        return self._stack._top._keys_iter(self._mkkey(""))
+        for k in self._stack._keys(self._mkkey("")):
+            yield k
+
+    def __keys__(self):
+        return self._stack._keys(self._mkkey(""))
 
     def __str__(self):
-        return str(self._stack._top._to_tree(""))
+        return str(self._stack._to_tree(""))
 
     def copydefaults(self, src, *keys, **keys_with_default):
         for key in keys:
@@ -91,165 +242,6 @@ class _Ptr(collections.abc.MutableMapping):
         for key, default in keys_with_default.items():
             if key not in self:
                 self[key] = src.get(key, default)
-
-
-def _merge_any(tree, new):
-    if isinstance(new, dict):
-        if isinstance(tree, dict):
-            for k, v in new.items():
-                tree[k] = _merge_any(tree[k], v) if k in tree else copy.deepcopy(v)
-            return tree
-    return copy.deepcopy(new)
-
-class _Level:
-    def __init__(self, root={}, parent=None):
-        self._root = {}
-        self._parent = parent
-        self._merge("", root)
-
-    def _reset_cache(self):
-        self._cache={}
-        if self._parent:
-            self._parent._reset_cache(self)
-
-    def _merge(self, key, value, frame=0):
-        if frame < 0:
-            if not self._parent:
-                self._parent = _Level()
-            self._parent._merge(key, value, frame+1)
-        else:
-            tree = self._root
-            if key:
-                parts = key.split(".")
-                last = parts.pop()
-                for p in parts:
-                    if (p not in tree) or (not isinstance(tree[p], dict)):
-                        tree[p] = {}
-                    tree = tree[p]
-
-                tree[last] = _merge_any(tree.get(last, None), value)
-            else:
-                if not isinstance(value, dict):
-                    raise ValueError("Top configuration must be a dictionary")
-                self._root = _merge_any(tree, value)
-        self._cache = {}
-
-    def _merge_default(self, key, value):
-        ...
-
-    def _set(self, key, value):
-        if isinstance(value, dict):
-            raise ValueError("It is not possible to set a configuration entry to a dictionary, use merge instead")
-        elif not isinstance(value, int):
-            value = str(value)
-        self._merge(key, value)
-
-    def _get_nocache(self, key):
-        parts = key.split(".")
-        v = self._root
-        for p in parts:
-            try:
-                v = v[p]
-            except TypeError:
-                raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
-            except KeyError as ex:
-                if self._parent:
-                    return self._parent._get(key)
-                raise ex
-
-        if isinstance(v, dict):
-            raise KeyError(f"config key '{key}' does not point to a terminal node")
-        return v
-
-    def _get(self, key):
-        if key not in self._cache:
-            self._cache[key] = self._get_nocache(key)
-        return self._cache[key]
-
-    def _contains(self, key):
-        if key in self._cache:
-            return True
-        parts = key.split(".")
-        v = self._root
-        for p in parts:
-            try:
-                v = v[p]
-            except TypeError:
-                return False
-            except KeyError:
-                return self._parent._contains(key) if self._parent else False
-        return True
-
-    def _to_tree(self, key):
-        parent_ex = None
-        tree = {}
-        if self._parent:
-            try:
-                tree = self._parent._to_tree(key)
-            except Exception as ex:
-                parent_ex = ex
-
-        v = self._root
-        if key:
-            parts = key.split(".")
-            for p in parts:
-                try:
-                    v = v[p]
-                except TypeError:
-                    raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
-                except:
-                    if parent_ex:
-                        raise parent_ex
-                    return tree
-        return _merge_any(tree, v)
-
-    def _steal_root(self):
-        self._squash_frames()
-        root = self._root
-        del self._root
-        return root
-
-    def _squash_frames(self):
-        if self._parent:
-            self._root = _merge_any(self._parent._steal_root(), self._root)
-            self._parent = None
-
-    def _keys_iter(self, key):
-        found = True
-        tree = self._root
-        if key:
-            parts = key.split(".")
-            for p in parts:
-                try:
-                    tree = tree[p]
-                except KeyError:
-                    found = False
-                    break
-                except:
-                    raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
-
-        seen = {}
-        if found:
-            if isinstance(tree, dict):
-                keys = tree.keys()
-            else:
-                raise KeyError(f"Config key '{key}' traversing blocked by a non dictionary object")
-
-            for k in keys:
-                if k not in seen:
-                    seen[k] = True
-                    yield k
-
-        if self._parent:
-            try:
-                for k in self._parent._keys_iter(key):
-                    if k not in seen:
-                        seen[k] = True
-                        yield k
-            except Exception as ex:
-                if not found:
-                    raise ex
-
 
 cfg_stack = ConfigStack()
 cfg = cfg_stack.root()
