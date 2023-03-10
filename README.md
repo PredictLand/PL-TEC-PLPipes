@@ -479,6 +479,25 @@ Otherwise it is placed in the `work` directory (example:
 Works in exactly the same way as DuckDB but using `sqlite` as the
 database file extension.
 
+#### Spatialite configuraion
+
+Spatialite is an extension of SQLite designed to facilitate the
+manipulation of geographic data.
+
+- `driver`: `spatialite`
+- `file`: databse file name.
+
+The extension must be installed. If you are using Conda it is
+available from the `conda-forge` repository and can be installed as
+follows:
+
+```
+conda install libspatialite -c conda-forge
+```
+
+Note that Spatialite database files also use the `sqlite` extension.
+
+
 #### SQLServer configuration
 
 - `driver`: `sql_server`
