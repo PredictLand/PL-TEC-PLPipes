@@ -87,9 +87,7 @@ class ConfigStack:
                 else:
                     if isinstance(tree, dict):
                         raise ValueError(f"config key '{key}' does not point to a terminal node")
-                    print(f"_get_nocache({key}, {frame}) --> {tree}")
                     return tree
-        print(f"_get_cache({key}, {frame}) entry not found!")
         raise KeyError(f"config key '{key}' not found")
 
     def _contains(self, key):
