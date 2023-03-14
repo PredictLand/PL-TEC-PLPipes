@@ -1,43 +1,57 @@
 import logging
 import sqlalchemy
-import pandas
-import types
 
 import sqlalchemy.sql as sas
 
-from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, AsSubquery
-from plpipes.util.typedict import dispatcher
+from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, Wrap
+from plpipes.util.typedict import TypeDict
 
-def _wrap(sql):
-    if isinstance(sql, str):
-        return sas.text(sql)
-    return sql
+import plpipes.plugin
 
-def _split_table_name(table_name):
-    if "." in table_name:
-        schema, table_name = table_name.split(".", 1)
-    else:
-        schema = None
-    return (schema, table_name)
+_backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.database.backend.plugin")
+_backend_registry = {}
+
+_create_table__handlers = TypeDict({str: '_create_table_from_str',
+                                    sas.elements.ClauseElement: '_create_table_from_clause'},
+                                   ix=1)
+
+def backend_lookup(name):
+    if name not in _backend_registry:
+        backend_class = _backend_class_registry.lookup(name)
+        _backend_registry[name] = backend_class()
+        _backend_registry[name].register_handlers({'create_table': _create_table__handlers})
+    return _backend_registry[name]
 
 class Driver:
+    _default_backend_name = "pandas"
+
     def __init__(self, name, drv_cfg, url):
         self._name = name
         self._cfg = drv_cfg
         self._url = url
         self._engine = sqlalchemy.create_engine(url)
         self._last_key = 0
+        backend_name = self._cfg.get("backend", self._default_backend_name)
+
+        self._default_backend = backend_lookup(self._cfg.get("backend", self._default_backend_name))
+
+        print(f"default backend name: {self._default_backend_name}, backend name: {backend_name}, backend: {self._default_backend}")
+
+    def _backend(self, name):
+        if name is None:
+            return self._default_backend
+        return backend_lookup(name)
 
     def _next_key(self):
         self._last_key += 1
         return self._last_key
 
-    def query(self, sql, parameters):
+    def query(self, sql, parameters, backend, kws):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
-        return pandas.read_sql_query(sas.text(sql), self._engine, params=parameters)
+        return self._backend(backend).query(self, sql, parameters, kws)
 
     def execute(self, sql, parameters=None):
-        self._engine.execute(_wrap(sql), parameters)
+        self._engine.execute(Wrap(sql), parameters)
 
     def execute_script(self, sql):
         logging.debug(f"database execute_script code: {repr(sql)}")
@@ -48,27 +62,17 @@ class Driver:
         finally:
             conn.close()
 
-    def read_table(self, table_name):
-        return self.query(f"select * from {table_name}", None)
+    def read_table(self, table_name, backend, kws):
+        return self.query(f"select * from {table_name}", None, backend, kws)
 
-    @dispatcher({pandas.DataFrame: '_create_table_from_pandas',
-                 str: '_create_table_from_str',
-                 sas.elements.ClauseElement: '_create_table_from_clause',
-                 types.GeneratorType: '_create_table_from_generator'},
-                ix=1)
-    def create_table(self, table_name, sql_or_df, parameters, if_exists):
+    @_create_table__handlers.dispatcher
+    def create_table(self, table_name, sql_or_df, parameters, if_exists, kws):
         ...
 
-    def _create_table_from_pandas(self, table_name, df, _, if_exists):
-        schema, table_name = _split_table_name(table_name)
-        df.to_sql(table_name, self._engine.connect(),
-                  schema=schema, if_exists=if_exists,
-                  index=False, chunksize=1000)
+    def _create_table_from_str(self, table_name, sql, parameters, if_exists, kws):
+        return self._create_table_from_clause(table_name, Wrap(sql), parameters, if_exists, kws)
 
-    def _create_table_from_str(self, table_name, sql, parameters, if_exists):
-        return self._create_table_from_clause(table_name, sas.text(sql), parameters, if_exists)
-
-    def _create_table_from_clause(self, table_name, clause, parameters, if_exists):
+    def _create_table_from_clause(self, table_name, clause, parameters, if_exists, kws):
         with self._engine.begin() as conn:
             if_not_exists = False
             if if_exists == "replace":
@@ -78,35 +82,14 @@ class Driver:
             conn.execute(CreateTableAs(table_name, clause, if_not_exists=if_not_exists),
                          parameters)
 
-    def _create_table_from_generator(self, table_name, gen, _, if_exists):
-        schema, table_name = _split_table_name(table_name)
-        first = True
-        with self._engine.begin() as conn:
-            for df in gen:
-                df.to_sql(table_name, conn,
-                          schema=schema,
-                          if_exists=if_exists if first else "append",
-                          index=False, chunksize=1000)
-                first = False
-                # conn.commit()
-
-    @dispatcher({sas.elements.ClauseElement: '_create_view_from_clause',
-                 str: '_create_view_from_str'},
-                ix=1)
-    def create_view(self, table_name, sql, parameters, if_exists):
-        ...
-
-    def _create_view_from_str(self, view_name, sql, parameters, if_exists):
-        return self._create_view_from_clause(view_name, sas.text(sql), parameters, if_exists)
-
-    def _create_view_from_clause(self, view_name, clause, parameters, if_exists):
+    def create_view(self, view_name, sql, parameters, if_exists):
         with self._engine.begin() as conn:
             if_not_exists = False
             if if_exists == "replace":
                 conn.execute(DropView(view_name, if_exists=True))
             elif if_exists == "ignore":
                 if_not_exists = True
-            conn.execute(CreateViewAs(view_name, clause, if_not_exists=if_not_exists),
+            conn.execute(CreateViewAs(view_name, Wrap(sql), if_not_exists=if_not_exists),
                          parameters)
 
     def engine(self):
@@ -118,22 +101,14 @@ class Driver:
     def url(self):
         return self._url
 
-    def query_chunked(self, sql, parameters, chunksize):
-        with self._engine.connect() as conn:
-            for chunk in pandas.read_sql(_wrap(sql), conn, chunksize=chunksize):
-                yield chunk
+    def query_chunked(self, sql, parameters, backend, kws):
+        return self._backend(backend).query_chunked(self, sql, parameters, kws)
 
-    def query_group(self, sql, parameters, by):
-        wrapped_sql = sas.select("*").select_from(AsSubquery(_wrap(sql))).order_by(*[sas.column(c) for c in by])
+    def query_group(self, sql, parameters, by, backend, kws):
+        return self._backend(backend).query_group(self, sql, parameters, by, kws)
 
-        tail = None
-        for chunk in self.query_chunked(wrapped_sql, parameters, 1000):
-            if tail is not None:
-                chunk = pandas.concat([tail, chunk])
-            groups =  [g for _, g in chunk.groupby(by)]
-            tail = groups.pop()
-            for group in groups:
-                group = group.reset_index()
-                yield group
-        if tail is not None:
-            yield tail
+    def _pop_kw(self, kws, name, default=None):
+        try:
+            return kws.pop(name)
+        except KeyError:
+            return self._cfg.get(name, default)

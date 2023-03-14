@@ -1,5 +1,6 @@
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.expression import ClauseElement, Executable, FromClause
+import sqlalchemy.sql
 
 import logging
 
@@ -67,3 +68,8 @@ class AsSubquery(FromClause):
 def _as_subquery(element, compiler, **kwargs):
     txt = compiler.process(element._txt)
     return f"({txt})"
+
+def Wrap(str_or_something):
+    if isinstance(str_or_something, str):
+        return sqlalchemy.sql.text(str_or_something)
+    return str_or_something

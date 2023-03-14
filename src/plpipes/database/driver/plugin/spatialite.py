@@ -9,6 +9,8 @@ from sqlalchemy import event
 @plugin("spatialite")
 class SpatialiteDriver(SQLiteDriver):
 
+    _default_backend_name = "geopandas"
+
     def __init__(self, name, drv_cfg):
         os.environ["SPATIALITE_SECURITY"] = "relaxed"
 

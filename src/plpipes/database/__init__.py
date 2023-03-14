@@ -1,19 +1,10 @@
 from plpipes.config import cfg
 import logging
 import plpipes.plugin
-import pandas
-import sqlalchemy.sql
 
 _driver_registry = plpipes.plugin.Registry("db_driver", "plpipes.database.driver.plugin")
 
 _db_registry = {}
-
-_create_table_methods = {}
-_create_table_methods_seed = {
-    pandas.DataFrame: '_create_table_from_pandas',
-    sqlalchemy.sql.elements.ClauseElement: '_create_table_from_sqlalchemy_clause',
-    str: '_create_table_from_sql'
-}
 
 def lookup(name=None):
     if name is None:
@@ -29,39 +20,40 @@ def _init_driver(name):
     driver = _driver_registry.lookup(driver_name)
     return driver(name, drv_cfg)
 
-def query(sql, parameters=None, db=None):
-    return lookup(db).query(sql, parameters)
+def query(sql, parameters=None, db=None, backend=None, **kws):
+    return lookup(db).query(sql, parameters, backend, kws)
 
 def execute(sql, parameters=None, db=None):
     return lookup(db).execute(sql, parameters)
 
-def create_table(table_name, sql_or_df, parameters=None, db=None, if_exists="replace"):
-    return lookup(db).create_table(table_name, sql_or_df, parameters, if_exists)
+def create_table(table_name, sql_or_df, parameters=None, db=None, if_exists="replace", **kws):
+    logging.debug(f"create table {table_name}")
+    return lookup(db).create_table(table_name, sql_or_df, parameters, if_exists, kws)
 
-def create_view(view_name, sql, parameters=None, db=None, if_exists="replace"):
-    return lookup(db).create_view(view_name, sql, parameters, if_exists)
+def create_view(view_name, sql, parameters=None, db=None, if_exists="replace", **kws):
+    return lookup(db).create_view(view_name, sql, parameters, if_exists, kws)
 
-def read_table(table_name, db=None):
-    return lookup(db).read_table(table_name)
+def read_table(table_name, db=None, backend=None, **kws):
+    return lookup(db).read_table(table_name, backend, kws)
 
 def execute_script(sql_script, db=None):
     return lookup(db).execute_script(sql_script)
 
-def query_chunked(sql, parameters=None, db=None, chunksize=1000):
-    return lookup(db).query_chunked(sql, parameters, chunksize)
+def query_chunked(sql, parameters=None, db=None, backend=None, **kws):
+    return lookup(db).query_chunked(sql, parameters, backend, kws)
 
-def query_group(sql, parameters=None, db=None, by=None):
-    return lookup(db).query_group(sql, parameters, by)
+def query_group(sql, parameters=None, db=None, by=None, backend=None, **kws):
+    return lookup(db).query_group(sql, parameters, by, kws)
 
 def create_table_from_query_and_map(to_table_name, sql, parameters=None, function=None,
                                     from_db=None, to_db=None, db=None,
-                                    if_exists="replace", chunksize=1000):
+                                    if_exists="replace"):
     if from_db is None:
         from_db = db
     if to_db is None:
         to_db = db
 
-    gen = query_chunked(sql, parameters=parameters, db=from_db, chunksize=chunksize)
+    gen = query_chunked(sql, parameters=parameters, db=from_db)
     if function is None:
         gen1 = gen
     else:
@@ -74,14 +66,14 @@ def create_table_from_query_and_map(to_table_name, sql, parameters=None, functio
 
 def download_table(from_table_name, to_table_name=None,
                    from_db="input", to_db="work",
-                   if_exists="replace", chunksize=1000):
+                   if_exists="replace"):
     if to_table_name is None:
         to_table_name = from_table_name
 
     create_table_from_query_and_map(to_table_name,
                                     f"select * from {from_table_name}",
                                     from_db=from_db, to_db=to_db,
-                                    if_exists=if_exists, chunksize=chunksize)
+                                    if_exists=if_exists)
 
     # gen = query_chunked(f"select * from {from_table_name}", db=from_db, chunksize=chunksize)
     # create_table_from_query_and_map(to_table_name, gen, if_exists=if_exists, db=to_db)
@@ -126,3 +118,9 @@ def connection(db=None):
 
 def driver(db=None):
     return lookup(db)
+
+def load_backend(name, db=None):
+    from .driver import backend_lookup
+    backend_lookup(name)
+
+load_backend("pandas")
