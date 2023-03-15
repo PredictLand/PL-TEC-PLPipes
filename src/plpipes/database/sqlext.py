@@ -61,6 +61,8 @@ def _drop_something(element, compiler, **kwargs):
     return sql
 
 class AsSubquery(FromClause):
+    inherit_cache = False
+
     def __init__(self, txt):
         self._txt = txt
 

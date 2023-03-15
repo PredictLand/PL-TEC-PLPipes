@@ -31,11 +31,7 @@ class Driver:
         self._url = url
         self._engine = sqlalchemy.create_engine(url)
         self._last_key = 0
-        backend_name = self._cfg.get("backend", self._default_backend_name)
-
         self._default_backend = backend_lookup(self._cfg.get("backend", self._default_backend_name))
-
-        print(f"default backend name: {self._default_backend_name}, backend name: {backend_name}, backend: {self._default_backend}")
 
     def _backend(self, name):
         if name is None:
