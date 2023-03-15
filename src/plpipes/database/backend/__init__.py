@@ -1,6 +1,6 @@
+from plpipes.plugin import Plugin
 
-
-class Backend:
+class Backend(Plugin):
     def query(self, engine, sql, paramaters):
         ...
 

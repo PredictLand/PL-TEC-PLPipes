@@ -5,10 +5,9 @@ def _class_cmp(a, b):
     return -1 if issubclass(b, a) and a is not b else 0
 
 class TypeDict:
-    def __init__(self, seed, ix=0):
+    def __init__(self, seed):
         self.seed = {**seed}
         self.cache = {}
-        self.ix = ix
 
     def __getitem__(self, obj):
         try:
@@ -28,18 +27,31 @@ class TypeDict:
         self.seed[type] = method
         self.cache = {}
 
-    def dispatcher(self, method):
+def dispatcher(seed, ix=0):
 
-        @functools.wraps(method)
-        def wrapped_method(inner_self, *args, **kwargs):
+    def mk_wrapper(method):
+
+        td = TypeDict(seed)
+
+        def wrapper(inner_self, *args, **kwargs):
             logging.debug(f"method {method} called!")
             try:
-                name_or_ref = self[args[self.ix]]
+                name_or_ref = td[args[ix]]
             except IndexError:
-                raise IndexError(f"Not enough arguments for method. {len(args)} found when dispatcher looks at argument #{self.ix}")
+                raise IndexError(f"Not enough arguments. Dispatcher looks at argument #{ix} but only {len(args)} where given")
             if isinstance(name_or_ref, str):
                 target_method = getattr(inner_self, name_or_ref)
                 return target_method(*args, **kwargs)
             else:
                 return name_or_ref(inner_self, *args, **kwargs)
-        return wrapped_method
+
+        def copy():
+            return mk_wrapper(method)
+
+        functools.update_wrapper(wrapper, method)
+        wrapper.copy = copy
+        wrapper.td = td
+
+        return wrapper
+
+    return mk_wrapper

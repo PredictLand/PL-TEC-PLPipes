@@ -120,7 +120,4 @@ def driver(db=None):
     return lookup(db)
 
 def load_backend(name, db=None):
-    from .driver import backend_lookup
-    backend_lookup(name)
-
-load_backend("pandas")
+    lookup(db).load_backend(name)

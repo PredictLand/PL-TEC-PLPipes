@@ -698,7 +698,7 @@ following ways:
    df = plpipes.database.query(sql, backend="spark")
    ```
 
-2. In the databse connection configuration. For instance:
+2. In the database connection configuration. For instance:
 
    ```yaml
    db:
@@ -708,18 +708,18 @@ following ways:
    ```
 
 3. Every database driver can set its own default. For instance,
-   currently, the Spatialite driver sets `geopandas` as its default
+   currently, the `spatialite` driver sets `geopandas` as its default
    backend.
 
 #### Backend specifics
 
-##### Pandas backend
+##### `pandas` backend
 
 This is the default backend.
 
-##### Geopandas
+##### `geopandas` backend
 
-The spatialite backend can handle both `geopandas` and regular
+The `geopandas` backend can handle both `geopandas` and regular
 `pandas` dataframes.
 
 In read operations, the argument `geom_col` must be used to indicate

@@ -6,7 +6,7 @@ from plpipes.plugin import plugin
 
 from sqlalchemy import event
 
-@plugin("spatialite")
+@plugin
 class SpatialiteDriver(SQLiteDriver):
 
     _default_backend_name = "geopandas"

@@ -11,7 +11,7 @@ from plpipes.plugin import plugin
 
 DEFAULT_CHUNKSIZE = 5000
 
-@plugin("geopandas")
+@plugin
 class GeoPandasBackend(PandasBackend):
 
     def register_handlers(self, handlers):

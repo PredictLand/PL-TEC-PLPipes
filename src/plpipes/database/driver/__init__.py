@@ -4,26 +4,32 @@ import sqlalchemy
 import sqlalchemy.sql as sas
 
 from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, Wrap
-from plpipes.util.typedict import TypeDict
+from plpipes.util.typedict import dispatcher
 
 import plpipes.plugin
 
 _backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.database.backend.plugin")
 _backend_registry = {}
 
-_create_table__handlers = TypeDict({str: '_create_table_from_str',
-                                    sas.elements.ClauseElement: '_create_table_from_clause'},
-                                   ix=1)
-
-def backend_lookup(name):
-    if name not in _backend_registry:
-        backend_class = _backend_class_registry.lookup(name)
-        _backend_registry[name] = backend_class()
-        _backend_registry[name].register_handlers({'create_table': _create_table__handlers})
-    return _backend_registry[name]
-
-class Driver:
+class Driver(plpipes.plugin.Plugin):
     _default_backend_name = "pandas"
+
+    @classmethod
+    def _init_plugin(klass, key):
+        super()._init_plugin(key)
+        klass._backend_registry = {}
+        klass.create_table = Driver.create_table.copy()
+
+    @classmethod
+    def _backend_lookup(klass, name):
+        try:
+            return klass._backend_registry[name]
+        except KeyError:
+            backend_class = _backend_class_registry.lookup(name)
+            backend = backend_class()
+            klass._backend_registry[name] = backend
+            backend.register_handlers({'create_table': klass.create_table.td})
+            return backend
 
     def __init__(self, name, drv_cfg, url):
         self._name = name
@@ -31,12 +37,12 @@ class Driver:
         self._url = url
         self._engine = sqlalchemy.create_engine(url)
         self._last_key = 0
-        self._default_backend = backend_lookup(self._cfg.get("backend", self._default_backend_name))
+        self._default_backend = self._backend_lookup(self._cfg.get("backend", self._default_backend_name))
 
     def _backend(self, name):
         if name is None:
             return self._default_backend
-        return backend_lookup(name)
+        return self._backend_lookup(name)
 
     def _next_key(self):
         self._last_key += 1
@@ -61,7 +67,9 @@ class Driver:
     def read_table(self, table_name, backend, kws):
         return self.query(f"select * from {table_name}", None, backend, kws)
 
-    @_create_table__handlers.dispatcher
+    @dispatcher({str: '_create_table_from_str',
+                 sas.elements.ClauseElement: '_create_table_from_clause'},
+                ix=1)
     def create_table(self, table_name, sql_or_df, parameters, if_exists, kws):
         ...
 
@@ -108,3 +116,6 @@ class Driver:
             return kws.pop(name)
         except KeyError:
             return self._cfg.get(name, default)
+
+    def load_backend(self, name):
+        self._backend_lookup(name)
