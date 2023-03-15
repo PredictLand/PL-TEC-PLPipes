@@ -680,11 +680,16 @@ so as long as the backend is loaded, `plpipes` will use the right one
 automatically.
 
 The function `plpipes.database.load_backend` can be used to load a
-specific backend:
+specific backend into a database driver:
 
 ```python
-plpipes.database.load_backend("geopandas")
+plpipes.database.load_backend("geopandas", db="input")
 ```
+
+*Currently, under the hood, backends are attached to the driver
+class. Once a backend is loaded, for instance, for a `azure_sql`
+database, every other database using such driver will have the backend
+available for write operations.*
 
 In the case of read operations, there is no way for `plpipes` to infer
 the desired backend and so it must be stated explicitly in one of the
@@ -710,6 +715,10 @@ following ways:
 3. Every database driver can set its own default. For instance,
    currently, the `spatialite` driver sets `geopandas` as its default
    backend.
+
+Read operations transparently call `load_backend` as needed. The
+default backend is also loaded automatically when the database is
+initialized.
 
 #### Backend specifics
 
