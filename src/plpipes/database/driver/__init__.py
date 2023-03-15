@@ -13,22 +13,25 @@ _backend_registry = {}
 
 class Driver(plpipes.plugin.Plugin):
     _default_backend_name = "pandas"
+    _backend_subkeys = []
 
     @classmethod
     def _init_plugin(klass, key):
         super()._init_plugin(key)
         klass._backend_registry = {}
         klass.create_table = Driver.create_table.copy()
+        klass._backend_subkeys = [key, *klass._backend_subkeys]
 
     @classmethod
     def _backend_lookup(klass, name):
         try:
             return klass._backend_registry[name]
         except KeyError:
-            backend_class = _backend_class_registry.lookup(name)
+            backend_class = _backend_class_registry.lookup(name, subkeys=klass._backend_subkeys)
             backend = backend_class()
             klass._backend_registry[name] = backend
             backend.register_handlers({'create_table': klass.create_table.td})
+            logging.debug(f"backend {backend._plugin_name} for {klass._plugin_name} loaded")
             return backend
 
     def __init__(self, name, drv_cfg, url):
