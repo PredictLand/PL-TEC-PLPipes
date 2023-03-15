@@ -21,14 +21,24 @@ class Registry():
         key = _current_key.get()
         self._registry[key] = obj
 
-    def lookup(self, key):
-        if key not in self._registry:
-            with set_context_var(_current_registry, self), \
-                 set_context_var(_current_key, key):
-                module = self._path + "." + key
-                logging.debug(f"loading class {module} for key {key} in registry {self._name}")
-                __import__(module)
-        return self._registry[key]
+    def lookup(self, key, subkeys=None):
+        if subkeys:
+            long_key = "__".join([key, subkeys[0]])
+        else:
+            long_key = key
+        if long_key not in self._registry:
+            try:
+                with set_context_var(_current_registry, self), \
+                     set_context_var(_current_key, long_key):
+                    module = self._path + "." + long_key
+                    logging.debug(f"loading class {module} for key {long_key} in registry {self._name}")
+                    __import__(module)
+            except ModuleNotFoundError:
+                if subkeys:
+                    self._registry[long_key] = self.lookup(key, subkeys[1:])
+                else:
+                    raise
+        return self._registry[long_key]
 
 class Plugin():
     @classmethod
