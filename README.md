@@ -482,9 +482,14 @@ db:
       user: predictland
 ```
 
-The `db.instance.*.driver` is used to find out which driver to use to
-establish the connection. The remaining configuration entries are
-driver specific and as follow:
+The `db.instance.*.driver` key is used to find out which driver to use
+to establish the connection.
+
+The `db.instance.*.backend` key is used to stablish the DataFrame
+library backend used for the database instance. See
+[Database-backends](#Database_backends).
+
+The remaining configuration entries are driver specific and as follow:
 
 #### DuckDB configuration
 
@@ -643,6 +648,103 @@ Also useful for integrating `plpipes` with other third party modules
 or for using other `SQLAlchemy` methods not directly wrapped by
 `plpipes`.
 
+### Database backends
+
+Besides pandas, which is the de-facto standard in the Python
+Data-Science context for representing tabular data, there are other
+libraries than for certain problems may be more suitable (for
+instance, [geopandas](https://geopandas.org/en/stable/) for the
+manipulation of geo-referenced data).
+
+PLPipes has a set of plugable backends controlling how data from the
+database is serialized/deserialized into the different DataFrame
+implementations.
+
+So far, backends for `pandas` and `geopandas` are provided. Others for
+[polars](https://www.pola.rs/), [spark](https://spark.apache.org/),
+[vaex](https://vaex.io/) or [dassk](https://www.dask.org/) will be
+added as the need arises.
+
+In any case, note that changing the backend, usually also requires
+changing the code that uses the dataframes as every library provides
+its own similar but incompatible API.
+
+Every backend may also accept custom keyword arguments. See [Backend
+specifics](#Backend-specifics) bellow.
+
+#### Picking the backend
+
+For database write operations (i.e. `create_table`), `plpipes` can
+infer which backend to use just looking at the dataframe object type,
+so as long as the backend is loaded, `plpipes` will use the right one
+automatically.
+
+The function `plpipes.database.load_backend` can be used to load a
+specific backend:
+
+```python
+plpipes.database.load_backend("geopandas")
+```
+
+In the case of read operations, there is no way for `plpipes` to infer
+the desired backend and so it must be stated explicitly in one of the
+following ways:
+
+1. Passing it as an argument in database read functions
+   (i.e. `read_table`, `query`, `query_chunked` and
+   `query_group`). For instance:
+
+   ```python
+   df = plpipes.database.query(sql, backend="spark")
+   ```
+
+2. In the databse connection configuration. For instance:
+
+   ```yaml
+   db:
+     instance:
+       work:
+         backend: polars
+   ```
+
+3. Every database driver can set its own default. For instance,
+   currently, the Spatialite driver sets `geopandas` as its default
+   backend.
+
+#### Backend specifics
+
+##### Pandas backend
+
+This is the default backend.
+
+##### Geopandas
+
+The spatialite backend can handle both `geopandas` and regular
+`pandas` dataframes.
+
+In read operations, the argument `geom_col` must be used to indicate
+which column contains the geometric data.
+
+If the argument is ommited, the backend returns a regular `pandas` dataframe.
+
+Example:
+
+```python
+df = db.query("select * from countries", geom_col="geometry")
+```
+
+In order to read geometric data from the database the backend may
+mangle the query in order to transform the geometric column values
+into the right format for `geopandas.read_postgis`
+method. Specifically, in the case of Spatialite, it wraps the
+geometric column in the query as `Hex(ST_AsBinary(geom_col))`.
+
+Alternatively, and in order to avoid such processing, the
+`wkb_geom_col` argument can be used instead. In that case, it is the
+programmer responsability to write a query returning the values in
+such colum in a format supported by geopandas (`wkb` stands for [Well
+Known
+Binary](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry)).
 
 ## Actions
 
