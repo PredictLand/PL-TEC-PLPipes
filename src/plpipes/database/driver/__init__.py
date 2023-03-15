@@ -9,7 +9,6 @@ from plpipes.util.typedict import dispatcher
 import plpipes.plugin
 
 _backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.database.backend.plugin")
-_backend_registry = {}
 
 class Driver(plpipes.plugin.Plugin):
     _default_backend_name = "pandas"
@@ -19,8 +18,8 @@ class Driver(plpipes.plugin.Plugin):
     def _init_plugin(klass, key):
         super()._init_plugin(key)
         klass._backend_registry = {}
-        klass.create_table = Driver.create_table.copy()
         klass._backend_subkeys = [key, *klass._backend_subkeys]
+        klass.create_table = Driver.create_table.copy()
 
     @classmethod
     def _backend_lookup(klass, name):
