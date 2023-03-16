@@ -19,8 +19,9 @@ class GeoPandasSpatialiteBackend(GeoPandasBackend):
                            .select_from(AsSubquery(sqla)))
 
             df = geopandas.read_postgis(wrapped_sql, engine, geom_col=wrapped_col, **kws)
-            df[geom_col] = df[wrapped_col]
-            df.drop([wrapped_col], axis=1, inplace=True)
+            df.drop([geom_col], axis=1, inplace=True)
+            df.rename(columns={wrapped_col: geom_col}, inplace=True)
+            df.set_geometry(geom_col, inplace=True)
             return df
         elif wkb_geom_col is not None:
             return geopandas.read_postgis(wrapped_sql, engine, geom_col=wkb_geom_col, **kws)

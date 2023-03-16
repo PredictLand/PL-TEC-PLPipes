@@ -14,10 +14,8 @@ class GeoPandasBackend(PandasBackend):
     def _create_table_from_geopandas(self, driver, table_name, df, parameters, if_exists, kws):
         chunksize = driver._pop_kw(kws, "chunksize", DEFAULT_CHUNKSIZE)
         schema, table_name = split_table_name(table_name)
-        if schema is None:
-            schema = "main"
         return df.to_postgis(table_name, driver._engine.connect(),
-
+                             schema="main" if schema is None else schema,
                              if_exists=if_exists,
                              index=False, chunksize=chunksize, **kws)
 
