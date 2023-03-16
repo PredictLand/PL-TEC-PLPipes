@@ -6,12 +6,12 @@ _driver_registry = plpipes.plugin.Registry("db_driver", "plpipes.database.driver
 
 _db_registry = {}
 
-def lookup(name=None):
-    if name is None:
-        name = "work"
-    if name not in _db_registry:
-        _db_registry[name] = _init_driver(name)
-    return _db_registry[name]
+def lookup(db=None):
+    if db is None:
+        db = "work"
+    if db not in _db_registry:
+        _db_registry[db] = _init_driver(db)
+    return _db_registry[db]
 
 def _init_driver(name):
     drv_cfg = cfg.cd(f"db.instance.{name}")
