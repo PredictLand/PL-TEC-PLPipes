@@ -43,7 +43,7 @@ def query_chunked(sql, parameters=None, db=None, backend=None, **kws):
     return lookup(db).query_chunked(sql, parameters, backend, kws)
 
 def query_group(sql, parameters=None, db=None, by=None, backend=None, **kws):
-    return lookup(db).query_group(sql, parameters, by, kws)
+    return lookup(db).query_group(sql, parameters, by, backend, kws)
 
 def create_table_from_query_and_map(to_table_name, sql, parameters=None, function=None,
                                     from_db=None, to_db=None, db=None,
