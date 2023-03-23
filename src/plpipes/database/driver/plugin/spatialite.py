@@ -22,4 +22,4 @@ class SpatialiteDriver(SQLiteDriver):
             conn.enable_load_extension(True)
             conn.execute("select load_extension('mod_spatialite')")
 
-        self.execute("select InitSpatialMetaData()", None)
+        self._engine.execute("select InitSpatialMetaData()")

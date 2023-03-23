@@ -43,7 +43,7 @@ def dispatcher(seed, ix=0):
                 target_method = getattr(inner_self, name_or_ref)
                 return target_method(*args, **kwargs)
             else:
-                return name_or_ref(inner_self, *args, **kwargs)
+                return name_or_ref(*args, **kwargs)
 
         def copy():
             return mk_wrapper(method)
