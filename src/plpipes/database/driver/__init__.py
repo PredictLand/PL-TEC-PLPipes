@@ -73,7 +73,7 @@ class Driver(plpipes.plugin.Plugin):
         return self.query(f"select * from {table_name}", None, backend, kws)
 
     def _drop_table(self, txn, table_name, only_if_exists):
-         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
+        txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
 
     @dispatcher({str: '_create_table_from_str',
                  sas.elements.ClauseElement: '_create_table_from_clause'},

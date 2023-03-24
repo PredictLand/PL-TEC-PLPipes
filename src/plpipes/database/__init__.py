@@ -81,6 +81,48 @@ def copy_table(from_table_name, to_table_name=None,
                     else:
                         to_txn.create_table(to_table_name, df, if_exists="append")
 
+_key_dir_unpacked = {
+    '>' : (True , True ), # Ascending, Strict
+    '>=': (True , False),
+    '<' : (False, True ),
+    '<=': (False, False)
+}
+
+def update_table(from_table_name, to_table_name=None,
+                 from_db=None, to_db=None, db=None,
+                 key=None, key_dir=">=", **kws):
+    if to_table_name is None:
+        to_table_name = from_table_name
+
+    from_driver = lookup(db if from_db is None else from_db)
+    to_driver = lookup(db if to_db is None else to_db)
+
+    try:
+        ascending, strict = _key_dir_unpacked[key_dir]
+    except KeyError:
+        raise ValueError(f"Invalid key_dir value {key_dir}")
+
+    with from_driver.begin() as from_txn:
+        logging.debug(f"Updating table {from_table_name} from db {from_db} as {to_table_name} in db {to_db}")
+        with to_driver.begin() as to_txn:
+            if to_driver._engine.dialect.has_table(to_txn._conn, to_table_name):
+                count = to_txn.query(f"select count(*) as c from (select {key} from {to_table_name} limit 1) as t")["c"][0]
+                if count > 0:
+                    top_func = "max" if ascending else "min"
+                    top = to_txn.query(f"select {top_func}({key}) as top from {to_table_name}")["top"][0]
+                    if not strict:
+                        # we don't know if the we have all the rows with key=top, so we have to delete any previous row!
+                        to_txn.execute(f"delete from {to_table_name} where {key} = :top", parameters={'top': top})
+                    for df in from_txn.query_chunked(f"select * from {from_table_name} where {key} {key_dir} :top",
+                                                     parameters={'top': top}):
+                        to_txn.create_table(to_table_name, df, if_exists="append")
+                    return
+            # No table, or table is empty
+
+            for df in from_txn.read_table_chunked(from_table_name):
+                to_txn.create_table(to_table_name, df, if_exists="append")
+
+
 def engine(db=None):
     return lookup(db).engine()
 
