@@ -25,7 +25,7 @@ def begin(db=None):
 
 def query(sql, parameters=None, db=None, backend=None, **kws):
     with begin(db) as txn:
-        return txn.query(sql, parameters, backend, kws)
+        return txn.query(sql, parameters, backend, **kws)
 
 def execute(sql, parameters=None, db=None):
     with begin(db) as txn:
@@ -56,16 +56,30 @@ def query_group(sql, parameters=None, db=None, by=None, backend=None, **kws):
     with begin(db) as txn:
         return txn.query_group(sql, parameters, by, backend, **kws)
 
-def download_table(from_table_name, to_table_name=None,
-                   from_db="input", to_db="work",
-                   if_exists="replace"):
+def copy_table(from_table_name, to_table_name=None,
+               from_db=None, to_db=None, db=None,
+               if_exists="replace", **kws):
     if to_table_name is None:
         to_table_name = from_table_name
 
-    create_table_from_query_and_map(to_table_name,
-                                    f"select * from {from_table_name}",
-                                    from_db=from_db, to_db=to_db,
-                                    if_exists=if_exists)
+    from_driver = lookup(db if from_db is None else from_db)
+    to_driver = lookup(db if to_db is None else to_db)
+
+    with from_driver.begin() as from_txn:
+        logging.debug(f"copy table {from_table_name} from db {from_db} as {to_table_name} in db {to_db}")
+        if from_driver is to_driver:
+            from_txn.copy_table(from_table_name, to_table_name, if_exists=if_exists, **kws)
+        else:
+            with to_driver.begin() as to_txn:
+                if if_exists == "replace":
+                    to_txn.drop_table(to_table_name)
+                first = True
+                for df in from_txn.read_table_chunked(from_table_name, **kws):
+                    if first:
+                        to_txn.create_table(to_table_name, df, if_exists=if_exists)
+                        first = False
+                    else:
+                        to_txn.create_table(to_table_name, df, if_exists="append")
 
 def engine(db=None):
     return lookup(db).engine()

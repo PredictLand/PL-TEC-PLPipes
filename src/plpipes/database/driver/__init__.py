@@ -45,6 +45,7 @@ class Driver(plpipes.plugin.Plugin):
     def _backend(self, name):
         if name is None:
             return self._default_backend
+        logging.debug(f"looking up backend {name}")
         return self._backend_lookup(name)
 
     @contextmanager
@@ -71,6 +72,9 @@ class Driver(plpipes.plugin.Plugin):
     def _read_table(self, txn, table_name, backend, kws):
         return self.query(f"select * from {table_name}", None, backend, kws)
 
+    def _drop_table(self, txn, table_name, only_if_exists):
+         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
+
     @dispatcher({str: '_create_table_from_str',
                  sas.elements.ClauseElement: '_create_table_from_clause'},
                 ix=2)
@@ -78,12 +82,12 @@ class Driver(plpipes.plugin.Plugin):
         ...
 
     def _create_table_from_str(self, txn, table_name, sql, parameters, if_exists, kws):
-        return self._create_table_from_clause(table_name, Wrap(sql), parameters, if_exists, kws)
+        return self._create_table_from_clause(txn, table_name, Wrap(sql), parameters, if_exists, kws)
 
     def _create_table_from_clause(self, txn, table_name, clause, parameters, if_exists, kws):
         if_not_exists = False
         if if_exists == "replace":
-            txn._conn.execute(DropTable(table_name, if_exists=True))
+            self._drop_table(txn, table_name, True)
         elif if_exists == "ignore":
             if_not_exists = True
         txn._conn.execute(CreateTableAs(table_name, clause,
@@ -100,11 +104,19 @@ class Driver(plpipes.plugin.Plugin):
                                        if_not_exists=if_not_exists),
                           parameters)
 
+    def _copy_table(self, txn, from_table_name, to_table_name, if_exists, kws):
+        return self._create_table_from_str(txn, to_table_name,
+                                           f"select * from {from_table_name}", None,
+                                           if_exists, kws)
+
     def engine(self):
         return self._engine
 
     def url(self):
         return self._url
+
+    def _read_table_chunked(self, txn, table_name, backend, kws):
+        return self._query_chunked(txn, f"select * from {table_name}", None, backend, kws)
 
     def _query_chunked(self, txn, sql, parameters, backend, kws):
         return self._backend(backend).query_chunked(txn, sql, parameters, kws)
