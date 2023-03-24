@@ -610,7 +610,7 @@ execute_script(sql_script, db='work')
 
 Runs a sequence of SQL sentences.
 
-*This method is currently only implemented by the SQLite backend.*
+*This method is an unstable state, waiting for a proper implementation to happen :-)*
 
 #### `create_table`
 
@@ -627,16 +627,57 @@ create_table(table_name, sql,
 This method can be used to create a new table both from a dataframe or
 from a SQL sentence.
 
-#### `engine`
+#### `copy_table`
 
 ```python
-engine(db='work')
+copy_table(source_table_name, dest_table_name=source_table_name,
+           source_db="work", dest_db="work", db="work",
+           if_exists="replace", **kws)
+```
+Copies table `source_table_name` from database `source_db` into
+`dest_table_name` at database `dest_db`.
+
+#### `update_table`
+
+```python
+update_table(source_table_name, dest_table_name=source_table_name,
+             source_db="work", dest_db="work", db="work",
+             key=None, key_dir=">=")
+```
+Updates table `dest_table_name` at database `dest_db` with the
+missing rows `from source_table_name` at `source_db`.
+
+`key` points to a column with monotonic values which is used to
+identify the new rows in the source table.
+
+`key_dir` indicates whether the `key` column monotony is strictly
+ascending (`>`), ascending (`>=`), descending (`<=`) or strictly
+descending (`<`).
+
+For instance, for a date column, whose values always increase, but
+which may have duplicates, the right value is `>=`. In other words,
+the operator used answers to the question "how are the new values in
+the table?"
+
+#### `begin`
+
+```python
+with begin(db='work') as conn:
+    df = conn.query(sql1)
+    df = conn.execute(sql2)
+    ...
 ```
 
-Returns the underlying `SQLAlchemy` object representing the engine
-(useful for integrating `plpipes` with other frameworks).
+This method returns a database connection with an open transaction.
 
-#### `connection`
+The transaction is automatically commited when the with block is done
+unless an exception is raised. In that case, a rollback is performed.
+
+
+### Connection class
+
+The connection class is returned by calling `begin`.
+
 
 ```python
 connection(db='work')
