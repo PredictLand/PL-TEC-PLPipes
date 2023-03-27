@@ -70,7 +70,7 @@ class Driver(plpipes.plugin.Plugin):
         txn._conn.executescript(sql)
 
     def _read_table(self, txn, table_name, backend, kws):
-        return self.query(f"select * from {table_name}", None, backend, kws)
+        return self._query(txn, f"select * from {table_name}", None, backend, kws)
 
     def _drop_table(self, txn, table_name, only_if_exists):
         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
