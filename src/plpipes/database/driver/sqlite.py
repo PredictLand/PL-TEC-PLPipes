@@ -1,7 +1,6 @@
-import pathlib
-
-from plpipes.config import cfg
 from plpipes.database.driver.filedb import FileDBDriver
+
+from plpipes.database.driver.transaction import Transaction
 
 class _SQLiteMapAsPandas:
     def __init__(self):
@@ -19,9 +18,19 @@ class _SQLiteMapAsPandas:
             logging.error(f"Exception caught: {ex}")
             raise ex
 
+class SQLiteTransaction(Transaction):
+    def create_function(self, name, nargs, pyfunc):
+        self._driver._create_function(self, name, nargs, pyfunc)
+
 class SQLiteDriver(FileDBDriver):
+
+    _transaction_factory = SQLiteTransaction
+
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg, "sqlite")
+
+    def _create_function(self, txn, name, nargs, pyfunc):
+        txn._conn.connection.create_function(name, nargs, pyfunc)
 
     def create_table_from_query_group_and_map(self,
                                               name, sql, by,

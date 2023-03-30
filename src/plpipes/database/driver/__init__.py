@@ -14,6 +14,7 @@ _backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.databas
 class Driver(plpipes.plugin.Plugin):
     _default_backend_name = "pandas"
     _backend_subkeys = []
+    _transaction_factory = Transaction
 
     @classmethod
     def _init_plugin(klass, key):
@@ -52,7 +53,7 @@ class Driver(plpipes.plugin.Plugin):
     def begin(self):
         with self._engine.connect() as conn:
             with conn.begin():
-                yield Transaction(self, conn)
+                yield self._transaction_factory(self, conn)
 
     def _next_key(self):
         self._last_key += 1
