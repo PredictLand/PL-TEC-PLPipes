@@ -3,6 +3,8 @@ from plpipes.config import cfg
 import sys
 import os
 import logging
+import pathlib
+import datetime
 
 _config0 = {'db': {'instance': {'work': {},
                                 'input': {},
@@ -78,6 +80,37 @@ def init(*configs, config_files=[]):
               'input', 'output', 'work', 'actions'):
         cfg.setdefault("fs." + e, root_dir / e)
 
+    _filelog_setup()
+
     logging.debug(f"Configuration: {repr(cfg.to_tree())}")
 
     return True
+
+
+def _filelog_setup():
+    if cfg.get("logging.log_to_file", True):
+        dir = cfg.get("logging.log_dir", "logs")
+        dir = pathlib.Path(cfg["fs.root"]) / dir
+        dir.mkdir(exist_ok=True, parents=True)
+        ts = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+        name = f"log-{ts}.txt"
+
+        last = dir / "last-log.txt"
+        try:
+            if last.exists():
+                last.unlink()
+            (dir / "last-log.txt").symlink_to(name)
+        except:
+            logging.warn(f"Unable to create link for {last}", exc_info=True)
+
+        logger = logging.getLogger()
+
+        fh = logging.FileHandler(str(dir / name))
+        fh.setLevel(logger.getEffectiveLevel())
+        try:
+            formatter = logger.handlers[0].formatter
+            fh.setFormatter(formatter)
+        except:
+            logging.warn("Can't set format for file logger", exc_info=True)
+
+        logger.addHandler(fh)
