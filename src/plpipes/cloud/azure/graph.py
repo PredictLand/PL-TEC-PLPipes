@@ -289,7 +289,13 @@ class _GroupsNode(_RemoteDirNode):
 
     def _list_children(self):
         r = self._fs._get(self._children_url())
-        return {v["displayName"]: v for v in r["value"]}
+        children = {}
+        for v in r["value"]:
+            name = v.get("mailNickname")
+            if name is None:
+                name = v["displayName"]
+            children[name] = v
+        return children
 
 class _TeamNode(_RemoteDirNode):
     pass
