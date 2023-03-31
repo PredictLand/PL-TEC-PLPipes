@@ -31,13 +31,33 @@ def _authenticate(account_name):
 
     expected_user = acfg.get("username")
 
+    logging.warn(f"prompt: {acfg.get('prompt', 'login')}")
+
     cred = InteractiveBrowserCredential(tenant_id=acfg["tenant_id"],
                                         client_id=acfg["client_id"],
-                                        client_credential=acfg["client_secret"],
+                                        client_credential=acfg.get("client_secret"),
+                                        prompt=acfg.get("prompt", "login"),
                                         login_hint=expected_user,
                                         redirect_uri=redirect_uri,
                                         cache_persistence_options=cache_persistence_options,
                                         authentication_record=ar)
+
+
+    import httpx
+
+    client = httpx.Client(http2=True, timeout=None, trust_env=True)
+    # client.httpcore_logger.enable("httpx")
+
+    # Make a request to the Graph API
+    response = client.get('https://graph.microsoft.com/v1.0/groups',
+                          headers={'Authorization': f'Bearer {cred.get_token("https://graph.microsoft.com/.default").token}'})
+
+    # Log the response status code and content
+    print(f'Response status code: {response.status_code}')
+    print(f'Response content: {response.content}')
+
+    # Print the HTTP request and response logs
+    # print(client.httpcore_logger.logs)
 
     if "scopes" in acfg:
         scopes = acfg["scopes"]
