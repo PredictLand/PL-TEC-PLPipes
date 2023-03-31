@@ -267,6 +267,9 @@ class _MeNode(_FolderNode):
     def _mkurl(self, id, path):
         return f"/me/drive/items/{id}{path}"
 
+    def _child_drive(self):
+        return self
+
 class _DriveNode(_FolderNode):
     def _mkurl(self, id, path):
         return f"/drives/{self.id}/items/{id}{path}"
