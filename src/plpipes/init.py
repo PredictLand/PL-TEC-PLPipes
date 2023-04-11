@@ -92,7 +92,7 @@ def _filelog_setup():
         dir = cfg.get("logging.log_dir", "logs")
         dir = pathlib.Path(cfg["fs.root"]) / dir
         dir.mkdir(exist_ok=True, parents=True)
-        ts = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+        ts = datetime.datetime.utcnow().strftime('%y%m%dT%H%M%SZ')
         name = f"log-{ts}.txt"
 
         last = dir / "last-log.txt"
