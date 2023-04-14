@@ -327,7 +327,6 @@ class _SitesNode(_RemoteDirNode):
     def _children_url(self):
         return "/sites"
 
-
 class _RootNode(_SyntheticDirNode):
     _child_classes = {'me': _MeNode,
                       'sites': _SitesNode,
@@ -355,6 +354,7 @@ class _FS:
     def _get(self, url, **kwargs):
         res = self._send_raw('GET', url, **kwargs)
         if res.status_code < 300:
+            # logging.debug(f"response: {res.text}")
             return res.json()
         raise ValueError(f"Invalid response from server, status code: {res.status_code}")
 
