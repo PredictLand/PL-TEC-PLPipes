@@ -41,6 +41,33 @@ class _PairAction(argparse.Action):
             except Exception as ex:
                 raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}': {ex}") from ex
 
+
+def arg_parser():
+    parser = argparse.ArgumentParser(description="PLPipes runner")
+    parser.add_argument('-d', '--debug',
+                        help="Turns on debugging",
+                        action='store_true')
+    parser.add_argument('-c', '--config',
+                        action="append",
+                        metavar="CFG_FN",
+                        help="Additional configuration file",
+                        default=[])
+    parser.add_argument('-s', '--set',
+                        action=_PairAction,
+                        metavar="CFG_KEY=VAL",
+                        help="Set configuration entry",
+                        default=[])
+    parser.add_argument('-S', '--set-json',
+                        action=_PairAction,
+                        metavar="CFG_KEY=JSON_VAL",
+                        unpack="json",
+                        dest="set",
+                        help="Set configuration entry (value is parsed as JSON)")
+    parser.add_argument('-e', '--env',
+                        metavar="ENVIRONMENT",
+                        help="Select environment (dev, pre, pro, etc.)")
+    return parser
+
 def main(args=None):
     if args is None:
         args = sys.argv
@@ -55,39 +82,17 @@ def main(args=None):
         root_dir = prog_path.parent.parent
     root_dir = root_dir.absolute()
 
-    config_extra = [{'fs': {'stem': str(prog_path.stem),
-                            'root': str(root_dir)}}]
-
-    parser = argparse.ArgumentParser(description="PLPipes runner")
-
-    parser.add_argument('-d', '--debug',
-                        help="Turns on debugging",
-                        action='store_true')
-    parser.add_argument('-c', '--config',
-                        action="append",
-                        metavar="CFG_FN",
-                        help="Additional configuration file",
-                        default=[])
-    parser.add_argument('-s', '--set',
-                        action=_PairAction,
-                        metavar="CFG_KEY=VAL",
-                        help="Set configuration entry",
-                        default=config_extra)
-    parser.add_argument('-S', '--set-json',
-                        action=_PairAction,
-                        metavar="CFG_KEY=JSON_VAL",
-                        unpack="json",
-                        dest="set",
-                        help="Set configuration entry (value is parsed as JSON)",
-                        default=config_extra)
-    parser.add_argument('-e', '--env',
-                        metavar="ENVIRONMENT",
-                        help="Select environment (dev, pre, pro, etc.)")
+    parser = arg_parser()
 
     parser.add_argument('actions', nargs="*",
                         metavar="ACTION", default=["default"])
 
     opts = parser.parse_args(args[1:])
+
+    config_extra = [{'fs': {'stem': str(prog_path.stem),
+                            'root': str(root_dir)}}]
+
+    config_extra += opts.set
 
     if opts.env is not None:
         config_extra["env"] = opts.env
