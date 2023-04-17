@@ -68,7 +68,7 @@ def arg_parser():
                         help="Select environment (dev, pre, pro, etc.)")
     return parser
 
-def main(args=None):
+def parse_args_and_init(arg_parser, args=None):
     if args is None:
         args = sys.argv
 
@@ -82,12 +82,7 @@ def main(args=None):
         root_dir = prog_path.parent.parent
     root_dir = root_dir.absolute()
 
-    parser = arg_parser()
-
-    parser.add_argument('actions', nargs="*",
-                        metavar="ACTION", default=["default"])
-
-    opts = parser.parse_args(args[1:])
+    opts = arg_parser.parse_args(args[1:])
 
     config_extra = [{'fs': {'stem': str(prog_path.stem),
                             'root': str(root_dir)}}]
@@ -104,6 +99,17 @@ def main(args=None):
     sys.path.append(plpipes.config.cfg["fs.lib"])
 
     os.environ.setdefault("PLPIPES_ROOT_DIR", plpipes.config.cfg["fs.root"])
+
+    return opts
+
+def simple_init(args=None):
+    parse_args_and_init(arg_parser(), args)
+
+def main(args=None):
+    parser = arg_parser()
+    parser.add_argument('actions', nargs="*",
+                        metavar="ACTION", default=["default"])
+    opts = parse_args_and_init(parser, args)
 
     for action in opts.actions:
         logging.info(f"Executing action {action}")
