@@ -447,46 +447,6 @@ to be used directly from user code. Instead you should use the methods
 provided in `plpipes.runner` which take care of initializing the
 environment and also the configuration subsystem.
 
-## Runner
-
-The runner is a script that initializes plpipes and then executes the
-list of actions given by the user.
-
-The convention is to have a small python script called `run.py` inside
-the bin directory. That script just calls into `plpipes.runner.main()`
-which does all the magic.
-
-### Custom scripts
-
-Sometimes you may need to create some custom script out of the actions
-structure. In that case, you can write it as a custom runner in the
-following manner:
-
-```python
-import plpipes.runner
-
-# Get an argument parser preinitilized.
-arg_parser = plpipes.runner.arg_parser()
-
-# Add new options to the argument parser if needed
-arg_parser.add_argument(...)
-
-# Parse argument and initialize plpipes
-opts = plpipes.runner.parse_args_and_init(arg_parser, sys.argv)
-
-# Your code goes here!!!
-```
-
-For simple cases, where no extra arguments are going to be needed, the
-framework also provides a `simple_init` function:
-
-```python
-import plpipes.runner
-plpipes.runner.simple_init()
-
-# Your code goes here!!!
-```
-
 ## Database
 
 `plpipes` provides a simple way to declare and use multiple database
@@ -1018,6 +978,43 @@ thing!
 
 `run.py` is required because `plpipes` uses that program path to
 locate the project root directory and the rest of the files.
+
+### Custom scripts
+
+Sometimes you may need to create some custom script out of the actions
+structure. In that case, you can write it as a custom runner in the
+following manner:
+
+```python
+import plpipes.runner
+
+# Get an argument parser preinitilized.
+arg_parser = plpipes.runner.arg_parser()
+
+# Add new options to the argument parser if needed
+arg_parser.add_argument(...)
+
+# Parse argument and initialize plpipes
+opts = plpipes.runner.parse_args_and_init(arg_parser, sys.argv)
+
+# Your code goes here!!!
+```
+
+For simple cases, where no extra arguments are going to be needed, the
+framework also provides a `simple_init` function:
+
+```python
+import plpipes.runner
+plpipes.runner.simple_init()
+
+# Your code goes here!!!
+```
+
+Note also that PLPipes uses the script name (actually the stem) as a
+key when loading configuration files, so it is possible to have
+different configuration for those scripts which are loaded
+automatically. See configuration [File Structure](#File-structure)
+section above.
 
 
 ## Logging
