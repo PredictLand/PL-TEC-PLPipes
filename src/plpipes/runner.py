@@ -103,7 +103,7 @@ def parse_args_and_init(arg_parser, args=None):
     return opts
 
 def simple_init(args=None):
-    parse_args_and_init(arg_parser(), args)
+    return parse_args_and_init(arg_parser(), args)
 
 def main(args=None):
     parser = arg_parser()

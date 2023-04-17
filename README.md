@@ -428,7 +428,7 @@ cfg.setdefault("my.other.conf.key", 8)
 
 Though note that configuration changes are not backed to disk.
 
-### Initialization
+### Config Initialization
 
 The method `init` of the module `plpipes.init` is the one in charge of
 populating the `cfg` object and should be called explicitly in scripts
@@ -442,9 +442,50 @@ they are loaded into the configuration object.
 [Automatic configuration](#Automatic-configuration) is also performed by
 this method.
 
-When using the standard `plpipes` [runner](#Runner) (usually via the
-`run.py` script), `plpipes.init.init` is called automatically under
-the hood and should not be called again from user code.
+Note that `plpipes.init` is a low level package that is not expected
+to be used directly from user code. Instead you should use the methods
+provided in `plpipes.runner` which take care of initializing the
+environment and also the configuration subsystem.
+
+## Runner
+
+The runner is a script that initializes plpipes and then executes the
+list of actions given by the user.
+
+The convention is to have a small python script called `run.py` inside
+the bin directory. That script just calls into `plpipes.runner.main()
+which does all the magic.
+
+### Custom scripts
+
+Sometimes you may need to create some custom script out of the actions
+structure. In that case, you can write it as a custom runner in the
+following manner:
+
+```python
+import plpipes.runner
+
+# Get an argument parser preinitilized.
+arg_parser = plpipes.runner.arg_parser()
+
+# Add new options to the argument parser if needed
+arg_parser.add_argument(...)
+
+# Parse argument and initialize plpipes
+opts = plpipes.runner.parse_args_and_init(arg_parser, sys.argv)
+
+# Your code goes here!!!
+```
+
+For simple cases, where no extra arguments are going to be needed, the
+framework also provides a `simple_init` function:
+
+```python
+import plpipes.runner
+plpipes.runner.simple_init()
+
+# Your code goes here!!!
+```
 
 ## Database
 
