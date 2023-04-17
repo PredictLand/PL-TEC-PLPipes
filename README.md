@@ -453,7 +453,7 @@ The runner is a script that initializes plpipes and then executes the
 list of actions given by the user.
 
 The convention is to have a small python script called `run.py` inside
-the bin directory. That script just calls into `plpipes.runner.main()
+the bin directory. That script just calls into `plpipes.runner.main()`
 which does all the magic.
 
 ### Custom scripts
