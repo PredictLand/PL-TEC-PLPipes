@@ -95,7 +95,7 @@ class Driver(plpipes.plugin.Plugin):
                                         if_not_exists=if_not_exists),
                           parameters)
 
-    def _create_view(self, txn, view_name, sql, parameters, if_exists):
+    def _create_view(self, txn, view_name, sql, parameters, if_exists, kws):
         if_not_exists = False
         if if_exists == "replace":
             txn._conn.execute(DropView(view_name, if_exists=True))
