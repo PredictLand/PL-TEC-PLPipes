@@ -147,9 +147,11 @@ class ConfigStack:
                 queue = new_queue
         return [t for _, _, t in sorted(queue, reverse=True)]
 
-    def _to_tree(self, key):
+    def _to_tree(self, key, defaults=None):
         m = self._multicd(key)
         tree = {}
+        if defaults is not None:
+            tree = _merge_any(tree, defaults)
         for other in m:
             tree = _merge_any(tree, other)
         return tree
@@ -208,11 +210,11 @@ class _Ptr(collections.abc.MutableMapping):
     def __len__(self):
         return len(self._keys())
 
-    def to_tree(self, key=""):
-        return self._stack._to_tree(self._mkkey(key))
+    def to_tree(self, key="", defaults=None):
+        return self._stack._to_tree(self._mkkey(key), defaults)
 
-    def to_json(self, key=""):
-        return json.dumps(self.to_tree(key))
+    def to_json(self, key="", defaults=None):
+        return json.dumps(self.to_tree(key, defaults))
 
     def merge(self, tree, key="", frame=0):
         return self._stack._merge(self._mkkey(key), tree, frame)
