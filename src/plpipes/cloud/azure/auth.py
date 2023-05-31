@@ -1,3 +1,10 @@
+import os
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(os.getcwd()).joinpath("src")))
+
+
 from plpipes.config import cfg
 from azure.identity import InteractiveBrowserCredential, TokenCachePersistenceOptions, AuthenticationRecord
 import pathlib
@@ -6,7 +13,6 @@ import logging
 from plpipes.exceptions import AuthenticationError
 
 _registry = {}
-
 def credentials(account_name):
     if account_name not in _registry:
         _authenticate(account_name)
