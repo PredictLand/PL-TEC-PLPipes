@@ -1,3 +1,9 @@
+import os
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(os.getcwd()).joinpath("src")))
+
 from plpipes.config import cfg
 
 import plpipes.cloud.azure.auth
@@ -6,7 +12,6 @@ import json
 import pathlib
 import logging
 import httpx
-import os
 import time
 
 from plpipes.exceptions import CloudFSError, CloudAccessError
@@ -25,7 +30,6 @@ _TRANSITORY_HTTP_CODES = {
 _graph_registry = {}
 _fs_registry = {}
 _cred_registry = {}
-
 def _dt(t):
     if t is None:
         return None
