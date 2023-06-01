@@ -128,27 +128,56 @@ def test_merge_any():
 
     assert _merge_any(tree1, new1) == expected1
 
-    # Test case 2: Merge list into list
-    tree2 = [1, [2, [3]]]
-    new2 = [4, [5, [6]]]
-    expected2 = [[1, [2, [3, 4, [5, [6]]]]]]
+    # Test case 2: Merge dictionary into dictionary with same overriding elements
+    
+    tree2 = {
+        'a': 1,
+        'b': {
+            'c': 2,
+            'd': {
+                'e': 3
+            }
+        }
+    }
+    new2 = {
+        'b': {
+            'd': {
+                'e': 7,
+                'f': 4
+            },
+            'g': 5
+        },
+        'h': 6
+    }
+    expected2 = {
+        'a': 1,
+        'b': {
+            'c': 2,
+            'd': {
+                'e': 7,
+                'f': 4
+            },
+            'g': 5
+        },
+        'h': 6
+    }
+    
+    assert _merge_any(tree2, new2) == expected2
 
-    # assert _merge_any(tree2, new2) == expected2
-
-    # Test case 3: Merge dicts and lists
+ # Test case 3: Merge scalar element into dictionary
     tree3 = {
         'a': 1,
-        'b': [2, 3]
+        'b': {
+            'c': 2,
+            'd': {
+                'e': 3
+            }
+        }
     }
-    new3 = {
-        'b': [4, 5],
-        'c': 'hello'
-    }
-    expected3 = {
-        'a': 1,
-        'b': [2, 3, 4, 5],
-        'c': 'hello'
-    }
+    new3 = 47
+
+    expected3 = 47
+
     assert _merge_any(tree3, new3) == expected3
 
 # ConfigStack class tests
@@ -186,7 +215,8 @@ def test_stack_get_existing_key_with_frames():
         
 def test_stack_get_nonexistent_key():
     cfg_stack = ConfigStack()
-
+    cfg = cfg_stack.root()
+    # cfg['nonexistent'] = None
     assert cfg_stack._get('nonexistent') is None
 
 def test_stack_get_nonexistent_key_with_frame():
@@ -267,3 +297,13 @@ def test_ptr_len():
     #cfg_stack_ptr = _Ptr(cfg_stack, )
     assert cfg_stack_ptr.__len__() == 0
 """
+
+with open('config/common.yaml') as config_file:
+    config = yaml.safe_load(config_file)
+
+# Extract database details
+database_config = config['db']
+instance = database_config['instance']
+test = instance['test']
+driver = test['driver']
+path = test['path']
