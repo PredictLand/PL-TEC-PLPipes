@@ -2,7 +2,11 @@ import logging
 import sqlalchemy
 import sqlalchemy.sql as sas
 from contextlib import contextmanager
+import sys
+import os
+from pathlib import Path
 
+sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 from plpipes.database.driver.transaction import Transaction
 from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, Wrap
 from plpipes.util.typedict import dispatcher
