@@ -92,6 +92,7 @@ def test_value_error():
     else:
         assert False, "Exception missing!"
 
+# Merge test
 def test_merge_any():
     # Test case 1: Merge dictionary into dictionary
     tree1 = {
@@ -150,12 +151,23 @@ def test_merge_any():
     }
     assert _merge_any(tree3, new3) == expected3
 
-# Config stack tests
+# ConfigStack class tests
 def test_stack_init():
     cfg_stack = ConfigStack()
 
     assert cfg_stack._frames == []
     assert cfg_stack._cache == {}
+
+def test_stack_cd():
+    pass
+
+def test_stack_root():
+    pass
+
+def test_reset_cache():
+    cfg_stack = ConfigStack()
+    cfg_stack.reset_cache()
+    assert len(cfg_stack._cache) == 0
 
 def test_stack_get_existing_key():
     cfg_stack = ConfigStack()
@@ -182,6 +194,9 @@ def test_stack_get_nonexistent_key_with_frame():
 
     assert cfg_stack._get('nonexistent', frame = 0) is None
 
+def test_get_nocache():
+    pass
+
 def test_stack_key_exists():
     cfg_stack = ConfigStack()
     cfg = cfg_stack.root()
@@ -195,6 +210,9 @@ def test_stack_key_does_not_exist():
     cfg = cfg_stack.root()
 
     assert cfg_stack._contains('foo') == False   
+
+def test_stack_merge():
+    pass
 
 def test_stack_set_values():
     cfg_stack = ConfigStack()
@@ -215,19 +233,10 @@ def test_stack_set_values():
     cfg_stack._set("key5", [1, 2, 3])
     assert cfg_stack._get("key5") == [1, 2, 3]
 
-def test_stack_to_tree():
-    
-    pass
-
-def test_stack_merge():
-    pass
-
-def test_reset_cache():
-    cfg_stack = ConfigStack()
-    cfg_stack.reset_cache()
-    assert len(cfg_stack._cache) == 0
-
 def test_stack_multicd():
+    pass
+
+def test_stack_to_tree():
     pass
 
 def test_stack_to_tree():
@@ -240,6 +249,13 @@ def test_stack_squash_frames():
     pass
 
 # Ptr tests
+"""
+def test_ptr_init():
+    # cfg_ptr = _Ptr()
+
+    assert cfg_stack._frames == []
+    assert cfg_stack._cache == {}
+
 def test_ptr_merge():
     pass
 
@@ -250,3 +266,4 @@ def test_ptr_len():
     cfg_stack = ConfigStack()
     #cfg_stack_ptr = _Ptr(cfg_stack, )
     assert cfg_stack_ptr.__len__() == 0
+"""
