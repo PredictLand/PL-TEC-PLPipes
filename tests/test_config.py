@@ -7,9 +7,11 @@ sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 
 import plpipes.config
 
-from plpipes.config import _merge_any
+from plpipes.config import _merge_any, ConfigStack, _Ptr
 
 import yaml
+
+import unittest
 
 text="""
 foo:
@@ -149,11 +151,81 @@ def test_merge_any():
     assert _merge_any(tree3, new3) == expected3
 
 # Config stack tests
+def test_stack_init():
+    cfg_stack = ConfigStack()
+
+    assert cfg_stack._frames == []
+    assert cfg_stack._cache == {}
+
+def test_stack_get_existing_key():
+    cfg_stack = ConfigStack()
+    cfg = cfg_stack.root()
+    
+    cfg['foo'] = 'bar'
+
+    assert cfg_stack._get('foo') =='bar'
+ 
+
+def test_stack_get_existing_key_with_frames():
+    cfg_stack = ConfigStack()
+    cfg_stack._frames[{'foo' : 'bar'}]
+
+    assert cfg_stack._get('foo', frame = 0) == 'bar'
+        
+def test_stack_get_nonexistent_key():
+    cfg_stack = ConfigStack()
+
+    assert cfg_stack._get('nonexistent') is None
+
+def test_stack_get_nonexistent_key_with_frame():
+    cfg_stack = ConfigStack()
+
+    assert cfg_stack._get('nonexistent', frame = 0) is None
+
+def test_stack_key_exists():
+    cfg_stack = ConfigStack()
+    cfg = cfg_stack.root()
+
+    cfg['foo'] = 'bar'
+
+    assert cfg_stack._contains('foo') == True
+
+def test_stack_key_does_not_exist():
+    cfg_stack = ConfigStack()
+    cfg = cfg_stack.root()
+
+    assert cfg_stack._contains('foo') == False   
+
+def test_stack_set_values():
+    cfg_stack = ConfigStack()
+    cfg = cfg_stack.root()
+
+    cfg_stack._set("key1", "value1")
+    assert cfg_stack._get("key1") == "value1"
+
+    cfg_stack._set("key2", 54)
+    assert cfg_stack._get("key2") == 54
+
+    cfg_stack._set("key3", 54.4)
+    assert cfg_stack._get("key3") == 54.4
+
+    cfg_stack._set("key4", True)
+    assert cfg_stack._get("key4") == True
+
+    cfg_stack._set("key5", [1, 2, 3])
+    assert cfg_stack._get("key5") == [1, 2, 3]
+
+def test_stack_to_tree():
+    
+    pass
+
 def test_stack_merge():
     pass
 
 def test_reset_cache():
-    assert len(stack.cache) == 0
+    cfg_stack = ConfigStack()
+    cfg_stack.reset_cache()
+    assert len(cfg_stack._cache) == 0
 
 def test_stack_multicd():
     pass
@@ -173,3 +245,8 @@ def test_ptr_merge():
 
 def test_stack_merge_file():
     pass
+
+def test_ptr_len():
+    cfg_stack = ConfigStack()
+    #cfg_stack_ptr = _Ptr(cfg_stack, )
+    assert cfg_stack_ptr.__len__() == 0
