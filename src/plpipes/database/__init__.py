@@ -23,6 +23,14 @@ def _init_driver(name):
 def begin(db=None):
     return lookup(db).begin()
 
+def query_first(sql, parameters=None, db=None, backend=None, **kws):
+    with begin(db) as txn:
+        return txn.query_first(sql, parameters, backend, **kws)
+
+def query_first_value(sql, parameters=None, db=None, backend="tuple", **kws):
+    with begin(db) as txn:
+        return txn.query_first_value(sql, parameters, backend, **kws)
+
 def query(sql, parameters=None, db=None, backend=None, **kws):
     with begin(db) as txn:
         return txn.query(sql, parameters, backend, **kws)
@@ -50,7 +58,8 @@ def execute_script(sql_script, db=None):
 
 def query_chunked(sql, parameters=None, db=None, backend=None, **kws):
     with begin(db) as txn:
-        return txn.query_chunked(sql, parameters, backend, **kws)
+        for df in txn.query_chunked(sql, parameters, backend, **kws):
+            yield df
 
 def query_group(sql, parameters=None, db=None, by=None, backend=None, **kws):
     with begin(db) as txn:
@@ -106,10 +115,11 @@ def update_table(from_table_name, to_table_name=None,
         logging.debug(f"Updating table {from_table_name} from db {from_db} as {to_table_name} in db {to_db}")
         with to_driver.begin() as to_txn:
             if to_driver._engine.dialect.has_table(to_txn._conn, to_table_name):
-                count = to_txn.query(f"select count(*) as c from (select {key} from {to_table_name} limit 1) as t")["c"][0]
+                count = to_txn.query_first_value(f"select count(*) from (select {key} from {to_table_name} limit 1) as t")
                 if count > 0:
                     top_func = "max" if ascending else "min"
-                    top = to_txn.query(f"select {top_func}({key}) as top from {to_table_name}")["top"][0]
+                    # FIXME: escape key identifier properly!
+                    top = to_txn.query_first_value(f"select {top_func}({key}) from {to_table_name}")
                     if not strict:
                         # we don't know if the we have all the rows with key=top, so we have to delete any previous row!
                         to_txn.execute(f"delete from {to_table_name} where {key} = :top", parameters={'top': top})
