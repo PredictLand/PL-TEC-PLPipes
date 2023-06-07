@@ -118,6 +118,31 @@ class Transaction:
         """
         return self._driver._query(self, sql, parameters, backend, kws)
 
+    def query_first(self, sql, parameters=None, backend=None, **kws):
+        """
+        Executes an SQL query and returns the result as a DataFrame.
+
+        :param sql: The SQL query to execute.
+        :param parameters: A dictionary containing values to fill in SQL statement placeholders.
+        :param backend: The backend to use for executing the query. If None, the default backend is used.
+        :param **kws: Additional keyword arguments to pass to the driver.
+        :return: A dataframe/dictionary containing the result first row.
+        """
+        return self._driver._query_first(self, sql, parameters, backend, kws)
+
+    def query_first_value(self, sql, parameters=None, backend="tuple", **kws):
+        """
+        Executes an SQL query and returns the result as a DataFrame.
+
+        :param sql: The SQL query to execute.
+        :param parameters: A dictionary containing values to fill in SQL statement placeholders.
+        :param backend: The backend to use for executing the query. If None, the default backend is used. Defaults to `tuple`.
+        :param **kws: Additional keyword arguments to pass to the driver.
+        :return: The first value from the result (first row, first column).
+        """
+        return self._driver._query_first_value(self, sql, parameters, backend, kws)
+
+
     def query_chunked(self, sql, parameters=None, backend=None, **kws):
         """
         Executes an SQL query and returns the result as an iterator over chunks of rows.

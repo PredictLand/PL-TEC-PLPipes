@@ -63,6 +63,14 @@ class Driver(plpipes.plugin.Plugin):
         logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
         return self._backend(backend).query(txn, sql, parameters, kws)
 
+    def _query_first(self, txn, sql, parameters, backend, kws):
+        logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
+        return self._backend(backend).query_first(txn, sql, parameters, kws)
+
+    def _query_first_value(self, txn, sql, parameters, backend, kws):
+        logging.debug(f"database query code: {repr(sql)}, parameters: {str(parameters)[0:40]}")
+        return self._backend(backend).query_first_value(txn, sql, parameters, kws)
+
     def _execute(self, txn, sql, parameters=None):
         txn._conn.execute(Wrap(sql), parameters)
 
