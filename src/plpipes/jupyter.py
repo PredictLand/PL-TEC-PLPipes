@@ -20,7 +20,7 @@ class PLPipesMagics(Magics):
     @needs_local_scope
     @line_magic
     def plpipes(self, line, local_ns):
-        import sql.connection
+        # import sql.connection
 
         if self.initialized:
             logging.warn("PLPipes framework already initialized. You will have to restart the kernel if you want to load a new configuration")
@@ -41,15 +41,15 @@ class PLPipesMagics(Magics):
             logging.info("Initializing PLPipes framework")
             plpipes.init.init({"fs.stem": stem, "fs.root": str(root_dir)})
 
-            class MyConnection(sql.connection.Connection):
-                @classmethod
-                def set(cls, descriptor, *args, **argkw):
-                    # Introduce @@name shortcut for referring to PLPipes databases
-                    if isinstance(descriptor, str) and descriptor.startswith("@@"):
-                        dbname = descriptor[2:]
-                        descriptor = str(plpipes.database.engine(dbname).url)
-                    return super().set(descriptor, *args, **argkw)
-            sql.connection.Connection = MyConnection
+            # class MyConnection(sql.connection.Connection):
+            #     @classmethod
+            #     def set(cls, descriptor, *args, **argkw):
+            #         # Introduce @@name shortcut for referring to PLPipes databases
+            #         if isinstance(descriptor, str) and descriptor.startswith("@@"):
+            #             dbname = descriptor[2:]
+            #             descriptor = str(plpipes.database.engine(dbname).url)
+            #         return super().set(descriptor, *args, **argkw)
+            # sql.connection.Connection = MyConnection
 
             sys.path.append(plpipes.config.cfg["fs.lib"])
 
@@ -63,13 +63,13 @@ class PLPipesMagics(Magics):
         for dir in ("root", "input", "work", "output"):
             local_ns[f"{dir}_dir"] = pathlib.Path(plpipes.config.cfg[f"fs.{dir}"])
 
-        sql.connection.Connection.set("@@work", False)
+        # sql.connection.Connection.set("@@work", False)
 
 
 def load_ipython_extension(ipython):
     global former_connection_class
     ipython.register_magics(PLPipesMagics)
-    ipython.extension_manager.load_extension("sql")
+    # ipython.extension_manager.load_extension("sql")
 
 
 
