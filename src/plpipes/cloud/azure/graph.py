@@ -199,10 +199,13 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
     def _get(self, dest=None, dir=None, name=None, **kwargs):
         if dest is None:
             if name is None:
-                dir = cfg["fs.work"]
-            if name is None:
                 name = pathlib.Path(self._path).name
-            dest = pathlib.Path(dir) / name
+            if dir is None:
+                dest = name
+            else:
+                dest = pathlib.Path(dir) / name
+        dest = pathlib.Path(cfg["fs.work"]) / dest # when relative, use work as the root
+        dest.parent.mkdir(parents=True, exist_ok=True)
         updated = self._get_to_file(dest, **kwargs)
         msg = f"File {self._path} copied to {dest}"
         if not updated:
