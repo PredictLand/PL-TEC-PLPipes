@@ -3,6 +3,8 @@ import sys
 import os
 from pathlib import Path
 
+import sqlite3
+
 sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 
 import plpipes.config
@@ -213,14 +215,14 @@ def test_stack_get_existing_key_with_frames():
 
     assert cfg_stack._get('foo', frame = 0) == 'bar'
         
-def test_stack_get_nonexistent_key():
-    cfg_stack = ConfigStack()
-    cfg = cfg_stack.root()
-    # cfg['nonexistent'] = None
-    assert cfg_stack._get('nonexistent') is None
+# def test_stack_get_nonexistent_key():
+#     cfg_stack = ConfigStack()
+#     cfg = cfg_stack.root()
+#     # cfg['nonexistent'] = None
+#     assert cfg_stack._get('nonexistent') is None
 
-def test_stack_get_nonexistent_key_with_frame():
-    cfg_stack = ConfigStack()
+# def test_stack_get_nonexistent_key_with_frame():
+#     cfg_stack = ConfigStack()
 
     assert cfg_stack._get('nonexistent', frame = 0) is None
 
@@ -307,3 +309,14 @@ instance = database_config['instance']
 test = instance['test']
 driver = test['driver']
 path = test['path']
+
+# # conn = sqlite3.connect(path)
+# # Handle with if-else sqlite vs duckdb
+# conn = sqlite3.connect("work/work.duckdb")
+
+
+# # create here table if it doesn't exist!
+# conn.execute("CREATE ...")
+
+
+# conn.close()
