@@ -63,7 +63,8 @@ def query_chunked(sql, parameters=None, db=None, backend=None, **kws):
 
 def query_group(sql, parameters=None, db=None, by=None, backend=None, **kws):
     with begin(db) as txn:
-        return txn.query_group(sql, parameters, by, backend, **kws)
+        for df in txn.query_group(sql, parameters, by, backend, **kws):
+            yield df
 
 def copy_table(from_table_name, to_table_name=None,
                from_db=None, to_db=None, db=None,
