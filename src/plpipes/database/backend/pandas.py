@@ -18,6 +18,8 @@ class PandasBackend(Backend):
             yield chunk
 
     def query_group(self, txn, sql, parameters, by, kws):
+        if by is None or not by:
+            raise ValueError("by argument must contain a list of column names")
         wrapped_sql = sas.select("*").select_from(AsSubquery(Wrap(sql))).order_by(*[sas.column(c) for c in by])
 
         tail = None
