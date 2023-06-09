@@ -32,7 +32,7 @@ class PandasBackend(Backend):
                 group = group.reset_index()
                 yield group
         if tail is not None:
-            yield tail
+            yield tail.reset_index()
 
     def register_handlers(self, handlers):
         handlers["create_table"].register(pandas.DataFrame, self._create_table_from_pandas)
