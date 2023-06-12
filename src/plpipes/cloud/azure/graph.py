@@ -121,13 +121,13 @@ class _DirNode(_Node):
 
     def _rget(self, dest=None, dir=None, name=None, **kwargs):
         if dest is None:
-            if dir is None:
-                dir = cfg["fs.work"]
             if name is None:
                 name = pathlib.Path(self._path).name
-            dest = pathlib.Path(dir) / name
-        else:
-            dest = pathlib.Path(dest)
+            if dir is None:
+                dest = name
+            else:
+                dest = pathlib.Path(dir) / name
+        dest = pathlib.Path(cfg["fs.work"]) / dest
         dest.mkdir(parents=True, exist_ok=True)
         for name, child in self.ls().items():
             child._rget(dir=dest, name=name, **kwargs)
