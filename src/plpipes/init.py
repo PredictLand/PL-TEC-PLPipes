@@ -5,11 +5,13 @@ import os
 import logging
 import pathlib
 import datetime
+import dateparser
 
 _config0 = {'db': {'instance': {'work': {},
                                 'input': {},
                                 'output': {}}},
             'env': os.environ.get("PLPIPES_ENV", "dev"),
+            'run': {'as_of_date': 'now'},
             'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL", "info")}}
 
 def init(*configs, config_files=[]):
@@ -79,6 +81,10 @@ def init(*configs, config_files=[]):
     for e in ('bin', 'lib', 'config', 'default',
               'input', 'output', 'work', 'actions'):
         cfg.setdefault("fs." + e, root_dir / e)
+
+    as_of_date = dateparser.parse(cfg['run.as_of_date'])
+    as_of_date = as_of_date.astimezone(datetime.timezone.utc)
+    cfg['run.as_of_date_normalized'] = as_of_date.strftime("%Y%m%dT%H%M%SZ0")
 
     _filelog_setup()
 

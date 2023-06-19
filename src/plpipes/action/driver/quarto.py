@@ -2,6 +2,7 @@ import logging
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
 from plpipes.config import cfg
+import plpipes.filesystem as fs
 import subprocess
 from pathlib import Path
 import yaml
@@ -10,6 +11,7 @@ import os
 import tempfile
 import json
 import shutil
+import datetime
 
 def _read_yaml_header(fn):
     with open(fn, "r") as f:
@@ -86,17 +88,31 @@ class _QuartoRunner(Action):
         dcfg = action_cfg.cd("dest")
         scfg = action_cfg.cd("quarto.plpipes.dest")
         dcfg.copydefaults(scfg,
-                          key='work',
+                          section='work',
                           dir='',
-                          format="html")
+                          format="html",
+                          append_date=False,
+                          insert_date=False)
         default_file = self._path.with_suffix("." + dcfg["format"]).name
         dcfg.copydefaults(scfg, file=default_file)
         super().__init__(name, action_cfg)
 
     def do_it(self):
         logging.debug(f"Action config: {self._cfg.to_tree()}")
-        key_dir = Path(cfg["fs." + self._cfg['dest.key']])
-        target_path = key_dir / self._cfg['dest.dir'] / self._cfg['dest.file']
+        rel_path = Path(self._cfg['dest.dir']) / self._cfg['dest.file']
+
+        if self._cfg['dest.insert_date']:
+            as_of_date = datetime.datetime.strptime(cfg['run.as_of_date_normalized'], "%Y%m%dT%H%M%SZ0")
+            rel_path = as_of_date.strftime(str(rel_path))
+            logging.debug(f"Inserting date into target filename ({as_of_date} --> {rel_path})")
+        elif self._cfg['dest.append_date']:
+            rel_path_parent = rel_path.parent
+            rel_path_stem = rel_path.stem
+            rel_path_suffix = rel_path.suffix
+            rel_path = rel_path_parent / (rel_path_stem + '-' + cfg['run.as_of_date_normalized'] + rel_path_suffix)
+            logging.debug(f"Appending date into target filename ({rel_path})")
+
+        target_path = fs.path(rel_path, section=self._cfg['dest.section'])
         stem = target_path.stem
 
         with tempfile.TemporaryDirectory() as workdir:
@@ -111,7 +127,7 @@ class _QuartoRunner(Action):
             _patch_qmd(self._path, temp_qmd_path, temp_cfg_path)
 
             env = os.environ.copy()
-            env['PLPIPES_ROOT_DIR'] = str(Path(cfg["fs.root"]).absolute())
+            env['PLPIPES_ROOT_DIR'] = str(fs.path(".", section="root").absolute())
 
             with _cd(workdir):
                 cmd = ["quarto", "render", temp_qmd_path.name,
