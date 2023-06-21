@@ -187,12 +187,12 @@ Hopefully, `plpipes` would be directly available from
 ### Installing from git
 
 1. Clone the repository outside of your project directory and switch
-   to the `development` branch:
+   to the `develop` branch:
 
    ```bash
    git clone git@github.com:PredictLand/PL-TEC-PLPipes.git
    cd PL-TEC-PLPipes
-   git checkout development
+   git checkout develop
    ```
 
 2. Add the `src` subdirectory to Python search path.
