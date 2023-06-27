@@ -1,5 +1,0 @@
-db:
-  instance:
-    test:
-      driver: sqlite
-      path: $path-generado-al-vuelo-en-el-script-de-test

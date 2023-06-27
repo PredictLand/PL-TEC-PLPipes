@@ -1,10 +1,7 @@
 import tempfile
 import shutil
 import pandas
-import numpy
 import pytest
-import os
-import sys
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -13,19 +10,18 @@ import plpipes.database as db
 
 df = pandas.DataFrame({'a':[1, 4, 2], 'b':[2, 5, 9], 'c':[3, 6, 7]})
 
-# Handling DB creation and destruction via a teporary file
+# Handling DB creation and destruction via a temporary directory
 @contextmanager
 def handle_db():
     try:
         # TESTS SETUP
-        # work_dir = extract_path(str(tempfile.TemporaryDirectory()))
         work_dir = Path(tempfile.TemporaryDirectory().name)
         plpipes.init.init({'fs.root': str(work_dir)}, {'logging.log_to_file': False})
         yield work_dir
     finally:
         # TESTS TEARDOWN
         db.engine().dispose()       # Close DB connection
-        shutil.rmtree(work_dir)     # Delete temporary file
+        shutil.rmtree(work_dir)     # Delete temporary directory
 
 @pytest.fixture(scope="session")
 def db_context():
@@ -93,7 +89,6 @@ def test_execute_alter_add(db_context):
     df_expected = pandas.DataFrame({'a':[1, 4, 2], 'b':[2, 5, 9], 'c':[3, 6, 7], 'd':["first_value", 2, False]})
     db.create_table("test_table", df)
     query = db.query("select * from test_table")
-    print(query.columns)
     db.execute("alter table test_table add column d")
     db.execute("update test_table set d = 'first_value' where a = 1")
     db.execute("update test_table set d = 2 where a = 4")

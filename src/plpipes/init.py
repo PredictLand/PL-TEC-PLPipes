@@ -10,7 +10,8 @@ _config0 = {'db': {'instance': {'work': {},
                                 'input': {},
                                 'output': {}}},
             'env': os.environ.get("PLPIPES_ENV", "dev"),
-            'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL", "info")}}
+            'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL", "info")},
+            'backend': os.environ.get("PLPIPES_BACKEND")}
 
 def init(*configs, config_files=[]):
     from pathlib import Path

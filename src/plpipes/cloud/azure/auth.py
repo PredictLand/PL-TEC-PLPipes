@@ -1,3 +1,4 @@
+
 import os
 import sys
 from pathlib import Path
@@ -45,6 +46,7 @@ def _authenticate(account_name):
                                         redirect_uri=redirect_uri,
                                         cache_persistence_options=cache_persistence_options,
                                         authentication_record=ar)
+
     if "scopes" in acfg:
         scopes = acfg["scopes"]
         if isinstance(scopes, str):
@@ -66,3 +68,4 @@ def _authenticate(account_name):
         logging.warning(f"'{cfg_path}.scopes' not configured, credentials for {account_name} are not going to be cached!")
 
     _registry[account_name] = cred
+    return cred

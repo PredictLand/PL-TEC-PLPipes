@@ -1,6 +1,8 @@
 import os
 import sys
 from pathlib import Path
+from azure.storage.blob import BlobServiceClient
+
 
 sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 
@@ -16,9 +18,9 @@ import time
 
 from plpipes.exceptions import CloudFSError, CloudAccessError
 
-_GRAPH_URL = "https://graph.microsoft.com/v1.0"
+credentials = plpipes.cloud.azure.auth._cred("predictland")
+blob_service_client = BlobServiceClient(account_url="https://developing.blob.core.windows.net/", credentials=credentials)
 
-_graph_registry = {}
 _fs_registry = {}
 _cred_registry = {}
 def _dt(t):
@@ -37,20 +39,10 @@ def _cred(account_name):
     return _cred_registry[account_name]
 
 def _init_cred(account_name):
-    cfg_path = f"cloud.azure.graph.{account_name}"
+    cfg_path = f"cloud.azure.storage.{account_name}"
     gcfg = cfg.cd(cfg_path)
     creds_account_name = gcfg.setdefault("credentials", account_name)
     _cred_registry[account_name] = plpipes.cloud.azure.auth.credentials(creds_account_name)
-
-def graph(account_name):
-    if account_name not in _graph_registry:
-        _init_graph(account_name)
-    return _graph_registry[account_name]
-
-def _init_graph(account_name):
-    from msgraph.core import GraphClient
-    graph = GraphClient(credential=_cred(account_name))
-    _graph_registry[account_name] = graph
 
 def fs(account_name):
     if account_name not in _fs_registry:
@@ -134,6 +126,7 @@ class _SyntheticNode:
     def is_synthetic(self):
         return True
 
+# Can be a remote container or a remote blob
 class _RemoteNode:
     def _init_remote(self, res, drive=None):
         if res:
@@ -175,6 +168,7 @@ class _SyntheticDirNode(_DirNode, _SyntheticNode):
     def _child_drive(self):
         return self
 
+# Blob
 class _RemoteFileNode(_FileNode, _RemoteNode):
     def __init__(self, fs, path, res=None, drive=None):
         super().__init__(fs, path)
@@ -210,6 +204,7 @@ class _RemoteFileNode(_FileNode, _RemoteNode):
     def _rget(self, **kwargs):
         self._get(**kwargs)
 
+# List of containers, Container
 class _RemoteDirNode(_DirNode, _RemoteNode):
 
     def __init__(self, fs, path, res=None, drive=None):
@@ -227,7 +222,7 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         for k, klass in self._child_classes.items():
             if k in res:
                 try:
-                    return klass(self._fs, self._path / name, res, self._child_drive())
+                    return klass(self._fs, self._path / name, res)
                 except Exception as ex:
                     msg = f"Unable to instantiate object of type {klass}"
                     logging.exception(msg)
@@ -235,100 +230,124 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         print(json.dumps(res, indent=True))
         raise Exception(f"Unknown remote entry type {json.dumps(res)}")
 
-    def _children_url(self):
-        return self._url("/children")
-
     def _list_children(self):
         r = self._fs._get(self._children_url())
         return {v["name"]: v for v in r["value"]}
 
-class _FolderNode(_RemoteDirNode):
-    _child_classes = {}
 
-    def _init_remote(self, res, drive=None):
-        super()._init_remote(res, drive)
-        if res:
-            self.child_count = res.get("folder", {}).get("childCount", 0)
 
-_FolderNode._child_classes['folder'] = _FolderNode
-_FolderNode._child_classes['file'] = _RemoteFileNode
+class _Blob(_RemoteFileNode):
+    def __init__(self, container_name, blob_name):
+        self._fs = fs
+        self._path = f"https://predictland.blob.core.windows.net/{container_name}/{blob_name}"
+        self._name = blob_name
+        self._container_client = blob_service_client.get_container_client(self._name)
+    
+    def _get(self):
+        blob_client = self._container_client.get_blob_client(self._name)
+        downloaded_blob = blob_client.download_blob()
+        print(f"Downloaded: {downloaded_blob.name}")
 
-class _MeNode(_FolderNode):
-    def __init__(self, fs, path):
+class _Container(_RemoteDirNode):
+    def __init__(self, path, name):
+        self._fs = fs
+        self._path = f"https://predictland.blob.core.windows.net/{name}"
+        self._name = name
         super().__init__(fs, path)
-        res = self._fs._get("/me/drive/root")
+        res = self._fs._get(self._path)
         self._init_remote(res)
-
-    def _children_url(self):
-        return "/me/drive/root/children"
-
-    def _mkurl(self, id, path):
-        return f"/me/drive/items/{id}{path}"
-
-    def _child_drive(self):
-        return self
-
-class _DriveNode(_FolderNode):
-    def _mkurl(self, id, path):
-        return f"/drives/{self.id}/items/{id}{path}"
-
-class _GroupNode(_FolderNode):
-    def _children_url(self):
-        return f"/groups/{self.id}/drive/root/children"
-
-    def _mkurl(self, id, path):
-        return f"/groups/{self.id}/drive/items/{id}{path}"
-
-    def _child_drive(self):
-        return self
-
-class _GroupsNode(_RemoteDirNode):
-    _child_classes = {'groupTypes': _GroupNode}
-
-    def _children_url(self):
-        return "/groups"
-
-    def _list_children(self):
-        r = self._fs._get(self._children_url())
-        children = {}
-        for v in r["value"]:
-            name = v.get("mailNickname")
-            if name is None:
-                name = v["displayName"]
-            children[name] = v
-        return children
-
-class _TeamNode(_RemoteDirNode):
-    pass
-
-class _TeamsNode(_RemoteDirNode):
-    _child_classes = {'id': _TeamNode}
-
-    def _children_url(self):
-        return "/teams"
-
-class _DrivesNode(_RemoteDirNode):
-    _child_classes = {'folder': _DriveNode}
-
-class _SiteNode(_DirNode):
-    _child_classes = {'drives': _DrivesNode}
+        self._container_client = blob_service_client.get_container_client(self._name)
+        _child_classes = {
+            'blob': _Blob
+        }
 
     def ls(self):
-        return {k: self._go(k) for k in self._child_classes.keys()}
+        blobs_list = self._container_client.list_blobs()
+        for blob in blobs_list:
+            print(blob.name)
+    
+    def _rget(self):
+        blobs_list = self._container_client.list_blobs()
+        for blob in blobs_list:
+            downloaded_blob = blob_service_client.download_blob()
+            print(f"Downloaded: {blob.name}")
 
-    def _child_drive(self):
-        return self
+class _ContainersDir(_RemoteDirNode):
+    def __init__(self, path, name):
+        self._fs = fs
+        self._path = f"https://predictland.blob.core.windows.net/?comp=list"
+        self._name = name
+        super().__init__(fs, path)
+        res = self._fs._get(self._path)
+        self._init_remote(res)
+        self._child_classes = {
+            'container': _Container
+        }
 
-class _SitesNode(_RemoteDirNode):
-    _child_classes = {'root': _SiteNode}
+    def ls(self):
+        container_list = blob_service_client.list_container()
+        for container in container_list:
+            print(container.name)
 
-    def _children_url(self):
-        return "/sites"
+
+class _Queue():
+    pass
+
+class _QueuesDir(_RemoteDirNode):
+    _child_classes = {
+        'queue': _Queue
+    }
+
+
+class _File(_RemoteFileNode):
+    pass
+
+class _FileShare(_RemoteDirNode):
+    _child_classes = {
+        'file': _File
+    }
+
+class _FileSharesDir(_RemoteDirNode):
+    _child_classes = {
+        'file_share': _FileShare
+    }
+
+
+class _Table():
+    pass
+
+class _TablesDir(_RemoteDirNode):
+    _child_classes = {
+        'table': _Table
+    }
+
+
+class _Disk():
+    pass
+
+class _DisksDir(_RemoteDirNode):
+    _child_classes = {
+        'disk': _Disk
+    }
+
+
 
 class _RootNode(_SyntheticDirNode):
-    _child_classes = {'me': _MeNode,
-                      'sites': _SitesNode,
-                      'groups': _GroupsNode}
+    _child_classes = {
+        'containers': _ContainersDir,
+        'queues': _QueuesDir,
+        'fileshares': _FileSharesDir,
+        'tables': _TablesDir
+    }
+
+    # _child_classes_2 = {
+    #     'containers': _RemoteDirNode,
+    #     'datalakes': _RemoteDirNode,
+    #     'queues': _RemoteDirNode,
+    #     'fileshares': _RemoteDirNode,
+    #     'tables': _RemoteDirNode,
+    #     'disks': _RemoteDirNode
+    # }
 
 
 _transitory_http_codes = {
@@ -343,11 +362,16 @@ _transitory_http_codes = {
 class _FS:
     def __init__(self, account_name):
         self._account_name = account_name
-        self._token = _cred(account_name).get_token("https://graph.microsoft.com/.default").token
+        credentials = _cred(account_name)
+        self._session = BlobServiceClient(account_url="https://developing.blob.core.windows.net/", credentials=credentials)
         self._client = httpx.Client()
 
     def root(self):
         return _RootNode(self, pathlib.Path("/"))
+    
+    def see_resources(self):
+        return {name 
+                for name, value in self.root()._child_classes.keys()}
 
     def _get(self, url, **kwargs):
         res = self._send_raw('GET', url, **kwargs)
@@ -391,7 +415,7 @@ class _FS:
                   follow_redirects=False, **kwargs):
         headers = {**headers, "Authorization": f"Bearer {self._token}"}
         if url.startswith("/"):
-            url = f"{_GRAPH_URL}{url}"
+            url = f"{_AZURE_STORAGE_URL}{url}"
         if data is not None:
             content = json.dumps(data)
             headers["Content-Type"] = "application/json"
