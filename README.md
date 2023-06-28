@@ -930,6 +930,62 @@ sequence:
     - miau.gloglo
 ```
 
+### `loop`
+
+The `loop` action is a construct for creating action loops.
+
+It runs a set of subactions in sequence repeatedly according to
+specified iterators, enabling one to perform repetitive operations
+following several strategies and with varying parameters.
+
+The configuration specifies the subactions to be executed in the loop
+and the iterators that control the iterations. These are the accepted
+keys:
+
+- `sequence`: Specifies the names of the subactions to be executed in
+  the loop. The subactions will be executed in the order specified.
+
+- `iterator`: Specifies the iterators to be used for the loop.
+
+  Each iterator is defined by a key and its corresponding
+  configuration, which includes the type of the iterator and any
+  required parameters.
+
+  The supported iterator types are:
+
+  - `values`: Iterates over a list of specific values.
+
+  - `configkeys`: Iterates over the keys of a specific path in the
+    configuration.
+
+- `ignore_errors` (optional): If set to `true`, any errors that occur
+  during an iteration will be logged but will not stop the loop. If
+  not specified or set to `false`, an error during iteration will
+  raise an exception and halt the loop.
+
+Sample configuration:
+
+```yaml
+loop:
+  sequence:
+    - subaction1
+    - subaction2
+    - subaction3
+
+  iterator:
+    one:
+      type: values
+      values:
+        - value1
+        - value2
+        - value3
+    two:
+      type: configkeys
+      path: my_config.path
+
+  ignore_errors: true
+```
+
 ## Runner
 
 The purpose of the runner is to offer a unified entry point for the
