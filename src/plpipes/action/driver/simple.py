@@ -22,6 +22,7 @@ class _PythonRunner(Action):
         try:
             logging.debug(f"Running python code at {self._path}")
             exec(self._code, {"cfg": cfg, "action_cfg": self._cfg, "db": plpipes.database, "plpipes": plpipes})
+            del self._code
         except Exception as ex:
             logging.error(f"Action of type python_script failed while executing {self._path}")
             raise ex

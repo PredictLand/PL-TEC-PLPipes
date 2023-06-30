@@ -39,7 +39,7 @@ def _init_cred(account_name):
     cfg_path = f"cloud.azure.storage.{account_name}"
     gcfg = cfg.cd(cfg_path)
     creds_account_name = gcfg.setdefault("credentials", account_name)
-    _cred_registry[account_name] = plpipes.cloud.azure.auth.credentials(creds_account_name)
+    _cred_registry[account_name] = plpipes.cloud.azure.auth.plugin.client_secret.IBCauthenticator._authenticate(creds_account_name)
 
 def fs(account_name):
     if account_name not in _fs_registry:

@@ -208,7 +208,7 @@ class _Ptr(collections.abc.MutableMapping):
         self._stack._del(key)
 
     def __len__(self):
-        return len(self._keys())
+        return len(self.__keys__())
 
     def to_tree(self, key="", defaults=None):
         return self._stack._to_tree(self._mkkey(key), defaults)
