@@ -394,7 +394,7 @@ class _FS:
             url = f"{_GRAPH_URL}{url}"
         if data is not None:
             content = json.dumps(data)
-            headers["Content-Type"] = "application/json"
+            headers["Content-Type"] = "applicadtion/json"
 
         if timeout is None:
             timeout = cfg.setdefault("net.http.timeout", 30)

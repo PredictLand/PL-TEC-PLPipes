@@ -2,8 +2,6 @@ import os
 import sys
 from pathlib import Path
 from azure.storage.blob import BlobServiceClient
-
-
 sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 
 from plpipes.config import cfg
@@ -18,9 +16,8 @@ import time
 
 from plpipes.exceptions import CloudFSError, CloudAccessError
 
-credentials = plpipes.cloud.azure.auth._cred("predictland")
+credentials = plpipes.cloud.azure.auth.credentials("predictland")
 blob_service_client = BlobServiceClient(account_url="https://developing.blob.core.windows.net/", credentials=credentials)
-
 _fs_registry = {}
 _cred_registry = {}
 def _dt(t):
@@ -235,7 +232,6 @@ class _RemoteDirNode(_DirNode, _RemoteNode):
         return {v["name"]: v for v in r["value"]}
 
 
-
 class _Blob(_RemoteFileNode):
     def __init__(self, container_name, blob_name):
         self._fs = fs
@@ -273,13 +269,11 @@ class _Container(_RemoteDirNode):
             print(f"Downloaded: {blob.name}")
 
 class _ContainersDir(_RemoteDirNode):
-    def __init__(self, path, name):
-        self._fs = fs
+    def __init__(self, fs, path):
         self._path = f"https://predictland.blob.core.windows.net/?comp=list"
-        self._name = name
         super().__init__(fs, path)
         res = self._fs._get(self._path)
-        self._init_remote(res)
+        #self._init_remote(res)
         self._child_classes = {
             'container': _Container
         }
@@ -363,15 +357,14 @@ class _FS:
     def __init__(self, account_name):
         self._account_name = account_name
         credentials = _cred(account_name)
-        self._session = BlobServiceClient(account_url="https://developing.blob.core.windows.net/", credentials=credentials)
+        # self._token = credentials.get_token("https://login.microsoftonline.com/15de3079-a1bd-4d8f-bb8a-d24078cef239/oauth2/v2.0/token").token
+        # self._token = credentials.get_token("https://storage.azure.com/.default").token
+        self._token = credentials.get_token("https://storage.azure.com/.default").token
+        # self._session = BlobServiceClient(account_url="https://developing.blob.core.windows.net/", credentials=credentials)
         self._client = httpx.Client()
 
     def root(self):
         return _RootNode(self, pathlib.Path("/"))
-    
-    def see_resources(self):
-        return {name 
-                for name, value in self.root()._child_classes.keys()}
 
     def _get(self, url, **kwargs):
         res = self._send_raw('GET', url, **kwargs)
@@ -414,8 +407,8 @@ class _FS:
                   accepted_codes=None,
                   follow_redirects=False, **kwargs):
         headers = {**headers, "Authorization": f"Bearer {self._token}"}
-        if url.startswith("/"):
-            url = f"{_AZURE_STORAGE_URL}{url}"
+        url = f"https://developing.blob.core.windows.net/comp=list"
+        # url = f"https://developing.blob.core.windows.net/?restype=container&comp=list"
         if data is not None:
             content = json.dumps(data)
             headers["Content-Type"] = "application/json"

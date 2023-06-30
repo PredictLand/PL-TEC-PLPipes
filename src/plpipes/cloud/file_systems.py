@@ -1,4 +1,5 @@
 import os
+import json
 import sys
 from pathlib import Path
 import plpipes.cloud.aws.s3 as aws
@@ -10,7 +11,9 @@ sys.path.append(str(Path(os.getcwd()).joinpath("src")))
 from plpipes.config import cfg
 
 # Get the cloud service providers
-user_file_systems = list(cfg['cloud'].keys())
+cfg_json = cfg.to_json()
+cfg_dict = json.loads(cfg_json)
+user_file_systems = list(cfg_dict['cloud'].keys())
 
 def show_fss():
     print("Cloud providers you can be authenticated in within this project:")
@@ -23,12 +26,15 @@ def show_fss():
 
 def select_fs(fs):
     if fs in user_file_systems:
-        if fs == "azure":
-            fs = az.fs(cfg['cloud']['azure']['auth'])
-        elif fs == "aws":
-            fs = aws.fs(cfg['cloud']['aws']['auth'])
-        elif fs == "gcp":
-            fs = gcp.fs(cfg['cloud']['gcp']['auth'])
+        if fs == "azure" or fs == "az" or fs == "Azure" or fs == "AZURE":
+            keys_list = list(cfg_dict['cloud']['azure']['auth'].keys())
+            fs = az.fs(keys_list[0])
+        elif fs == "aws" or fs == "Amazon Web Services" or fs == "AWS":
+            keys_list = list(cfg_dict['cloud']['aws']['auth'].keys())
+            fs = aws.fs(keys_list[0])
+        elif fs == "gcp" or fs == "Google Cloud Platform" or fs == "GCP":
+            keys_list = list(cfg_dict['cloud']['gcp']['auth'].keys())
+            fs = gcp.fs(keys_list[0])
         return fs
     else:
         raise ValueError("The file system you attempted to select is not available within your project")
