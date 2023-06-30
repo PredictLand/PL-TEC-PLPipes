@@ -7,7 +7,7 @@ from plpipes.exceptions import AuthenticationError
 
 
 @plugin
-class IBCAuthenticator(AuthenticatorBase):
+class CSAuthenticator(AuthenticatorBase):
 
     def _authenticate(self):
         return ClientSecretCredential(tenant_id=self._cfg["tenant_id"],
