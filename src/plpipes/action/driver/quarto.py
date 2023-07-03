@@ -12,6 +12,7 @@ import tempfile
 import json
 import shutil
 import datetime
+import dateparser
 
 def _read_yaml_header(fn):
     with open(fn, "r") as f:
@@ -92,7 +93,8 @@ class _QuartoRunner(Action):
                           dir='',
                           format="html",
                           append_date=False,
-                          insert_date=False)
+                          insert_date=False,
+                          date=None)
         default_file = self._path.with_suffix("." + dcfg["format"]).name
         dcfg.copydefaults(scfg, file=default_file)
         super().__init__(name, action_cfg)
@@ -101,16 +103,24 @@ class _QuartoRunner(Action):
         logging.debug(f"Action config: {self._cfg.to_tree()}")
         rel_path = Path(self._cfg['dest.dir']) / self._cfg['dest.file']
 
-        if self._cfg['dest.insert_date']:
-            as_of_date = datetime.datetime.strptime(cfg['run.as_of_date_normalized'], "%Y%m%dT%H%M%SZ0")
-            rel_path = as_of_date.strftime(str(rel_path))
-            logging.debug(f"Inserting date into target filename ({as_of_date} --> {rel_path})")
-        elif self._cfg['dest.append_date']:
-            rel_path_parent = rel_path.parent
-            rel_path_stem = rel_path.stem
-            rel_path_suffix = rel_path.suffix
-            rel_path = rel_path_parent / (rel_path_stem + '-' + cfg['run.as_of_date_normalized'] + rel_path_suffix)
-            logging.debug(f"Appending date into target filename ({rel_path})")
+        if self._cfg['dest.insert_date'] or self._cfg['dest.append_date']:
+            date_raw = self._cfg['dest.date']
+            if date_raw is None:
+                date = datetime.datetime.strptime(cfg['run.as_of_date_normalized'], "%Y%m%dT%H%M%SZ0")
+            else:
+                date = dateparser.parse(date_raw)
+                if date is None:
+                    raise ValueError(f"Unable to parse date {date_raw}")
+
+            if self._cfg['dest.insert_date']:
+                rel_path = date.strftime(str(rel_path))
+                logging.debug(f"Inserting date into target filename ({date} --> {rel_path})")
+            else:
+                rel_path_parent = rel_path.parent
+                rel_path_stem = rel_path.stem
+                rel_path_suffix = rel_path.suffix
+                rel_path = rel_path_parent / (rel_path_stem + '-' + date.strftime("%Y%m%dT%H%M%SZ0") + rel_path_suffix)
+                logging.debug(f"Appending date into target filename ({rel_path})")
 
         target_path = fs.path(rel_path, section=self._cfg['dest.section'])
         stem = target_path.stem
