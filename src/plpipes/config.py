@@ -14,7 +14,7 @@ def _merge_any(tree, new):
             return {k: _merge_any(None, v) for k, v in new.items()}
     if isinstance(new, list):
         return [_merge_any(None, e) for e in new]
-    if isinstance(new, (int, float, bool)):
+    if isinstance(new, (int, float, bool)) or new is None:
         return new
     return str(new)
 
@@ -118,7 +118,7 @@ class ConfigStack:
         self._cache = {}
 
     def _set(self, key, value):
-        if not isinstance(value, (str, int, float, bool, list)):
+        if not isinstance(value, (str, int, float, bool, list)) and value is not None:
             if isinstance(value, dict):
                 raise ValueError("It is not possible to set a configuration entry to a dictionary, use merge instead")
             value = str(value)
