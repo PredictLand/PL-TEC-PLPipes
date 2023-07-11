@@ -24,7 +24,6 @@ _TRANSITORY_HTTP_CODES = {
 
 _graph_registry = {}
 _fs_registry = {}
-_cred_registry = {}
 
 def _dt(t):
     if t is None:
@@ -37,15 +36,9 @@ def _dt(t):
         logging.exception(f"Unable to parse datetime {t}")
 
 def _cred(account_name):
-    if account_name not in _cred_registry:
-        _init_cred(account_name)
-    return _cred_registry[account_name]
-
-def _init_cred(account_name):
-    cfg_path = f"cloud.azure.graph.{account_name}"
-    gcfg = cfg.cd(cfg_path)
-    creds_account_name = gcfg.setdefault("credentials", account_name)
-    _cred_registry[account_name] = plpipes.cloud.azure.auth.credentials(creds_account_name)
+    creds_account_name = cfg.setdefault(f"cloud.azure.graph.{account_name}.credentials",
+                                        account_name)
+    return plpipes.cloud.azure.auth.credentials(creds_account_name)
 
 def graph(account_name):
     if account_name not in _graph_registry:
