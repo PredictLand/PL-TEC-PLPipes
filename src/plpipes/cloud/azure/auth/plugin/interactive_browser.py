@@ -16,7 +16,7 @@ class IBCAuthenticator(AuthenticatorBase):
             with open(ar_fn, "r") as f:
                 ar = AuthenticationRecord.deserialize(f.read())
         except:
-            logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
+            logging.debug(f"Couldn't load authentication record for {self._account_name} from {ar_fn}")
             ar = None
 
         authentication_callback_port = self._cfg.setdefault("authentication_callback_port", 8082)
@@ -24,10 +24,9 @@ class IBCAuthenticator(AuthenticatorBase):
 
         allow_unencrypted_storage = self._cfg.setdefault("allow_unencrypted_storage", False)
         cache_persistence_options = TokenCachePersistenceOptions(allow_unencrypted_storage=allow_unencrypted_storage)
-
         expected_user = self._cfg.get("username")
 
-        cred = InteractiveBrowserCredential(tenant_id=self._cfg["tenant_id"],
+        cred = InteractiveBrowserCredential(tenant_id=self._cfg.get("tenant_id", "common"),
                                             client_id=self._cfg["client_id"],
                                             client_credential=self._cfg.get("client_secret"),
                                             prompt=self._cfg.get("prompt", "login"),
@@ -51,9 +50,9 @@ class IBCAuthenticator(AuthenticatorBase):
                 with open(ar_fn, "w") as f:
                     f.write(ar.serialize())
             except:
-                logging.warning(f"Unable to save authentication record for {account_name} at {ar_fn}", exc_info=True)
+                logging.warning(f"Unable to save authentication record for {self._account_name} at {ar_fn}", exc_info=True)
         else:
-            logging.warning(f"'{cfg_path}.scopes' not configured, credentials for {account_name} are not going to be cached!")
+            logging.warning(f"'cloud.azure.graph.{self._account_name}.scopes' not configured, credentials for {self._account_name} are not going to be cached!")
 
         return cred
 
