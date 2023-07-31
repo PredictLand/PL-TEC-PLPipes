@@ -1,0 +1,6 @@
+*~
+__pycache__
+work/
+dist/
+.ipynb_checkpoints/
+venvPLPipes/

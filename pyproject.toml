@@ -1,0 +1,52 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project.urls]
+Home = "https://github.com/PredictLand/PL-TEC-PLPipes"
+
+[project]
+name = "plpipes"
+authors = [{name = "PredictLand", email = "info@predictland.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+version = "0.1"
+description = "PredictLand Data Science Framwork"
+
+dependencies = [
+    "requests >=2.0",
+    "duckdb >=0.6",
+    "duckdb-engine >=0.6",
+    "numpy >=1.14",
+    "PyYAML >=6.0",
+    "Jinja2 >=3.1",
+    "pandas >=1.5",
+    "SQLAlchemy >=1.4, <2.0",
+    "prql-python >=0.3",
+    "httpx >=0.23"
+]
+
+[project.optional-dependencies]
+odbc = [
+    "pyodbc >=4.0"
+]
+
+jupyter = [
+    "jupyterlab >=1.0",
+    "pyprql >=0.5",
+    "ipython-sql >=0.4"
+]
+
+azure = [
+    "azure-identity",
+]
+
+msgraph = [
+    "azure-identity",
+    "ms-graph-client"
+]
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = ["--import-mode=importlib"]
