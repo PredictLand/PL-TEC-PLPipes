@@ -16,9 +16,8 @@ class IBCAuthenticator(AuthenticatorBase):
             with open(ar_fn, "r") as f:
                 ar = AuthenticationRecord.deserialize(f.read())
         except:
-            logging.debug(f"Couldn't load authentication record for {account_name} from {ar_fn}")
+            logging.debug(f"Couldn't load authentication record for {self._account_name} from {ar_fn}")
             ar = None
-
         authentication_callback_port = self._cfg.setdefault("authentication_callback_port", 8082)
         redirect_uri = f"http://localhost:{authentication_callback_port}"
 
@@ -40,7 +39,7 @@ class IBCAuthenticator(AuthenticatorBase):
             if isinstance(scopes, str):
                 scopes = scopes.split(" ")
 
-            logging.debug("Calling authenticate(scopes={scopes})")
+            logging.debug(f"Calling authenticate(scopes={scopes})")
             ar = cred.authenticate(scopes=scopes)
 
             if expected_user not in (None, ar.username):

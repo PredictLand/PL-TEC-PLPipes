@@ -14,11 +14,10 @@ class AuthenticatorBase(Plugin):
         if self._credentials is None:
             try:
                 self._credentials = self._authenticate()
-            except AuthenticationError:
-                raise
             except Exception as ex:
-                raise AuthenticationError("Authentication for account {self._account_name} failed") from ex
+                raise AuthenticationError(f"Authentication for account {self._account_name} failed") from ex
         return self._credentials
 
     def _credentials_cache_filename(self):
         return pathlib.Path.home() / f".config/plpipes/cloud/azure/auth/{self._account_name}.json"
+    

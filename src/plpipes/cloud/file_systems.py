@@ -26,16 +26,37 @@ def show_fss():
 
 def select_fs(fs):
     if fs in user_file_systems:
+
         if fs == "azure" or fs == "az" or fs == "Azure" or fs == "AZURE":
             keys_list = list(cfg_dict['cloud']['azure']['auth'].keys())
-            fs = az.fs(keys_list[0])
+
+            az.show_subscriptions(keys_list[0])
+            subscription_name = input("Which Azure subscription do you want to access to? (use the subscription name, not the ID)")
+            
+            
+            az.show_resource_groups(keys_list[0], subscription_name)
+            resource_group_name = input(f"Which resource group do you want to access to within the subscription {subscription_name}?")
+            
+            # az.show_storage_accounts(keys_list[0], subscription_name)
+            az.show_storage_accounts(keys_list[0], resource_group_name, subscription_name)
+            storage_account = input(f"Which storage account do you want to use within the subscription {subscription_name}?")
+            
+
+            fs = az.fs(keys_list[0], subscription_name, storage_account, resource_group_name)
+        
         elif fs == "aws" or fs == "Amazon Web Services" or fs == "AWS":
             keys_list = list(cfg_dict['cloud']['aws']['auth'].keys())
             fs = aws.fs(keys_list[0])
+
         elif fs == "gcp" or fs == "Google Cloud Platform" or fs == "GCP":
             keys_list = list(cfg_dict['cloud']['gcp']['auth'].keys())
             fs = gcp.fs(keys_list[0])
+
         return fs
+    
     else:
         raise ValueError("The file system you attempted to select is not available within your project")
-    
+
+
+
+
