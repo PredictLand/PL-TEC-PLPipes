@@ -35,11 +35,15 @@ class Driver(plpipes.plugin.Plugin):
             logging.debug(f"backend {backend._plugin_name} for {klass._plugin_name} loaded")
             return backend
 
-    def __init__(self, name, drv_cfg, url):
+    def __init__(self, name, drv_cfg, url, **kwargs):
         self._name = name
         self._cfg = drv_cfg
         self._url = url
-        self._engine = sqlalchemy.create_engine(url)
+
+        logging.debug(f"calling sqlalchemy.create_engine(url={url}, kwargs={kwargs})")
+
+        self._engine = sqlalchemy.create_engine(url, **kwargs)
+        
         self._last_key = 0
         self._default_backend = self._backend_lookup(self._cfg.get("backend", self._default_backend_name))
 
