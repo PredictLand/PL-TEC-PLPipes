@@ -550,7 +550,35 @@ must be installed. It is available from
 #### AzureSQL configuration
 
 - `driver`: `azure_sql`
-- ...: any other parameters accepted by the SQLServer driver.
+- `server`: full qualified server name. It can be seen at the Summary
+  page for the database in [Azure
+  Portal](https://portal.azure.com). It usually has a name like
+  `foo.database.windows.net`).
+- `database`: Database instance name. It is usually (always?) also the
+  name of the Azure resource.
+- `credentials`: Name of the Azure credential group to be used for
+  authentication. See the [Azure](#Azure) chapter below.
+
+Example:
+
+```yaml
+
+db:
+  instance:
+    input:
+      driver: azure_sql
+      server: foo.database.windows.net
+      database: megadb-2000
+      credentials: bar
+
+cloud:
+  azure:
+    auth:
+      bar:
+        driver: azure_cli
+
+```
+
 
 Again, the SQL-Server ODBC driver must also be installed.
 
