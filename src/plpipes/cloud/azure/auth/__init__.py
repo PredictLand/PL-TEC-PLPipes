@@ -15,6 +15,6 @@ def credentials(account_name):
 def _init_backend(account_name):
     acfg = cfg.cd("cloud.azure.auth").cd(account_name)
 
-    backend_name = acfg.get("type", "interactive_browser")
+    backend_name = acfg.get("driver", "interactive_browser")
     backend_class = _backend_class_registry.lookup(backend_name)
     return backend_class(account_name, acfg)

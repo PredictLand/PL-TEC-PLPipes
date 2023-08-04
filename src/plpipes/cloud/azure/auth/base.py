@@ -20,5 +20,14 @@ class AuthenticatorBase(Plugin):
                 raise AuthenticationError(f"Authentication for account {self._account_name} failed") from ex
         return self._credentials
 
+    def _private_path(self, subdir=None, create=True):
+        path = pathlib.Path.home() / f".config/plpipes/cloud/azure/auth" / self._account_name
+        if subdir is not None:
+            path = path / subdir
+        if create:
+            path.mkdir(exist_ok=True, parents=True)
+        return path
+
     def _credentials_cache_filename(self):
-        return pathlib.Path.home() / f".config/plpipes/cloud/azure/auth/{self._account_name}.json"
+        return self._private_path() / "cached.json"
+

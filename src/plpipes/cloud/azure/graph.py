@@ -164,7 +164,13 @@ class _SyntheticDirNode(_DirNode, _SyntheticNode):
     _child_classes = {}
 
     def ls(self):
-        return {k: self._go(k) for k in self._child_classes.keys()}
+        entries = {}
+        for k in self._child_classes.keys():
+            try:
+                entries[k] = self._go(k)
+            except:
+                logging.exception(f"Unable to get data for entry {k} in synthetic dir")
+        return entries
 
     def _go(self, name):
         klass = self._child_classes[name]
