@@ -70,7 +70,7 @@ def copy_table(from_table_name, to_table_name=None,
                from_db=None, to_db=None, db=None,
                if_exists="replace", **kws):
     if to_table_name is None:
-        to_table_name = from_table_name
+        to_table_name = from_table_name.split(".")[-1]
 
     from_driver = lookup(db if from_db is None else from_db)
     to_driver = lookup(db if to_db is None else to_db)
