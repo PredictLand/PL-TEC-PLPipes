@@ -3,6 +3,7 @@ from plpipes.cloud.azure.auth.base import AuthenticatorBase
 from azure.identity import AzureCliCredential
 import logging
 import os
+import sys
 import subprocess
 
 from plpipes.exceptions import AuthenticationError
@@ -44,6 +45,7 @@ class MyAzureCliCredential(AzureCliCredential):
 
     def get_token(self, *args, **kwargs):
         with _TempEnv(AZURE_CONFIG_DIR=self._az_config_dir):
+            logging.debug(f"Running az command with env {os.environ}")
             return super().get_token(*args, **kwargs)
 
 @plugin
@@ -55,7 +57,13 @@ class AzureCliAuthenticator(AuthenticatorBase):
             with _TempEnv(AZURE_CONFIG_DIR=str(path)):
                 if not path.exists():
                     path.mkdir(parents=True)
-                    subprocess.run(["az", "login"], check=True)
+                    az_login = "az login"
+                    if sys.platform.startswith("win"):
+                        cmd = ['cmd', '/c', az_login]
+                    else:
+                        cmd = ['/bin/sh', '-c', az_login]
+                    logging.debug(f"running {cmd} with env {os.environ}")
+                    subprocess.run(cmd, check=True)
 
                 try:
                     return MyAzureCliCredential(az_config_dir=str(path))
