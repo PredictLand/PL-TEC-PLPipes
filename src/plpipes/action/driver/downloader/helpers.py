@@ -6,6 +6,8 @@ import requests
 
 from plpipes.database import create_table
 
+# TODO: remove this file, move everything into plpipes.util
+
 def download_json(url, headers={}):
     return requests.get(url, headers=headers).json()
 

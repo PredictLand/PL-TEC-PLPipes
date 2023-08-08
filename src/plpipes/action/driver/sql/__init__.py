@@ -37,7 +37,7 @@ class _SqlViewCreator(_SqlTemplated):
         return self._cfg["files.view_sql"]
 
     def _run_sql(self, sql_code):
-        from plpipes.database import create_table
+        from plpipes.database import create_view
         create_view(self.short_name(), sql_code)
 
 class _SqlRunner(_SqlTemplated):
