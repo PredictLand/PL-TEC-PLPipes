@@ -1,8 +1,0 @@
-from plpipes.util.net import download_to_file
-import pandas as pd
-
-def eur_usd():
-    return pd.read_csv("https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?format=csvdata",
-                       parse_dates=["TIME_PERIOD"])
-
-    
