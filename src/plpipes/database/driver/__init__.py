@@ -83,7 +83,13 @@ class Driver(plpipes.plugin.Plugin):
         txn._conn.executescript(sql)
 
     def _read_table(self, txn, table_name, backend, kws):
-        return self._query(txn, f"select * from {table_name}", None, backend, kws)
+        try:
+            column_names = kws.pop("columns")
+            columns = [sas.column(n) for n in column_names]
+        except KeyError:
+            columns = ["*"]
+        query = sas.select(*columns).select_from(sas.table(table_name))
+        return self._query(txn, query, None, backend, kws)
 
     def _drop_table(self, txn, table_name, only_if_exists):
         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))

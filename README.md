@@ -619,10 +619,13 @@ the result.
 #### `read_table`
 
 ```python
-read_table(table_name, db="work")
+read_table(table_name, db="work", columns=None)
 ```
 
 Reads the contents of the table as a dataframe.
+
+The columns to be loaded can be specified with the `columns` optional
+argument.
 
 #### `execute`
 
