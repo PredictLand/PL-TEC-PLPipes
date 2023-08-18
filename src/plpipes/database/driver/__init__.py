@@ -95,7 +95,8 @@ class Driver(plpipes.plugin.Plugin):
         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
 
     @dispatcher({str: '_create_table_from_str',
-                 sas.elements.ClauseElement: '_create_table_from_clause'},
+                 sas.elements.ClauseElement: '_create_table_from_clause',
+                 list: '_create_table_from_records'},
                 ix=2)
     def _create_table(self, txn, table_name, sql_or_df, parameters, if_exists, kws):
         ...
@@ -113,6 +114,10 @@ class Driver(plpipes.plugin.Plugin):
                                         if_not_exists=if_not_exists),
                           parameters)
 
+    def _create_table_from_records(self, txn, table_name, records, parameters, if_exists, kws):
+        backend = self._backend(kws.pop("backend", None))
+        backend.create_table_from_records(txn, table_name, records, parameters, if_exists, kws)
+        
     def _create_view(self, txn, view_name, sql, parameters, if_exists, kws):
         if_not_exists = False
         if if_exists == "replace":
