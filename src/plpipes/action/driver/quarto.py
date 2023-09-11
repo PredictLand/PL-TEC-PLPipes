@@ -139,8 +139,10 @@ class _QuartoRunner(Action):
             env = os.environ.copy()
             env['PLPIPES_ROOT_DIR'] = str(fs.path(".", section="root").absolute())
 
+            quarto_binary = cfg.get('bin.quarto', 'quarto')
+
             with _cd(workdir):
-                cmd = ["quarto", "render", temp_qmd_path.name,
+                cmd = [quarto_binary, "render", temp_qmd_path.name,
                        "--output", temp_target_path.name,
                        "--to", self._cfg["dest.format"],
                        "--no-execute-daemon"]
