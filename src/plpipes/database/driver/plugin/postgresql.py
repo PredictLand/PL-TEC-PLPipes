@@ -2,7 +2,7 @@ import logging
 import sqlalchemy.engine
 from urllib.parse import urlunparse, urlparse
 
-from plpipes.database.driver import Driver
+from plpipes.database.driver.sqlalchemy import SQLAlchemyDriver
 from plpipes.plugin import plugin
 
 def first(*args):
@@ -12,7 +12,7 @@ def first(*args):
     return None
 
 @plugin
-class PostgreSQLDriver(Driver):
+class PostgreSQLDriver(SQLAlchemyDriver):
     def __init__(self, name, drv_cfg):
         cs = urlparse(drv_cfg.get("connection_string", "postgresql:"))
         try:

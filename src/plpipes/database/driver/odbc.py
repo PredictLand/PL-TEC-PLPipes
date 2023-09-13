@@ -1,8 +1,8 @@
 import sqlalchemy.engine
 
-from plpipes.database.driver import Driver
+from plpipes.database.driver.sqlalchemy import SQLAlchemyDriver
 
-class ODBCDriver(Driver):
+class ODBCDriver(SQLAlchemyDriver):
     def __init__(self, name, drv_cfg, **kwargs):
         url = sqlalchemy.engine.URL.create(drv_cfg['sql_alchemy_driver'],
                                            query={'odbc_connect': drv_cfg['connection_string']})

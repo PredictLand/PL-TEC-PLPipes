@@ -1,8 +1,8 @@
 import pathlib
 from plpipes.config import cfg
-from plpipes.database.driver import Driver
+from plpipes.database.driver.sqlalchemy import SQLAlchemyDriver
 
-class FileDBDriver(Driver):
+class FileDBDriver(SQLAlchemyDriver):
     def __init__(self, name, drv_cfg, driver):
         # if there is an entry for the given name in cfg["fs"] we use
         # that, otherwise we store the db file in the work directory:
