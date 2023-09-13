@@ -13,7 +13,7 @@ class _PythonRunner(Action):
         if not hasattr(self, "_code"):
             self._path = self._cfg["files.py"]
             try:
-                with open(self._path, "r") as f:
+                with open(self._path, "r", encoding="utf8") as f:
                     py_code = f.read()
                 self._code = compile(py_code, self._path, 'exec')
             except Exception as ex:
