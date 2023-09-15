@@ -49,7 +49,7 @@ class PandasBackend(Backend):
     def create_table_from_records(self, txn, table_name, records, paramaters, if_exists, kws):
         df = pandas.DataFrame.from_records(records)
         self._create_table_from_pandas(txn, table_name, df, paramaters, if_exists, kws)
-    
+
     def _df_read_sql(self, txn, sqla, **kws):
         return pandas.read_sql(sqla, txn._conn, **kws)
 
