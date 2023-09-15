@@ -55,7 +55,7 @@ class Driver(plpipes.plugin.Plugin):
     @optional_abstract
     def _execute_script(self, txn, sql):
         ...
-        
+
     def _next_key(self):
         self._last_key += 1
         return self._last_key
@@ -93,11 +93,11 @@ class Driver(plpipes.plugin.Plugin):
     @optional_abstract
     def _create_table_from_clause(self, txn, table_name, clause, parameters, if_exists, kws):
         ...
-        
+
     def _create_table_from_records(self, txn, table_name, records, parameters, if_exists, kws):
         backend = self._backend(kws.pop("backend", None))
         backend.create_table_from_records(txn, table_name, records, parameters, if_exists, kws)
-        
+
     @optional_abstract
     def _create_view(self, txn, view_name, sql, parameters, if_exists, kws):
         ...
@@ -109,7 +109,7 @@ class Driver(plpipes.plugin.Plugin):
     @optional_abstract
     def _read_table_chunked(self, txn, table_name, backend, kws):
         ...
-        
+
     def _query_chunked(self, txn, sql, parameters, backend, kws):
         return self._backend(backend).query_chunked(txn, sql, parameters, kws)
 
