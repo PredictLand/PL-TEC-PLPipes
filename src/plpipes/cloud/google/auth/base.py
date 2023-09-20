@@ -17,11 +17,11 @@ class AuthenticatorBase(Plugin):
             except AuthenticationError:
                 raise
             except Exception as ex:
-                raise AuthenticationError(f"Authentication for Azure account {self._account_name} failed") from ex
+                raise AuthenticationError(f"Authentication for Google Cloud account {self._account_name} failed") from ex
         return self._credentials
 
     def _private_path(self, subdir=None, create=True):
-        path = pathlib.Path.home() / f".config/plpipes/cloud/azure/auth" / self._account_name
+        path = pathlib.Path.home() / f".config/plpipes/cloud/google/auth" / self._account_name
         if subdir is not None:
             path = path / subdir
         if create:
