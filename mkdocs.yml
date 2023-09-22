@@ -1,0 +1,59 @@
+site_name: PLPipes Docs
+
+nav:
+  - Home:
+      - Introduction: intro.md
+      - Nomenclature: nomenclature.md
+      - Overview: overview.md
+  - Installation: install.md
+  - Project Setup: project-setup.md
+  - Usage:
+    - Configuration: configuration.md
+    - Databases: databases.md
+    - Actions: actions.md
+    - Runner: runner.md
+    - Logging: logging.md
+    - Cloud Services:
+      - Overview: cloud-intro.md
+      - Azure: azure.md
+      - MS Graph: msgraph.md
+      - Google Cloud: google-cloud.md
+      - AWS: aws.md
+      - OpenAI: openai.md
+      - Other network services: other-network.md
+    - Jupyter Integration: jupyter.md
+    - Spark Integration: spark.md
+  - Reference: reference/summary.md
+  - FAQ: faq.md
+  - About:
+    - 'License': license.md
+
+theme:
+  name: "material"
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - toc:
+      permalink: "#"
+
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src"]
+          options:
+            docstring_style: google
+
+  - gen-files:
+      scripts:
+        - mkdocs-scripts/gen-reference-pages.py
+
+#  - literate-nav  # optional but useful for nav generation

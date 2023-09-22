@@ -4,12 +4,12 @@ title: PLPipes - PredictLand Data Science Framework
 
 # Introduction
 
-PredictLand is a consultancy firm focused on Data Science and related
-fields, Data Analytics, AI and ML, Big Data, Data Engineering, etc. We
-work for customers that range from small companies with just a few
-employees to big corporations and that requires us to be very flexible
-in the way we work as the platforms, IT systems and tools we can use
-in every project vary greatly.
+PredictLand, the company behind PLPipes, is a consultancy firm focused
+on Data Science and related fields (Data Analytics, AI and ML, Big
+Data, Data Engineering, etc.). We work for customers that range from
+small companies with just a few employees to big corporations and that
+requires us to be very flexible in the way we work as the platforms,
+IT systems and tools we can use in every project vary greatly.
 
 More specifically it is not uncommon for us to work on projects where
 all the infrastructure we have available to carry on our tasks are

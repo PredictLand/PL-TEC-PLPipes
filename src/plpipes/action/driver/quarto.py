@@ -1,3 +1,9 @@
+"""
+This module provides functionality for generating reports from Quarto markdown files within the plpipes framework.
+
+It includes a runner class for executing Quarto rendering actions, along with utilities for handling YAML headers in Quarto files, patching Quarto markdown files with necessary configurations, and managing context changes during execution.
+"""
+
 import logging
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
@@ -15,6 +21,18 @@ import datetime
 import friendlydateparser
 
 def _read_yaml_header(fn):
+    """
+    Reads the YAML header from a Quarto file.
+
+    Args:
+        fn (str): The file name of the Quarto file.
+
+    Returns:
+        str: The contents of the YAML header if found, otherwise None.
+
+    Raises:
+        Exception: If the YAML header is not properly closed.
+    """
     with open(fn, "r") as f:
         in_yaml = False
         yaml = []
@@ -38,6 +56,14 @@ def _read_yaml_header(fn):
         return None
 
 def _patch_qmd(source, dest, config):
+    """
+    Patches the Quarto markdown file with required configurations.
+
+    Args:
+        source (str): The source Quarto file path.
+        dest (str): The destination file path where the patched content will be written.
+        config (Path): The configuration file path to be inserted into the Quarto file.
+    """
     patch = """```{python}
 #| echo: false
 import plpipes.action.driver.quarto
@@ -67,11 +93,27 @@ plpipes.action.driver.quarto._init_plpipes(""" + repr(str(config.absolute())) + 
                 dest_f.write(line)
 
 def _init_plpipes(config):
+    """
+    Initializes the PLPIPES framework with the provided configuration.
+
+    Args:
+        config (Path): The configuration file path to initialize the framework.
+    """
     import plpipes.init
     plpipes.init.init(config_files=[config])
 
 @contextmanager
 def _cd(newdir):
+    """
+    Context manager for changing the current working directory.
+
+    Args:
+        newdir (str): The new directory to change to.
+
+    Yields:
+        None: The context manager changes to the new directory and reverts to
+        the original directory upon exiting the context.
+    """
     prevdir = os.getcwd()
     os.chdir(os.path.expanduser(newdir))
     try:
@@ -80,8 +122,21 @@ def _cd(newdir):
         os.chdir(prevdir)
 
 class _QuartoRunner(Action):
+    """
+    Action class for executing Quarto rendering actions.
+
+    Attributes:
+        _path (Path): The absolute path to the Quarto markdown file.
+    """
 
     def __init__(self, name, action_cfg):
+        """
+        Initializes the Quarto runner action.
+
+        Args:
+            name (str): The name of the action.
+            action_cfg (Config): The configuration settings for the action.
+        """
         self._path = Path(action_cfg["files.qmd"]).absolute()
         header = _read_yaml_header(self._path)
         if header is not None:
@@ -100,6 +155,12 @@ class _QuartoRunner(Action):
         super().__init__(name, action_cfg)
 
     def do_it(self):
+        """
+        Executes the Quarto rendering action.
+
+        This method handles the preparation of the target file path, date handling,
+        and the actual call to the Quarto binary to render the markdown file.
+        """
         logging.debug(f"Action config: {self._cfg.to_tree()}")
         rel_path = Path(self._cfg['dest.dir']) / self._cfg['dest.file']
 

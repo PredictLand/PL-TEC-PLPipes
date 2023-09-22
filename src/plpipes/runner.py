@@ -1,3 +1,13 @@
+"""
+Module: plpipes.runner
+
+The purpose of the runner is to offer a unified entry point for the
+project actions and pipelines. It extracts information from a set of
+environment variables and parses command line arguments in a standard way.
+
+For more information, refer to [Runner](../../runner.md).
+"""
+
 import plpipes.init
 import plpipes.action
 import plpipes.config
@@ -9,6 +19,12 @@ import json
 import logging
 
 class _PairAction(argparse.Action):
+    """
+    Custom argparse action for handling key-value pairs input.
+
+    This action allows key-value pairs to be passed in as arguments,
+    with optional unpacking for JSON values.
+    """
     def __init__(self, option_strings, dest, nargs=None, unpack=None, default=None, **kwargs):
         if nargs is not None:
             raise ValueError("nargs not allowed")
@@ -18,6 +34,15 @@ class _PairAction(argparse.Action):
         self.unpack = unpack
 
     def __call__(self, parser, namespace, values, option_string=None):
+        """
+        Processes the input key-value pair(s) and assigns them to the namespace.
+
+        Parameters:
+            parser: The argument parser.
+            namespace: The namespace where the values should be stored.
+            values: The input values to process.
+            option_string: The option string used for this action.
+        """
         if self.unpack:
             if self.unpack == "json":
                 def unpacker(x):
@@ -45,6 +70,15 @@ class _PairAction(argparse.Action):
 _default_arg_parser_args = { 'description': 'PLPipes runner' }
 
 def arg_parser(**kwargs):
+    """
+    Initializes the argument parser for the runner.
+
+    Parameters:
+        kwargs: Additional keyword arguments for customizing the parser.
+
+    Returns:
+        An instance of argparse.ArgumentParser configured for the runner.
+    """
     parser = argparse.ArgumentParser(**{**_default_arg_parser_args, **kwargs})
     parser.add_argument('-d', '--debug',
                         help="Turns on debugging",
@@ -71,6 +105,19 @@ def arg_parser(**kwargs):
     return parser
 
 def parse_args_and_init(arg_parser, args=None):
+    """
+    Parses command line arguments and initializes the PLPipes framework.
+
+    Parameters:
+        arg_parser: The argument parser instance to use for parsing.
+        args: The command line arguments to parse (defaults to sys.argv).
+
+    Returns:
+        The parsed options as an object with attributes corresponding to the arguments.
+
+    Raises:
+        Exception: If the program name is missing from the argument list.
+    """
     if args is None:
         args = sys.argv
 
@@ -107,9 +154,24 @@ def parse_args_and_init(arg_parser, args=None):
     return opts
 
 def simple_init(args=None):
+    """
+    A simplified initialization function that uses a default argument parser.
+
+    Parameters:
+        args: The command line arguments to parse (defaults to None).
+
+    Returns:
+        The parsed options as an object with attributes corresponding to the arguments.
+    """
     return parse_args_and_init(arg_parser(), args)
 
 def main(args=None):
+    """
+    Main entry point for the runner. Parses arguments and executes specified actions.
+
+    Parameters:
+        args: The command line arguments to parse (defaults to None).
+    """
     parser = arg_parser()
     parser.add_argument('actions', nargs="*",
                         metavar="ACTION", default=["default"])

@@ -5,12 +5,22 @@ import re
 from plpipes.config import cfg
 from plpipes.action.registry import _action_class_lookup, _action_type_lookup
 
-_action_cache={}
+_action_cache = {}
 
 def _find_action_files(action_root, name):
+    """
+    Find action files in the specified directory for a given action name.
+
+    Args:
+        action_root (pathlib.Path): The root directory to search for action files.
+        name (str): The name of the action.
+
+    Returns:
+        dict: A dictionary containing the found action files categorized by their suffix.
+    """
     root = action_root.absolute()
     name1 = name.replace(".", "/")
-    dn = root/name1
+    dn = root / name1
     logging.debug(f"dn: {dn}")
     files = {}
     if dn.is_dir():
@@ -29,14 +39,40 @@ def _find_action_files(action_root, name):
     return files
 
 def resolve_action_name(name, parent):
+    """
+    Resolve the full action name from a relative action name and its parent.
+
+    Args:
+        name (str): The action name to resolve.
+        parent (str): The parent action name.
+
+    Returns:
+        str: The resolved full action name.
+
+    Raises:
+        ValueError: If the name is a relative name but no parent is provided.
+    """
     if name.startswith("."):
         if parent:
-            return(f"{parent}{name}")
+            return f"{parent}{name}"
         else:
             raise ValueError("Can't resolve relative action name without a parent")
     return name
 
 def lookup(name, parent=""):
+    """
+    Lookup and retrieve an action by its name.
+
+    Args:
+        name (str): The name of the action to look up.
+        parent (str): An optional parent action name.
+
+    Returns:
+        Action: The action instance corresponding to the provided name.
+
+    Raises:
+        ValueError: If the action type is not declared or the action file is not found.
+    """
     name = resolve_action_name(name, parent)
     if name not in _action_cache:
         actions_dir = pathlib.Path(cfg["fs.actions"])
@@ -62,4 +98,10 @@ def lookup(name, parent=""):
     return _action_cache[name]
 
 def run(name):
+    """
+    Execute the action corresponding to the provided name.
+
+    Args:
+        name (str): The name of the action to run.
+    """
     lookup(name).run()

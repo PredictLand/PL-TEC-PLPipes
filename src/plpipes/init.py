@@ -1,4 +1,4 @@
-from plpipes.config import cfg
+import plpipes.config as cfg
 
 import sys
 import os
@@ -21,6 +21,18 @@ _config0 = {'db': {'instance': {'work': {},
                                                      "INFO")}}
 
 def init(*configs, config_files=[]):
+    """Initializes the PLPipes configuration.
+
+    This function merges provided configurations, command line arguments, and environment variables
+    to set up the application. It also initializes logging and file system paths.
+
+    Args:
+        *configs: Additional configuration dictionaries.
+        config_files: List of custom configuration files to be merged.
+
+    Returns:
+        bool: True if initialization is successful.
+    """
     from pathlib import Path
 
     global _initialized
@@ -108,6 +120,14 @@ def init(*configs, config_files=[]):
     return True
 
 def init_run_as_of_date():
+    """Initializes the 'as_of_date' configuration entry.
+
+    It sets the 'run.as_of_date_normalized' entry in the configuration
+    based on the specified or default 'run.as_of_date'.
+
+    Returns:
+        None
+    """
     date = cfg.setdefault('run.as_of_date', 'now')
     as_of_date = friendlydateparser.parse_datetime(date)
     as_of_date = as_of_date.astimezone(datetime.timezone.utc)
@@ -115,6 +135,7 @@ def init_run_as_of_date():
 
 def _log_setup():
     """This function sets up the logging system. It is called by init().
+
     Args:
         None.
     Returns:

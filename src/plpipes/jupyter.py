@@ -1,3 +1,6 @@
+"""
+plpipes.jupyter - a Jupyter extension module for initializing and managing the PLPipes framework.
+"""
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
@@ -12,14 +15,30 @@ import plpipes.database
 
 @magics_class
 class PLPipesMagics(Magics):
+    """
+    A class to define Jupyter magic commands for the PLPipes framework.
+    """
 
     def __init__(self, shell):
+        """
+        Initializes the PLPipesMagics class.
+
+        Parameters:
+            shell: The IPython shell instance.
+        """
         super().__init__(shell)
         self.initialized = False
 
     @needs_local_scope
     @line_magic
     def plpipes(self, line, local_ns):
+        """
+        Magic function to initialize the PLPipes framework based on the given configuration.
+
+        Parameters:
+            line (str): The line of input provided to the magic command.
+            local_ns (dict): The local namespace to inject configurations and database objects.
+        """
         # import sql.connection
 
         if self.initialized:
@@ -67,11 +86,12 @@ class PLPipesMagics(Magics):
 
 
 def load_ipython_extension(ipython):
+    """
+    Loads the PLPipes magic extension in the IPython environment.
+
+    Parameters:
+        ipython: The IPython instance to load the extension into.
+    """
     global former_connection_class
     ipython.register_magics(PLPipesMagics)
     # ipython.extension_manager.load_extension("sql")
-
-
-
-
-

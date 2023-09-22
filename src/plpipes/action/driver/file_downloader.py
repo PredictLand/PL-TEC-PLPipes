@@ -1,3 +1,9 @@
+"""
+This module provides functionality for downloading files from a specified URL.
+It utilizes the HTTPx library to handle HTTP requests and supports resuming interrupted downloads.
+The module includes the action class for file downloading and relevant helper functions.
+"""
+
 import logging
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -9,7 +15,20 @@ from plpipes.action.registry import register_class
 from plpipes.config import cfg
 
 class _FileDownloader(Action):
+    """
+    Action class for downloading files from a specified URL.
+
+    This class handles the download process, including resumable downloads,
+    and manages the target file's existence based on configuration options.
+    """
+
     def do_it(self):
+        """
+        Executes the file download action.
+
+        Retrieves the URL, HTTP method, target file path, and other configuration options.
+        Initiates the download process and handles any necessary retries.
+        """
         url = self._cfg["url"]
         method = self._cfg.get("method", "get")
         target = self._cfg.get("target")
@@ -35,10 +54,34 @@ register_class("file_downloader", _FileDownloader)
 
 
 def _parse_http_date(str):
+    """
+    Parses the HTTP date string into a datetime object.
+
+    Args:
+        str (str): The HTTP date string.
+
+    Returns:
+        datetime.datetime: The corresponding datetime object.
+    """
     return datetime.datetime.strptime(str, "%a, %d %b %Y %H:%M:%S %Z")
 
 
 def _download_file(url, destination, method="get", max_retries=3, timeout=30):
+    """
+    Downloads a file from the specified URL to the destination path.
+
+    This function supports resumable downloads and manages retries if the download fails.
+
+    Args:
+        url (str): The URL from which to download the file.
+        destination (Path): The target file path where the file should be saved.
+        method (str): The HTTP method to use for the download (default is "get").
+        max_retries (int): The maximum number of retries for the download (default is 3).
+        timeout (int): The timeout for the request in seconds (default is 30).
+
+    Returns:
+        bool: True if the download was successful, False otherwise.
+    """
 
     local_file_size = 0
     remote_file_size = 0

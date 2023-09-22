@@ -1,3 +1,10 @@
+"""
+This module provides a configuration management system. 
+The main way to access the configuration is through the global variable `cfg`, 
+which behaves like a dictionary but supports dotted keys for hierarchical 
+access to configuration entries.
+"""
+
 import json
 import logging
 import re
@@ -5,6 +12,7 @@ import copy
 import collections.abc
 
 def _merge_any(tree, new):
+    """Merge new configuration data into the existing tree structure."""
     if isinstance(new, dict):
         if isinstance(tree, dict):
             for k, v in new.items():
@@ -19,6 +27,7 @@ def _merge_any(tree, new):
     return str(new)
 
 def _flatten_tree(tree):
+    """Flatten a nested dictionary into a single level dictionary with dotted keys."""
     flat = {}
     def rec(subtree, path):
         for k, v in subtree.items():
@@ -32,20 +41,27 @@ def _flatten_tree(tree):
 
 
 class ConfigStack:
+    """Manage a stack of configuration frames."""
+
     def __init__(self):
+        """Initialize a new ConfigStack with empty frames and cache."""
         self._frames = []
         self._cache = {}
 
     def _cd(self, path):
+        """Change directory to the given path in the configuration stack."""
         return _Ptr(self, path)
 
     def root(self):
+        """Return a pointer to the root of the configuration."""
         return self._cd("")
 
     def reset_cache(self):
+        """Reset the caching mechanism for configuration retrieval."""
         self._cache = {}
 
     def _get(self, key, frame=0):
+        """Get the value of a configuration key, with caching."""
         if frame == 0:
             if key not in self._cache:
                 self._cache[key] = self._get_nocache(key, 0)
@@ -54,19 +70,32 @@ class ConfigStack:
             return self._get_nocache(key, frame)
 
     def _get_nocache(self, key, frame):
-        # As we have to take into account wildcards at different
-        # levels, we use a search algorithm that explores the problem
-        # space taking into account the specificity of the entries (no
-        # wildcards, or wildcards nearer to the right side) and the
-        # frame position. The rules are as follows:
-        #
-        # 1. More specific entries always win over less specific ones.
-        #
-        # 2. For entries with the same specificity, the one from the
-        # lowest frame (last loaded) wins.
-        #
-        # This is implemented using a mix of A*/depth-first search
-        # algorithm.
+        """
+        Retrieve the value associated with a given configuration key
+        while considering wildcard entries and frame specificity.
+
+        The method implements a search algorithm that takes into account
+        the specificity of configuration entries and their order of 
+        loading based on frame. It follows these rules:
+
+        1. More specific entries always win over less specific ones.
+        2. For entries with the same specificity, the one from the
+           lowest frame (last loaded) wins.
+
+        This is implemented using a mix of A*/depth-first search algorithm.
+
+        Parameters:
+        key (str): The configuration key to look up, expressed in
+                   dotted notation.
+        frame: The frame context from which to retrieve the key.
+
+        Returns:
+        The value associated with the specified key.
+
+        Raises:
+        KeyError: If the key is not found in the configuration.
+        ValueError: If the key does not point to a terminal node.
+        """
 
         (key_part, *right) = key.split(".")
         # queue structure:
@@ -104,6 +133,7 @@ class ConfigStack:
         raise KeyError(f"config key '{key}' not found")
 
     def _contains(self, key):
+        """Check if the configuration contains the specified key."""
         try:
             self._get(key, 0)
             return True
@@ -111,6 +141,7 @@ class ConfigStack:
             return False
 
     def _merge(self, key, newtree, frame=0):
+        """Merge new configuration data into the specified key of the frame."""
         # Auto-allocate frames
         if len(self._frames) <= frame:
             self._frames += [{} for _ in range(frame - len(self._frames) + 1)]
@@ -131,6 +162,7 @@ class ConfigStack:
         self._cache = {}
 
     def _set(self, key, value):
+        """Set the value for a given configuration key."""
         if not isinstance(value, (str, int, float, bool, list)) and value is not None:
             if isinstance(value, dict):
                 raise ValueError("It is not possible to set a configuration entry to a dictionary, use merge instead")
@@ -138,6 +170,7 @@ class ConfigStack:
         self._merge(key, value)
 
     def _multicd(self, key):
+        """Change directory to a key, considering all matching frames."""
         # queue structure:
         #   specificity, frame_ix, tree
         queue = [("", ix, f) for ix, f in enumerate(self._frames)]
@@ -161,6 +194,7 @@ class ConfigStack:
         return [t for _, _, t in sorted(queue, reverse=True)]
 
     def _to_tree(self, key, defaults=None):
+        """Convert a key's configuration to a tree structure."""
         m = self._multicd(key)
         tree = {}
         if defaults is not None:
@@ -170,6 +204,7 @@ class ConfigStack:
         return tree
 
     def _keys(self, key):
+        """Retrieve the keys in a specified configuration key."""
         m = self._multicd(key)
         seen = set()
         inner_is_dict = True
@@ -188,20 +223,27 @@ class ConfigStack:
         raise ValueError(f"Config key '{key}' blocked by a non dictionary object")
 
     def _squash_frames(self):
+        """Merge all frames into one."""
         tree = self._frames.pop()
         while self._frames:
             tree = _merge_any(tree, self._frames.pop())
         self._frames.append(tree)
 
+
 class _Ptr(collections.abc.MutableMapping):
+    """Pointer to a specific path in the configuration stack."""
+
     def __init__(self, stack, path):
+        """Initialize a pointer to the given path in the specified stack."""
         self._path = path
         self._stack = stack
 
     def cd(self, key):
+        """Change directory to the specified key in the pointer's path."""
         return self._stack._cd(self._mkkey(key)) if key else self
 
     def _mkkey(self, key):
+        """Create a full key from the current path and the new key."""
         if key == "":
             return self._path
         if self._path == "":
@@ -209,34 +251,44 @@ class _Ptr(collections.abc.MutableMapping):
         return f"{self._path}.{key}"
 
     def __getitem__(self, key):
+        """Retrieve the value of the specified key."""
         return self._stack._get(self._mkkey(key))
 
     def __contains__(self, key):
+        """Check if the pointer contains the specified key."""
         return self._stack._contains(self._mkkey(key))
 
     def __setitem__(self, key, value):
+        """Set the value for the specified key in the pointer."""
         return self._stack._set(self._mkkey(key), value)
 
     def __delitem__(self, key):
+        """Delete the specified key from the configuration."""
         self._stack._del(key)
 
     def __len__(self):
+        """Return the number of keys in the pointer's path."""
         return len(self.__keys__())
 
     def to_tree(self, key="", defaults=None):
+        """Convert the configuration in the pointer to a tree structure."""
         return self._stack._to_tree(self._mkkey(key), defaults)
 
     def to_flat_dict(self, key="", defaults=None):
+        """Retrieve the configuration as a flattened dictionary."""
         t = self._stack._to_tree(self._mkkey(key), defaults)
         return _flatten_tree(t)
 
     def to_json(self, key="", defaults=None):
+        """Convert the configuration to a JSON string."""
         return json.dumps(self.to_tree(key, defaults))
 
     def merge(self, tree, key="", frame=0):
+        """Merge new configuration data into the specified key."""
         return self._stack._merge(self._mkkey(key), tree, frame)
 
     def merge_file(self, fn, key="", frame=0):
+        """Merge configuration data from a file into the specified key."""
         logging.debug(f"Reading configuration file {fn}")
         with open(fn, "r+", encoding="utf8") as f:
             if re.search(r'\.ya?ml', str(fn), re.IGNORECASE):
@@ -250,19 +302,24 @@ class _Ptr(collections.abc.MutableMapping):
         self.merge(tree, key, frame=frame)
 
     def squash_frames(self):
+        """Merge all frames in the stack."""
         self._stack._squash_frames()
 
     def __iter__(self):
+        """Iterate over the keys in the current pointer's path."""
         for k in self._stack._keys(self._mkkey("")):
             yield k
 
     def __keys__(self):
+        """Retrieve the keys of the current pointer's path."""
         return self._stack._keys(self._mkkey(""))
 
     def __str__(self):
+        """Return a string representation of the configuration at the pointer's path."""
         return str(self._stack._to_tree(""))
 
     def copydefaults(self, src, *keys, **keys_with_default):
+        """Copy default configuration values from the source."""
         for key in keys:
             if key not in self:
                 if key in src:
@@ -274,11 +331,13 @@ class _Ptr(collections.abc.MutableMapping):
                 self[key] = src.get(key, default)
 
     def setdefault_lazy(self, key, cb):
+        """Set a default value for a key lazily using a callback."""
         if key not in self:
             self[key] = cb()
         return self[key]
 
     def getany(self, *keys, default=None):
+        """Retrieve the first available value from the specified keys."""
         for key in keys:
             try:
                 return self[key]
@@ -288,3 +347,7 @@ class _Ptr(collections.abc.MutableMapping):
 
 cfg_stack = ConfigStack()
 cfg = cfg_stack.root()
+"""Singleton instance of the configuration object provided by PLPipes.
+This object allows access to the configuration settings managed by
+plpipes and this module (plpipes.config). It provides a dictionary-like
+interface to retrieve and manipulate configuration values."""
