@@ -37,37 +37,68 @@ class _TempEnv:
                 os.environ[k] = v
 
 
-class MyAzureCliCredential(AzureCliCredential):
+class _CredentialWrapper():
 
     def __init__(self, *args, az_config_dir=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._az_config_dir = az_config_dir
+        self.__credential = None
+        self.__az_config_dir = az_config_dir
+        self.__ctor_args = args
+        self.__ctor_kwargs = kwargs
 
-    def get_token(self, *args, **kwargs):
-        with _TempEnv(AZURE_CONFIG_DIR=self._az_config_dir):
-            logging.debug(f"Running az command with env {os.environ}")
-            return super().get_token(*args, **kwargs)
+    def __cred(self, renew=False):
+        if self.__credential is None or renew:
+            self.__credential = AzureCliCredential(*self.__args, **self.__kwargs)
+        return self.__credential
+
+    def __az_login(self):
+        with _TempEnv(AZURE_CONFIG_DIR=str(self.__az_config_dir)):
+            if sys.platform.startswith("win"):
+                cmd = ['cmd', '/c', az_login]
+            else:
+                cmd = ['/bin/sh', '-c', az_login]
+            logging.debug(f"running {cmd} with env {os.environ}")
+            subprocess.run(cmd, check=True)
+        return self.__cred(renew=True)
+        
+    def __getattr__(self, name):
+        try:
+            cred = self.__cred()
+            may_retry = True
+        except:
+            cred = self.__az_login()
+            may_retry = False
+
+        attr = getattr(cred, name)
+        if not callable(attr):
+            return attr
+
+        def method_wrapper(*args, **kwargs):
+            with _TempEnv(AZURE_CONFIG_DIR=str(self.__az_config_dir)):
+                try:
+                    if may_retry:
+                        try:
+                            return attr(*args, **kwargs)
+                        except:
+                            if self.__az_config_dir is None or __az_config_dir.isdir():
+                                logging.exception(f"Authentication failed when calling '{name}', running 'az login' in order to refresh credentials")                
+
+                        cred = self.__az_login()
+                        attr = getattr(cred)
+                    return attr(*args, **kwargs)
+
+                except:
+                    if path:
+                        msg = f"Authentication with Azure CLI failed when calling '{name}', you may need to remove cached private az credentials at {path}"
+                    else:
+                        msg = "Authentication with Azure CLI failed"
+                        logging.exception(msg)
+                    raise
+
+        return method_wrapper
 
 @plugin
 class AzureCliAuthenticator(AuthenticatorBase):
-
     def _authenticate(self):
-        if self._cfg.get("private", True):
-            path = self._private_path("az-config", create=False)
-            with _TempEnv(AZURE_CONFIG_DIR=str(path)):
-                if not path.exists():
-                    path.mkdir(parents=True)
-                    az_login = "az login"
-                    if sys.platform.startswith("win"):
-                        cmd = ['cmd', '/c', az_login]
-                    else:
-                        cmd = ['/bin/sh', '-c', az_login]
-                    logging.debug(f"running {cmd} with env {os.environ}")
-                    subprocess.run(cmd, check=True)
-
-                try:
-                    return MyAzureCliCredential(az_config_dir=str(path))
-                except Exception as ex:
-                    raise AuthenticationError(f"Authentication failed, you may need to remove cached az credentials at {path}") from ex
-        else:
-            return AzureCliCredential()
+        private = self._cfg.get("private", True)
+        path = self._private_path("az-config", create=False) if private else None
+        return _CredentialWrapper(az_config_dir=path)
