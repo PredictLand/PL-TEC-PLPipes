@@ -15,16 +15,15 @@ class SQLAlchemyDriver(Driver):
     @classmethod
     def _init_plugin(klass, key):
         super()._init_plugin(key)
-        print(f"create_table: {klass._create_table}, {dir(klass._create_table)}")
         klass._create_table.td.register(sas.elements.ClauseElement, '_create_table_from_clause')
-    
+
     def __init__(self, name, drv_cfg, url, **kwargs):
         super().__init__(name, drv_cfg)
         self._url = url
 
         logging.debug(f"calling sqlalchemy.create_engine(url={url}, kwargs={kwargs})")
         self._engine = sqlalchemy.create_engine(url, **kwargs)
-            
+
     @contextmanager
     def begin(self):
         with self._engine.connect() as conn:
@@ -37,7 +36,7 @@ class SQLAlchemyDriver(Driver):
     def _execute_script(self, txn, sql):
         logging.debug(f"database execute_script code: {repr(sql)}")
         txn._conn.executescript(sql)
-                
+
     def _read_table(self, txn, table_name, backend, kws):
         try:
             column_names = kws.pop("columns")
