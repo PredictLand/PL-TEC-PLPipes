@@ -1,7 +1,15 @@
 from plpipes.config import cfg
 from pathlib import Path
 
-def path(relpath=None, section=None):
+def path(*args, mkparentdir=False, mkdir=False, **kwargs):
+    p = _path(*args, **kwargs)
+    if mkdir:
+        p.mkdir(exist_ok=True, parents=True)
+    elif mkparentdir:
+        p.parent.mkdir(exist_ok=True, parents=True)
+    return p
+
+def _path(relpath=None, section=None):
     if section is None:
         section = "work"
     start = Path(cfg["fs." + section])
@@ -38,3 +46,10 @@ def read_json(relpath, section=None):
     import json
     with openfile(relpath, section=section) as f:
         return json.load(f)
+
+def tempdir(parent=None):
+    if parent is None:
+        parent = fs.path("tmp")
+    import tempfile
+
+    return tempfile.TemporaryDirectory(dir=parent)
