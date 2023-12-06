@@ -7,11 +7,11 @@ from plpipes.database.sqlext import AsSubquery, Wrap
 class DictBackend(Backend):
     def query(self, txn, sql, parameters, kws):
         result = txn._conn.execute(Wrap(sql), parameters=parameters, **kws)
-        return [row._mapping for row in result.all()]
+        return [{**row._mapping} for row in result.all()]
 
     def query_first(self, txn, sql, parameters, kws):
         for row in txn._conn.execute(Wrap(sql), parameters=parameters, **kws):
-            return row._mapping
+            return {**row._mapping}
 
     def register_handlers(self, handlers):
         # TODO
