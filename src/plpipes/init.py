@@ -31,6 +31,13 @@ def init(*configs, config_files=[]):
     default_stem = str(prog.stem)
     default_log_level = "INFO"
 
+    # set timestamp
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s::%(message)s',
+        )
+    
+    # set logging level
+
     logging.getLogger().setLevel(cfg["logging.level"].upper())
 
     for fn in config_files:
