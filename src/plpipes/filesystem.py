@@ -53,3 +53,7 @@ def tempdir(parent=None):
     import tempfile
 
     return tempfile.TemporaryDirectory(dir=parent)
+
+def read_excel(relpath, section=None, **kwargs):
+    import pandas as pd
+    return pd.read_excel(path(relpath, section), **kwargs)
