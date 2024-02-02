@@ -48,7 +48,6 @@ def init(*configs, config_files=[]):
                 cfg.merge_file(path, frame=2)
             else:
                 list_configuration_files_not_found.append(path)
-                # logging.debug(f"Configuration file {path} not found")
 
     for dir_key in (False, True):
         for stem_key in (False, True):
@@ -73,7 +72,6 @@ def init(*configs, config_files=[]):
                             cfg.merge_file(path, frame=2)
                         else:
                             list_configuration_files_not_found.append(path)
-                            # logging.debug(f"Configuration file {path} not found")
 
     # set the root log level as DEBUG (it's convenient)
     logging.getLogger().setLevel("DEBUG")
