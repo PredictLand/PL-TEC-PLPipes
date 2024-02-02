@@ -126,8 +126,6 @@ def _log_setup():
         except:
             logging.warn(f"Unable to create link for {last}", exc_info=True)
 
-        logger = logging.getLogger()
-
         fh = logging.FileHandler(str(dir / name))
         fh.setLevel(cfg["logging.level_file"].upper())
         fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s::%(message)s'))
