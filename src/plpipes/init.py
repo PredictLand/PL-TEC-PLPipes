@@ -10,9 +10,13 @@ import dateparser
 _config0 = {'db': {'instance': {'work': {},
                                 'input': {},
                                 'output': {}}},
-            'env': os.environ.get("PLPIPES_ENV", "dev"),
+            'env': os.environ.get("PLPIPES_ENV",
+                                  "dev"),
             'run': {'as_of_date': 'now'},
-            'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL", "info")}}
+            'logging': {'level': os.environ.get("PLPIPES_LOGLEVEL",
+                                                "INFO"),
+                        'level_file': os.environ.get("PLPIPES_LOGLEVEL_FILE",
+                                                     "INFO")}}
 
 def init(*configs, config_files=[]):
     from pathlib import Path
@@ -29,20 +33,12 @@ def init(*configs, config_files=[]):
 
     prog = Path(sys.argv[0])
     default_stem = str(prog.stem)
-    default_log_level = "INFO"
-
-    # set timestamp
-    logging.basicConfig(
-        format='%(asctime)s %(levelname)s::%(message)s',
-        )
     
-    # set logging level
-
-    logging.getLogger().setLevel(cfg["logging.level"].upper())
-
+    # update cfg to get the log levels (normal and file)
     for fn in config_files:
         cfg.merge_file(fn, frame=1)
-        logging.getLogger().setLevel(cfg["logging.level"].upper())
+
+    list_configuration_files_not_found = []
 
     global_cfg_dir = Path.home() / ".config/plpipes"
     for suffix in ("", "-secrets"):
@@ -50,9 +46,8 @@ def init(*configs, config_files=[]):
             path = global_cfg_dir / f"plpipes{suffix}.{ext}"
             if path.exists():
                 cfg.merge_file(path, frame=2)
-                logging.getLogger().setLevel(cfg["logging.level"].upper())
             else:
-                logging.debug(f"Configuration file {path} not found")
+                list_configuration_files_not_found.append(path)
 
     for dir_key in (False, True):
         for stem_key in (False, True):
@@ -75,9 +70,13 @@ def init(*configs, config_files=[]):
                         path      = dir / f"{stem_part}{secrets_part}{env_part}.{ext}"
                         if path.exists():
                             cfg.merge_file(path, frame=2)
-                            logging.getLogger().setLevel(cfg["logging.level"].upper())
                         else:
-                            logging.debug(f"Configuration file {path} not found")
+                            list_configuration_files_not_found.append(path)
+
+    # set the root log level as NOTSET, which is the deepest level; it's like
+    # this because all the other handlers, even if they have ther own levels,
+    # will not log anything if the root level is higher than their level
+    logging.getLogger().setLevel("NOTSET")
 
     cfg.squash_frames()
 
@@ -93,14 +92,27 @@ def init(*configs, config_files=[]):
     as_of_date = as_of_date.astimezone(datetime.timezone.utc)
     cfg['run.as_of_date_normalized'] = as_of_date.strftime("%Y%m%dT%H%M%SZ0")
 
-    _filelog_setup()
+    _log_setup()
+
+    logging.debug(f"List of configuration files not found: {list_configuration_files_not_found}")
 
     logging.debug(f"Configuration: {repr(cfg.to_tree())}")
 
     return True
 
 
-def _filelog_setup():
+def _log_setup():
+    """This function sets up the logging system. It is called by init().
+    Args:
+        None.
+    Returns:
+        None
+    """
+    
+    # get the logger
+    logger = logging.getLogger()
+
+    # if logging.log_to_file is True, then we set up a file handler
     if cfg.get("logging.log_to_file", True):
         dir = cfg.get("logging.log_dir", "logs")
         dir = pathlib.Path(cfg["fs.root"]) / dir
@@ -116,14 +128,20 @@ def _filelog_setup():
         except:
             logging.warn(f"Unable to create link for {last}", exc_info=True)
 
-        logger = logging.getLogger()
-
         fh = logging.FileHandler(str(dir / name))
-        fh.setLevel(logger.getEffectiveLevel())
-        try:
-            formatter = logger.handlers[0].formatter
-            fh.setFormatter(formatter)
-        except:
-            logging.warn("Can't set format for file logger", exc_info=True)
+        fh.setLevel(cfg["logging.level_file"].upper())
+        fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s::%(message)s'))
 
-        logger.addHandler(fh)
+    # we set up a console handler
+    ch = logging.StreamHandler()
+    ch.setLevel(cfg["logging.level"].upper())
+    ch.setFormatter(logging.Formatter('%(asctime)s %(levelname)s::%(message)s'))
+
+    # we force the handlers as ch and fh
+    if cfg.get("logging.log_to_file", True):
+        logger.handlers = [ch, fh]
+    else:
+        logger.handlers = [ch]
+    
+    # we do not allow propagations to other handlers
+    logger.propagate = False
