@@ -73,8 +73,10 @@ def init(*configs, config_files=[]):
                         else:
                             list_configuration_files_not_found.append(path)
 
-    # set the root log level as DEBUG (it's convenient)
-    logging.getLogger().setLevel("DEBUG")
+    # set the root log level as NOTSET, which is the deepest level; it's like
+    # this because all the other handlers, even if they have ther own levels,
+    # will not log anything if the root level is higher than their level
+    logging.getLogger().setLevel("NOTSET")
 
     cfg.squash_frames()
 
