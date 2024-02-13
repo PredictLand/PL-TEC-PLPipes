@@ -33,7 +33,7 @@ def init(*configs, config_files=[]):
 
     prog = Path(sys.argv[0])
     default_stem = str(prog.stem)
-    
+
     # update cfg to get the log levels (normal and file)
     for fn in config_files:
         cfg.merge_file(fn, frame=1)
@@ -108,7 +108,7 @@ def _log_setup():
     Returns:
         None
     """
-    
+
     # get the logger
     logger = logging.getLogger()
 
@@ -126,7 +126,9 @@ def _log_setup():
                 last.unlink()
             (dir / "last-log.txt").symlink_to(name)
         except:
-            logging.warn(f"Unable to create link for {last}", exc_info=True)
+            import platform
+            if platform.system() != 'Windows':
+                logging.warn(f"Unable to create link for {last}", exc_info=True)
 
         fh = logging.FileHandler(str(dir / name))
         fh.setLevel(cfg["logging.level_file"].upper())
@@ -142,6 +144,6 @@ def _log_setup():
         logger.handlers = [ch, fh]
     else:
         logger.handlers = [ch]
-    
+
     # we do not allow propagations to other handlers
     logger.propagate = False
