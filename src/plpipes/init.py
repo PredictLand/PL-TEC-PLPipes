@@ -111,6 +111,7 @@ def _log_setup():
 
     # get the logger
     logger = logging.getLogger()
+    formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s:%(message)s")
 
     # if logging.log_to_file is True, then we set up a file handler
     if cfg.get("logging.log_to_file", True):
@@ -132,12 +133,22 @@ def _log_setup():
 
         fh = logging.FileHandler(str(dir / name))
         fh.setLevel(cfg["logging.level_file"].upper())
-        fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s::%(message)s'))
+        fh.setFormatter(formatter)
 
     # we set up a console handler
     ch = logging.StreamHandler()
     ch.setLevel(cfg["logging.level"].upper())
-    ch.setFormatter(logging.Formatter('%(asctime)s %(levelname)s::%(message)s'))
+
+    if ch.stream.isatty():
+        import colorlog
+        ch.setFormatter(colorlog.ColoredFormatter("%(log_color)s%(asctime)s:%(levelname)s:%(name)s:%(reset)s%(white)s%(message)s",
+                                                  log_colors={'DEBUG': 'cyan',
+                                                              'INFO': 'green',
+                                                              'WARNING': 'yellow',
+                                                              'ERROR': 'red',
+                                                              'CRITICAL': 'red,bg_white'}))
+    else:
+        ch.setFormatter(formatter)
 
     # we force the handlers as ch and fh
     if cfg.get("logging.log_to_file", True):
