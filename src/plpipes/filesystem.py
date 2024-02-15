@@ -57,3 +57,17 @@ def tempdir(parent=None):
 def read_excel(relpath, section=None, **kwargs):
     import pandas as pd
     return pd.read_excel(path(relpath, section), **kwargs)
+
+def write_excel(relpath, df, section=None, mkparentdir=True, autofilter=False, **kwargs):
+    target = path(relpath, section=section, mkparentdir=mkparentdir)
+    df.to_excel(target, index=False, **kwargs)
+
+    if autofilter:
+        import openpyxl
+        wb = openpyxl.load_workbook(target)
+        ws = wb.active
+        ws.auto_filter.ref = ws.dimensions
+        wb.save(target)
+
+
+    return target
