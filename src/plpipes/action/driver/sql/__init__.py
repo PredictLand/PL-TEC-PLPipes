@@ -24,13 +24,17 @@ class _SqlTemplated(Action):
 
         raise ValueError(f"Unsupported SQL template engine {engine}")
 
+    def _short_name_to_table(self):
+        name = self.short_name()
+        return name.replace("-", "_")
+
 class _SqlTableCreator(_SqlTemplated):
     def _source_fn(self):
         return self._cfg["files.table_sql"]
 
     def _run_sql(self, sql_code):
         from plpipes.database import create_table
-        create_table(self.short_name(), sql_code)
+        create_table(self._short_name_to_table(), sql_code)
 
 class _SqlViewCreator(_SqlTemplated):
     def _source_fn(self):
@@ -38,7 +42,7 @@ class _SqlViewCreator(_SqlTemplated):
 
     def _run_sql(self, sql_code):
         from plpipes.database import create_view
-        create_view(self.short_name(), sql_code)
+        create_view(self._short_name_to_table(), sql_code)
 
 class _SqlRunner(_SqlTemplated):
     def _source_fn(self):
