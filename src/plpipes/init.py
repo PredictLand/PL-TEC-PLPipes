@@ -85,7 +85,8 @@ def init(*configs, config_files=[]):
     # calculate configuration for file system paths and set it
     root_dir = Path(cfg.setdefault('fs.root', prog.parent.parent.absolute()))
     for e in ('bin', 'lib', 'config', 'default',
-              'input', 'output', 'work', 'actions'):
+              'input', 'output', 'work', 'actions',
+              'resources'):
         cfg.setdefault("fs." + e, root_dir / e)
 
     as_of_date = dateparser.parse(cfg['run.as_of_date'])
