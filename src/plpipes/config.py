@@ -18,6 +18,19 @@ def _merge_any(tree, new):
         return new
     return str(new)
 
+def _flatten_tree(tree):
+    flat = {}
+    def rec(subtree, path):
+        for k, v in subtree.items():
+            path = path + [k]
+            if isinstance(v, dict):
+                rec(v, path)
+            else:
+                flat[".".join(path)] = v
+    rec(tree, [])
+    return flat
+
+
 class ConfigStack:
     def __init__(self):
         self._frames = []
@@ -212,6 +225,10 @@ class _Ptr(collections.abc.MutableMapping):
 
     def to_tree(self, key="", defaults=None):
         return self._stack._to_tree(self._mkkey(key), defaults)
+
+    def to_flat_dict(self, key="", defaults=None):
+        t = self._stack._to_tree(self._mkkey(key), defaults)
+        return _flatten_tree(t)
 
     def to_json(self, key="", defaults=None):
         return json.dumps(self.to_tree(key, defaults))
