@@ -1,6 +1,5 @@
 import logging
 from contextlib import contextmanager
-from plpipes.database.driver.transaction import Transaction
 from plpipes.util.typedict import dispatcher
 from plpipes.util.method_decorators import optional_abstract
 import plpipes.plugin
