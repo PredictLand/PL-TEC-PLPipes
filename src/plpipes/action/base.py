@@ -1,5 +1,6 @@
 import logging
 import time
+import re
 
 class Action:
     def __init__(self, name, action_cfg):
@@ -10,7 +11,7 @@ class Action:
         return self._name
 
     def short_name(self):
-        return self._name.split(".")[-1]
+        return re.split(r'[./\\]', self._name)[-1]
 
     def _do_it(self, indent):
         self.do_it()
