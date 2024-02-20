@@ -13,7 +13,10 @@ class TupleBackend(Backend):
             return row
 
     def query_first_value(self, txn, sql, parameters, kws):
-        return self.query_first(txn, sql, parameters, kws)[0]
+        row = self.query_first(txn, sql, parameters, kws)
+        if row is None:
+            return None
+        return row[0]
 
     def register_handlers(self, handlers):
         # TODO
