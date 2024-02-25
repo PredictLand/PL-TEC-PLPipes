@@ -8,20 +8,39 @@ class TypeDict:
     def __init__(self, seed):
         self.seed = {**seed}
         self.cache = {}
+        self.lazy_register_cb = None
 
     def __getitem__(self, obj):
         try:
             return self.cache[type(obj)]
         except KeyError:
             # Traverse seed dictionary from the most specific class to the lest.
-            classes = sorted(self.seed, key=functools.cmp_to_key(_class_cmp), reverse=True)
-            logging.debug(f"sorted classes: {classes}")
-            for klass in classes:
-                if isinstance(obj, klass):
-                    v = self.seed[klass]
-                    self.cache[type(obj)] = v
-                    return v
+            for lazy_register in (False, True):
+                if lazy_register:
+                    logging.info(f"lazy register for {type(obj)}")
+                    if not self.__lazy_register(obj):
+                        continue
+
+                classes = sorted(self.seed, key=functools.cmp_to_key(_class_cmp), reverse=True)
+                logging.debug(f"sorted classes: {classes}")
+                for klass in classes:
+                    if isinstance(obj, klass):
+                        v = self.seed[klass]
+                        self.cache[type(obj)] = v
+                        return v
+
         raise KeyError(f"Unable to find value for type {type(obj)} or any of its parent classes")
+
+    def __lazy_register(self, obj):
+        if self.lazy_register_cb is not None:
+            try:
+                t = type(obj)
+                m = getattr(t, "__module__", "")
+                n = getattr(t, "__name__", "")
+                return self.lazy_register_cb(self, f"{m}.{n}")
+            except Exception as e:
+                logging.warn("lazy load failed with exception", exc_info=e)
+        return False
 
     def register(self, type, method):
         self.seed[type] = method
