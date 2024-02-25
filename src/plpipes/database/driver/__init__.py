@@ -35,6 +35,8 @@ class Driver(plpipes.plugin.Plugin):
         self._cfg = drv_cfg
         self._last_key = 0
         self._default_backend = self._backend_lookup(self._cfg.get("backend", self._default_backend_name))
+        for backend_name in self._cfg.get('extra_backends', []):
+            self._backend_lookup(backend_name)
 
     def _backend(self, name):
         if name is None:
