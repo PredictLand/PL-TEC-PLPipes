@@ -22,11 +22,11 @@ def _flatten_tree(tree):
     flat = {}
     def rec(subtree, path):
         for k, v in subtree.items():
-            path = path + [k]
+            child_path = path + [k]
             if isinstance(v, dict):
-                rec(v, path)
+                rec(v, child_path)
             else:
-                flat[".".join(path)] = v
+                flat[".".join(child_path)] = v
     rec(tree, [])
     return flat
 
@@ -272,6 +272,11 @@ class _Ptr(collections.abc.MutableMapping):
         for key, default in keys_with_default.items():
             if key not in self:
                 self[key] = src.get(key, default)
+
+    def setdefault_lazy(self, key, cb):
+        if key not in self:
+            self[key] = cb()
+        return self[key]
 
 cfg_stack = ConfigStack()
 cfg = cfg_stack.root()
