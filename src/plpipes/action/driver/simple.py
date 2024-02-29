@@ -8,6 +8,9 @@ from plpipes.action.runner import lookup
 import plpipes.database
 import plpipes
 
+def _action_namespace_setup(action_cfg=None):
+    return {"cfg": cfg, "action_cfg": action_cfg, "db": plpipes.database, "plpipes": plpipes}
+
 class _PythonRunner(Action):
     def _do_it(self, indent):
         if not hasattr(self, "_code"):
@@ -21,7 +24,7 @@ class _PythonRunner(Action):
                 raise ex
         try:
             logging.debug(f"Running python code at {self._path}")
-            exec(self._code, {"cfg": cfg, "action_cfg": self._cfg, "db": plpipes.database, "plpipes": plpipes})
+            exec(self._code, _action_namespace_setup(action_cfg=self._cfg))
             del self._code
         except Exception as ex:
             logging.error(f"Action of type python_script failed while executing {self._path}")

@@ -7,6 +7,8 @@ import pathlib
 import datetime
 import dateparser
 
+_initialized = False
+
 _config0 = {'db': {'instance': {'work': {},
                                 'input': {},
                                 'output': {}}},
@@ -20,6 +22,10 @@ _config0 = {'db': {'instance': {'work': {},
 
 def init(*configs, config_files=[]):
     from pathlib import Path
+
+    global _initialized
+    if _initialized:
+        logging.warning("Reinitialicing PLPipes")
 
     # frame 0: command line arguments
     # frame 1: custom configuration files
@@ -98,6 +104,8 @@ def init(*configs, config_files=[]):
     logging.debug(f"List of configuration files not found: {list_configuration_files_not_found}")
 
     logging.debug(f"Configuration: {repr(cfg.to_tree())}")
+
+    _initialized = True
 
     return True
 
