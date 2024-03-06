@@ -12,24 +12,39 @@ class _CreateSomethingAs(Executable, ClauseElement):
         self._table_or_view = table_or_view
 
 class CreateTableAs(_CreateSomethingAs):
-    inherit_cache = False
+    inherit_cache = True
 
     def __init__(self, *args, **kwargs):
         super().__init__("TABLE", *args, **kwargs)
 
 class CreateViewAs(_CreateSomethingAs):
-    inherit_cache = False
+    inherit_cache = True
 
     def __init__(self, *args, **kwargs):
         super().__init__("VIEW", *args, **kwargs)
 
 @compiles(_CreateSomethingAs)
 def _create_something_as(element, compiler, **kw):
-    select = compiler.process(element._select)
+    table_name = compiler.preparer.quote_identifier(element._table_name)
+    select = compiler.process(element._select, **kw)
     if element._if_not_exists:
-        sql = f"CREATE {element._table_or_view} IF NOT EXISTS {element._table_name} AS {select}"
+        sql = f"CREATE {element._table_or_view} IF NOT EXISTS {table_name} AS {select}"
     else:
-        sql = f"CREATE {element._table_or_view} {element._table_name} AS {select}"
+        sql = f"CREATE {element._table_or_view} {table_name} AS {select}"
+    logging.debug(f"SQL code: {sql}")
+    return sql
+
+class InsertIntoTableFromQuery(Executable, ClauseElement):
+    inherit_cache = True
+    def __init__(self, table_name, select):
+        self._table_name = table_name
+        self._select = select
+
+@compiles(InsertIntoTableFromQuery)
+def _insert_into_table_from_query(element, compiler, **kw):
+    table_name = compiler.preparer.quote_identifier(element._table_name)
+    select = compiler.process(element._select, **kw)
+    sql = f"INSERT INTO {table_name} {select}"
     logging.debug(f"SQL code: {sql}")
     return sql
 
