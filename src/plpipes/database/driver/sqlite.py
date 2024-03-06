@@ -1,6 +1,10 @@
 from plpipes.database.driver.filedb import FileDBDriver
 
 from plpipes.database.driver.transaction import Transaction
+from plpipes.database.sqlext import Wrap
+
+import sqlalchemy as sa
+import sqlalchemy.sql as sas
 
 class _SQLiteMapAsPandas:
     def __init__(self):
@@ -106,3 +110,5 @@ group by {', '.join(by)}
             finally:
                 conn.connection.create_aggregate(agg_name, len(args), None)
 
+    def _list_tables_query(self):
+        return sas.select(sas.column("name")).select_from(sas.table("sqlite_master"))

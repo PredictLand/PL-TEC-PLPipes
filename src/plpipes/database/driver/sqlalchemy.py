@@ -1,12 +1,12 @@
 import logging
 from plpipes.database.driver import Driver
 from plpipes.database.driver.transaction import Transaction
-import sqlalchemy
+import sqlalchemy as sa
 import sqlalchemy.sql as sas
 from contextlib import contextmanager
+from plpipes.util.method_decorators import optional_abstract
 
-from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, Wrap
-
+from plpipes.database.sqlext import CreateTableAs, CreateViewAs, DropTable, DropView, Wrap, InsertIntoTableFromQuery
 
 class SQLAlchemyDriver(Driver):
 
@@ -22,7 +22,7 @@ class SQLAlchemyDriver(Driver):
         self._url = url
 
         logging.debug(f"calling sqlalchemy.create_engine(url={url}, kwargs={kwargs})")
-        self._engine = sqlalchemy.create_engine(url, **kwargs)
+        self._engine = sa.create_engine(url, **kwargs)
 
     @contextmanager
     def begin(self):
@@ -49,10 +49,28 @@ class SQLAlchemyDriver(Driver):
     def _drop_table(self, txn, table_name, only_if_exists):
         txn._conn.execute(DropTable(table_name, if_exists=only_if_exists))
 
+    @optional_abstract
+    def _list_tables_query(self):
+        ...
+
+    def _table_exists_p(self, txn, table_name):
+        sq = self._list_tables_query().subquery()
+        q = sa.select(sas.literal(1)).where(sq.c.name == table_name)
+        # print(f"query: {q}")
+        df = txn._conn.execute(q)
+        return df.scalar() is not None
+
     def _create_table_from_str(self, txn, table_name, sql, parameters, if_exists, kws):
         return self._create_table_from_clause(txn, table_name, Wrap(sql), parameters, if_exists, kws)
 
     def _create_table_from_clause(self, txn, table_name, clause, parameters, if_exists, kws):
+        if if_exists == "append":
+            if txn.table_exists_p(table_name):
+                txn._conn.execute(InsertIntoTableFromQuery(table_name, clause),
+                                  parameters)
+                return
+            # else fall through...
+
         if_not_exists = False
         if if_exists == "replace":
             self._drop_table(txn, table_name, True)

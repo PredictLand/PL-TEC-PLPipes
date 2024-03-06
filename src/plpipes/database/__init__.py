@@ -56,6 +56,14 @@ def execute_script(sql_script, db=None):
     with begin(db) as txn:
         return txn.execute_script(sql_script)
 
+def list_tables(db=None):
+    with begin(db) as txn:
+        return txn.list_tables()
+
+def drop_table(table_name, db=None, only_if_exists=False):
+    with begin(db) as txn:
+        return txn.drop_table(table_name, only_if_exists)
+
 def query_chunked(sql, parameters=None, db=None, backend=None, **kws):
     with begin(db) as txn:
         for df in txn.query_chunked(sql, parameters, backend, **kws):

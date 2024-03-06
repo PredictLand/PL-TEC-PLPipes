@@ -57,6 +57,10 @@ class Driver(plpipes.plugin.Plugin):
     def _execute_script(self, txn, sql):
         ...
 
+    @optional_abstract
+    def _list_tables(self, txn):
+        ...
+
     def _next_key(self):
         self._last_key += 1
         return self._last_key
