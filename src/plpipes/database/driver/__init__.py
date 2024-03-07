@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from plpipes.util.typedict import dispatcher
 from plpipes.util.method_decorators import optional_abstract
 import plpipes.plugin
-
+import types
 
 _backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.database.backend.plugin")
 
@@ -86,7 +86,8 @@ class Driver(plpipes.plugin.Plugin):
         ...
 
     @dispatcher({str: '_create_table_from_str',
-                 list: '_create_table_from_records'},
+                 list: '_create_table_from_records',
+                 types.GeneratorType: '_create_table_from_iterator',},
                 ix=2)
     def _create_table(self, txn, table_name, sql_or_df, parameters, if_exists, kws):
         ...
@@ -102,6 +103,11 @@ class Driver(plpipes.plugin.Plugin):
     def _create_table_from_records(self, txn, table_name, records, parameters, if_exists, kws):
         backend = self._backend(kws.pop("backend", None))
         backend.create_table_from_records(txn, table_name, records, parameters, if_exists, kws)
+
+    def _create_table_from_iterator(self, txn, table_name, iterator, parameters, if_exists, kws):
+        for chunk in iterator:
+            self._create_table(txn, table_name, chunk, parameters, if_exists, kws)
+            if_exists = 'append'
 
     @optional_abstract
     def _create_view(self, txn, view_name, sql, parameters, if_exists, kws):
