@@ -56,7 +56,7 @@ class _SqlTemplated(Action):
 
         if engine == "jinja2":
             from . import jinja2
-            return jinja2.render_template(self._source, {'cfg': cfg, 'acfg': self._cfg})
+            return jinja2.render_template(self._source, {'cfg': cfg, 'acfg': self._cfg, 'str': str})
 
         raise ValueError(f"Unsupported SQL template engine {engine}")
 
