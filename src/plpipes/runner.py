@@ -93,6 +93,7 @@ def parse_args_and_init(arg_parser, args=None):
         config_extra["env"] = opts.env
     if opts.debug:
         config_extra.append({"logging.level": "debug"})
+        config_extra.append({"logging.level_file": "debug"})
 
     plpipes.init.init(*config_extra, config_files=opts.config)
 
