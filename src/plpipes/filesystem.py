@@ -37,6 +37,19 @@ def write_text(relpath, text, section=None, mkdir=True):
     with open(target, "w") as f:
         return f.write(text)
 
+def read_text(relpath, section=None, encoding="utf-8"):
+    target = path(relpath, section)
+    with open(target, "r", encoding=encoding) as f:
+        return f.read()
+
+def write_yaml(relpath, data, section=None, mkdir=True, **kwargs):
+    import yaml
+    target = path(relpath, section)
+    if mkdir:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w") as f:
+        yaml.dump(data, f, **kwargs)
+
 def read_yaml(relpath, section=None):
     import yaml
     with openfile(relpath, section=section) as f:
