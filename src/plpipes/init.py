@@ -95,9 +95,7 @@ def init(*configs, config_files=[]):
               'resources'):
         cfg.setdefault("fs." + e, root_dir / e)
 
-    as_of_date = dateparser.parse(cfg['run.as_of_date'])
-    as_of_date = as_of_date.astimezone(datetime.timezone.utc)
-    cfg['run.as_of_date_normalized'] = as_of_date.strftime("%Y%m%dT%H%M%SZ0")
+    init_run_as_of_date()
 
     _log_setup()
 
@@ -109,6 +107,11 @@ def init(*configs, config_files=[]):
 
     return True
 
+def init_run_as_of_date():
+    date = cfg.setdefault('run.as_of_date', 'now')
+    as_of_date = dateparser.parse(date)
+    as_of_date = as_of_date.astimezone(datetime.timezone.utc)
+    cfg['run.as_of_date_normalized'] = as_of_date.strftime("%Y%m%dT%H%M%SZ0")
 
 def _log_setup():
     """This function sets up the logging system. It is called by init().

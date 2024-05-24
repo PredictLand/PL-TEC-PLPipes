@@ -4,7 +4,7 @@ from plpipes.config import cfg
 from plpipes.action.base import Action
 from plpipes.action.registry import register_class
 from plpipes.action.runner import lookup
-
+from plpipes.init import init_run_as_of_date
 import plpipes
 
 class _Iterator:
@@ -54,6 +54,22 @@ class _ConfigKeysIterator(_ListIterator):
         values = list(cfg.cd(icfg["path"]).keys())
         super().__init__(key, icfg, values)
 
+class RunAsOfDateIterator(_ListIterator):
+    def __init__(self, key, icfg):
+        values = cfg.get("dates")
+        icfg.setdefault("target", "run.as_of_date")
+        super().__init__(key, icfg, list(icfg["values"]))
+
+    def reset(self):
+        super().reset()
+        cfg['run.as_of_date'] = 'now'
+        init_run_as_of_date()
+
+    def next(self):
+        if super().next():
+            init_run_as_of_date()
+            return True
+        return False
 
 def _init_iterator(key, icfg):
     type = icfg.get("type", "value")
@@ -61,6 +77,8 @@ def _init_iterator(key, icfg):
         return _ValuesIterator(key, icfg)
     elif type == "configkeys":
         return _ConfigKeysIterator(key, icfg)
+    elif type == "runasofdate":
+        return RunAsOfDateIterator(key, icfg)
     else:
         raise NotImplementedError(f"Unsupported iterator type {type} found in loop")
 
