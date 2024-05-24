@@ -347,8 +347,15 @@ _transitory_http_codes = {
 class _FS:
     def __init__(self, account_name):
         self._account_name = account_name
-        self._token = _cred(account_name).get_token("https://graph.microsoft.com/.default").token
+        self._cred = _cred(account_name)
+        self._token = None
+        self._get_token() # init token!
         self._client = httpx.Client()
+
+    def _get_token(self):
+        if (self._token is None) or (self._token.expires_on - time.time() < 60):
+            self._token = self._cred.get_token("https://graph.microsoft.com/.default")
+        return self._token.token
 
     def root(self):
         return _RootNode(self, pathlib.Path("/"))
@@ -393,7 +400,7 @@ class _FS:
                   max_retries=None, stream=False,
                   accepted_codes=None,
                   follow_redirects=False, **kwargs):
-        headers = {**headers, "Authorization": f"Bearer {self._token}"}
+        headers = {**headers, "Authorization": f"Bearer {self._get_token()}"}
         if url.startswith("/"):
             url = f"{_GRAPH_URL}{url}"
         if data is not None:
