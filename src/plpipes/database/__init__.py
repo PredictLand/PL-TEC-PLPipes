@@ -60,6 +60,10 @@ def list_tables(db=None):
     with begin(db) as txn:
         return txn.list_tables()
 
+def list_views(db=None):
+    with begin(db) as txn:
+        return txn.list_views()
+
 def drop_table(table_name, db=None, only_if_exists=False):
     with begin(db) as txn:
         return txn.drop_table(table_name, only_if_exists)

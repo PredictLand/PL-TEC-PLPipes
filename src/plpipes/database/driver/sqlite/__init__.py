@@ -119,4 +119,7 @@ group by {', '.join(by)}
                 conn.connection.create_aggregate(agg_name, len(args), None)
 
     def _list_tables_query(self):
-        return sas.select(sas.column("name")).select_from(sas.table("sqlite_master"))
+        return sas.select(sas.column("name")).select_from(sas.table("sqlite_master")).where(sas.column("type") == "table")
+
+    def _list_views_query(self):
+        return sas.select(sas.column("name")).select_from(sas.table("sqlite_master")).where(sas.column("type") == "view")

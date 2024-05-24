@@ -53,6 +53,18 @@ class SQLAlchemyDriver(Driver):
     def _list_tables_query(self):
         ...
 
+    @optional_abstract
+    def _list_views_query(self):
+        ...
+
+    def _list_tables(self, txn):
+        df = txn.query(self._list_tables_query())
+        return df.rename(columns={0: "name"})[["name"]]
+
+    def _list_views(self, txn):
+        df = txn.query(self._list_views_query())
+        return df.rename(columns={0: "name"})[["name"]]
+
     def _table_exists_p(self, txn, table_name):
         sq = self._list_tables_query().subquery()
         q = sa.select(sas.literal(1)).where(sq.c.name == table_name)

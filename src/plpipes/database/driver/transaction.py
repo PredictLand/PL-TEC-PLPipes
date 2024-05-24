@@ -185,6 +185,14 @@ class Transaction:
         """
         return self._driver._list_tables(self)
 
+    def list_views(self):
+        """
+        Lists the views in the database.
+
+        :return: Dataframe with the list of views.
+        """
+        return self._driver._list_views(self)
+
     def table_exists_p(self, table_name):
         """
         Checks whether a table exists in the database.
