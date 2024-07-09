@@ -1,7 +1,7 @@
 import pytest
 
 import plpipes.config
-import yaml
+import io
 
 text="""
 foo:
@@ -14,10 +14,10 @@ foo:
   doz:
     e: e
     f: f
-  '*':
+  !glob '*':
     f: 'f*'
 
-'*':
+!glob '*':
   doz:
     d: 6
 
@@ -30,8 +30,8 @@ list:
 @pytest.fixture(scope='module')
 def cfg():
     cfg = plpipes.config.ConfigStack().root()
-    tree = yaml.safe_load(text)
-    cfg.merge(tree)
+    fh = io.StringIO(text)
+    cfg.merge_fh(fh, format="yaml")
     return cfg
 
 def test_number(cfg):
@@ -73,3 +73,12 @@ def test_value_error(cfg):
         assert isinstance(ex, ValueError)
     else:
         assert False, "Exception missing!"
+
+def test_tree_1(cfg):
+    print(f"foo.doz: {cfg.to_tree('foo.doz')}, expected {{'e': 'e', 'f': 'f', 'd': 6}}")
+    assert cfg.to_tree("foo.doz") == {'e': 'e', 'f': 'f', 'd': 6}
+
+    # assert cfg.to_tree("foo.doz") == {'e': 'e', 'f': 'f'}
+
+def test_tree_2(cfg):
+    assert cfg.to_tree("foo.bar") == {'d': 'd', 'f': 'f*'}
