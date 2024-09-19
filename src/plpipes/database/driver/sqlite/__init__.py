@@ -41,6 +41,12 @@ class SQLiteDriver(FileDBDriver):
             extension_class = extension_register.lookup(extension_name)
             self._extensions.append(extension_class(self, extension_name, drv_cfg))
 
+
+    def _execute_script(self, txn, sql):
+        import sqlparse
+        for statement in sqlparse.split(sql):
+            txn._conn.execute(Wrap(statement))
+
     def _create_function(self, txn, name, nargs, pyfunc):
         txn._conn.connection.create_function(name, nargs, pyfunc)
 

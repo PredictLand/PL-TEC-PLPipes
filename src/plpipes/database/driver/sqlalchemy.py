@@ -35,7 +35,7 @@ class SQLAlchemyDriver(Driver):
 
     def _execute_script(self, txn, sql):
         logging.debug(f"database execute_script code: {repr(sql)}")
-        txn._conn.executescript(sql)
+        txn._conn.execute(Wrap(sql))
 
     def _read_table(self, txn, table_name, backend, kws):
         try:
