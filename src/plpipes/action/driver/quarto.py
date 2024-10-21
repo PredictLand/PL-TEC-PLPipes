@@ -12,7 +12,7 @@ import tempfile
 import json
 import shutil
 import datetime
-import dateparser
+import friendlydateparser
 
 def _read_yaml_header(fn):
     with open(fn, "r") as f:
@@ -108,7 +108,7 @@ class _QuartoRunner(Action):
             if date_raw is None:
                 date = datetime.datetime.strptime(cfg['run.as_of_date_normalized'], "%Y%m%dT%H%M%SZ0")
             else:
-                date = dateparser.parse(date_raw)
+                date = friendlydateparser.parse_datetime(date_raw)
                 if date is None:
                     raise ValueError(f"Unable to parse date {date_raw}")
 

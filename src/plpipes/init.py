@@ -5,7 +5,7 @@ import os
 import logging
 import pathlib
 import datetime
-import dateparser
+import friendlydateparser
 
 _initialized = False
 
@@ -109,7 +109,7 @@ def init(*configs, config_files=[]):
 
 def init_run_as_of_date():
     date = cfg.setdefault('run.as_of_date', 'now')
-    as_of_date = dateparser.parse(date)
+    as_of_date = friendlydateparser.parse_datetime(date)
     as_of_date = as_of_date.astimezone(datetime.timezone.utc)
     cfg['run.as_of_date_normalized'] = as_of_date.strftime("%Y%m%dT%H%M%SZ0")
 
