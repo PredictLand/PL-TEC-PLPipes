@@ -129,3 +129,10 @@ group by {', '.join(by)}
 
     def _list_views_query(self):
         return sas.select(sas.column("name")).select_from(sas.table("sqlite_master")).where(sas.column("type") == "view")
+
+
+    def ibis(self):
+        import ibis
+        ic = ibis.sqlite.from_connection(self._engine.connect().connection)
+        ic._plpipes_driver = self
+        return ic
