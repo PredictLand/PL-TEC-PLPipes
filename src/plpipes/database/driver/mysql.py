@@ -11,7 +11,7 @@ def first(*args):
             return a
     return None
 
-_default_sqla_subdriver = { "mysql": "mysqldb",
+_default_sqla_subdriver = { "mysql": "pymysql",
                             "mariadb": "mariadbconnector" }
 
 def first(*args):
