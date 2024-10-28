@@ -30,6 +30,9 @@ class Transaction:
         """
         return self._driver
 
+    def db_name(self):
+        return self._driver._name
+    
     def connection(self):
         """
         Returns the database connection object associated with this transaction.
