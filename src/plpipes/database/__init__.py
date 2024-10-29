@@ -1,6 +1,8 @@
 from plpipes.config import cfg
 import logging
 import plpipes.plugin
+import plpipes.database.driver.transaction
+
 
 _driver_registry = plpipes.plugin.Registry("db_driver", "plpipes.database.driver.plugin")
 
