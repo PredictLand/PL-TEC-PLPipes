@@ -1,6 +1,7 @@
 import logging
 from plpipes.database.driver.odbc import ODBCDriver
 import struct
+import sqlalchemy.sql as sas
 
 _SQL_COPT_SS_ACCESS_TOKEN = 1256
 
@@ -39,3 +40,15 @@ class AzureSQLDriver(ODBCDriver):
         drv_cfg.setdefault('sql_alchemy_driver', 'mssql+pyodbc')
 
         super().__init__(name, drv_cfg, connect_args=connect_args)
+
+    def _list_tables_query(self):
+        table = sas.table("TABLES", schema="INFORMATION_SCHEMA")
+        return (sas.select(sas.column("table_name").label("name"))
+                .select_from(table)
+                .where(sas.column("table_type") == "BASE TABLE"))
+
+    def _list_views_query(self):
+        table = sas.table("TABLES", schema="INFORMATION_SCHEMA")
+        return (sas.select(sas.column("table_name").label("name"))
+                .select_from(table)
+                .where(sas.column("table_type") == "VIEW"))
