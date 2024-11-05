@@ -4,6 +4,7 @@ from plpipes.util.typedict import dispatcher
 from plpipes.util.method_decorators import optional_abstract
 import plpipes.plugin
 import types
+import plpipes.database.driver.transaction
 
 _backend_class_registry = plpipes.plugin.Registry("db_backend", "plpipes.database.backend.plugin")
 
