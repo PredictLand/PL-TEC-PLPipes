@@ -39,7 +39,7 @@ class IBCAuthenticator(AuthenticatorBase):
             if isinstance(scopes, str):
                 scopes = scopes.split(" ")
 
-            logging.debug("Calling authenticate(scopes={scopes})")
+            logging.debug(f"Calling authenticate(scopes={scopes})")
             ar = cred.authenticate(scopes=scopes)
 
             if expected_user not in (None, ar.username):
