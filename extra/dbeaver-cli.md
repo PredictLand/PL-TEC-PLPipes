@@ -1,17 +1,5 @@
 # Command Line
 
-#### Table of contents
-
-- - - - [Windows](#windows)
-      - [Mac](#mac)
-      - [Linux](#linux)
-      - [Command line parameters](#command-line-parameters)
-      - - [DBeaver control](#dbeaver-control)
-        - [System parameters](#system-parameters)
-        - - [VM arguments](#vm-arguments)
-          - [Connection parameters](#connection-parameters)
-        - [Declare external variables in a file](#declare-external-variables-in-a-file)
-
 Command line parameters can be passed directly to the DBeaver executable. The way to do this depends on your operating system:
 
 [**Windows**](#windows "Windows")
