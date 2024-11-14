@@ -85,7 +85,8 @@ def parse_args_and_init(arg_parser, args=None):
     opts = arg_parser.parse_args(args[1:])
 
     config_extra = [{'fs': {'stem': str(prog_path.stem),
-                            'root': str(root_dir)}}]
+                            'root': str(root_dir),
+                            'project': str(root_dir.stem)}}]
 
     config_extra += opts.set
 
