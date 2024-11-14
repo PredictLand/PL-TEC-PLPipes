@@ -18,12 +18,11 @@ class AzureSQLDriver(ODBCDriver):
         # cs = f"Driver={driver};Server={server};Database={database}"
         connect_args = {}
 
-
         if (((pwd := drv_cfg.get('password')) is not None) and
             ((uid := drv_cfg.get('uid')) is not None)):
             cs['Pwd'] = pwd
             cs['UID'] = uid
-            
+
         elif (cred_account_name := drv_cfg.get('credentials')) is not None:
             import plpipes.cloud.azure.auth
             credential = plpipes.cloud.azure.auth.credentials(creds_account_name)
