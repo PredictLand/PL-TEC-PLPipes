@@ -17,6 +17,13 @@ def _path(relpath=None, section=None):
         return start
     return start / relpath
 
+def assign_section(target_section, relpath=None, section=None, **kwargs):
+    if target_section not in cfg.cd("fs"):
+        if relpath is None:
+            relpath = target_section
+        cfg["fs." + target_section] = str(_path(relpath, section))
+    return path(section=target_section, **kwargs)
+
 def openfile(relpath, mode="r", section=None):
     return open(path(relpath, section), mode)
 
