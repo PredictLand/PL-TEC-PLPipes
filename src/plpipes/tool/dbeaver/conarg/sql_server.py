@@ -1,6 +1,5 @@
 from plpipes.plugin import plugin
 from plpipes.tool.dbeaver.conarg import ConArg
-from urllib.parse import quote
 
 class SQLServerConArg(ConArg):
     def __init__(self, name, db_drv):
@@ -11,8 +10,6 @@ class SQLServerConArg(ConArg):
         port = db_cfg.get('port', '1433')
         user = db_cfg.get('uid')
         password = db_cfg.get('password')
-        if "|" in password:
-            raise ValueError(f"Password for database instance {self.name} contains a pipe character, which is not allowed")
 
         self.host = host
         self.server = host
@@ -22,5 +19,3 @@ class SQLServerConArg(ConArg):
         self.auth = "native"
         self.user = user
         self.password = password
-        self.connect = False
-        self.create = True
