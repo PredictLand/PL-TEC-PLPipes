@@ -42,8 +42,10 @@ class _PairAction(argparse.Action):
                 raise argparse.ArgumentError(self, f"Conflicting config pair '{pair}': {ex}") from ex
 
 
-def arg_parser():
-    parser = argparse.ArgumentParser(description="PLPipes runner")
+_default_arg_parser_args = { 'description': 'PLPipes runner' }
+
+def arg_parser(**kwargs):
+    parser = argparse.ArgumentParser(**{**_default_arg_parser_args, **kwargs})
     parser.add_argument('-d', '--debug',
                         help="Turns on debugging",
                         action='store_true')
