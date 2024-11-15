@@ -35,6 +35,7 @@ def run(argv):
 
     try:
         dbeaver_path = findapp.findapp(cfg.get("fs.command.dbeaver", "dbeaver-ce"),
+                                       app_name="dbeaver",
                                        by_os={'windows': {'binary_name': cfg.get("fs.command.dbeaver-cli", 'dbeaver-cli')}})
     except FileNotFoundError:
         logging.error("DBeaver not found, skipping")
