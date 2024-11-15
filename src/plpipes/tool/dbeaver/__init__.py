@@ -48,7 +48,7 @@ def run_dbeaver(permanent=False, connect=False, instances=None):
     conargs = []
     for instance in instances:
         try:
-            dbc = _conarg_lookup(instance,instances_cfg.cd("instance"))
+            dbc = _conarg_lookup(instance, instances_cfg.cd(instance))
             if force_active or (instance == "work") or dbc.active():
                 args = dbc.conargs()
                 args['folder'] = cfg['fs.project']
