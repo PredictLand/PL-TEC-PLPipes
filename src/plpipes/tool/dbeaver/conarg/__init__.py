@@ -1,6 +1,6 @@
 import plpipes.plugin
 
-class Con(plpipes.plugin.Plugin):
+class ConArg(plpipes.plugin.Plugin):
     _con_args = ['name', 'driver', 'url', 'host', 'port', 'server', 'database', 'user', 'password', 'auth']
     _con_boolean_args = ['save', 'connect', 'openConsole', 'create']
 

@@ -2,10 +2,10 @@ from plpipes.plugin import plugin
 import plpipes.database as db
 import pathlib
 
-from plpipes.tool.dbeaver.con import Con
+from plpipes.tool.dbeaver.conarg import ConArg
 
 @plugin
-class SQLiteCon(Con):
+class SQLiteConArg(ConArg):
     def __init__(self, name, drv_cfg):
 
         super().__init__(name, drv_cfg)

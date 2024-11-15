@@ -1,8 +1,8 @@
 from plpipes.plugin import plugin
-from plpipes.tool.dbeaver.con import Con
+from plpipes.tool.dbeaver.conarg import ConArg
 from urllib.parse import quote
 
-class SQLServerCon(Con):
+class SQLServerConArg(ConArg):
     def __init__(self, name, drv_cfg):
         super().__init__(name, drv_cfg)
 
