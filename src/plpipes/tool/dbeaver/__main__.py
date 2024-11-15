@@ -20,11 +20,12 @@ def run(argv):
                     help='Connect immediately to the databases after setting them up')
     ap.add_argument('-i', '--instance', type=str, action='append',
                     help='Initialize only the connection(s) with the given name. Can be used multiple times.')
-
+    ap.add_argument('-q', '--command', action='store_true',
+                    help='Print the command that would be used to launch DBeaver and exit')
     opts = parse_args_and_init(ap, argv)
 
     # Launch DBeaver with the specified options
-    run_dbeaver(permanent=opts.permanent, connect=opts.connect, instances=opts.instance)
+    run_dbeaver(permanent=opts.permanent, connect=opts.connect, instances=opts.instance, print_command=opts.command)
 
 if __name__ == "__main__":
     run(["plpipes-tool-dbeaver", *sys.argv[1:]])
