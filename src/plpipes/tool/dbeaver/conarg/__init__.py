@@ -15,7 +15,7 @@ class ConArg(plpipes.plugin.Plugin):
     def active(self):
         return True
 
-    def con_args(self):
+    def conargs(self):
         args = {}
         for arg in self._con_args:
             value = getattr(self, arg, None)

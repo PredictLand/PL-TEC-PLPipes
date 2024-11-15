@@ -9,12 +9,12 @@ import findapp
 import subprocess
 import os
 
-_con_class_registry = plpipes.plugin.Registry("dbeaver_con_backend", "plpipes.tool.dbeaver.con.driver")
+_conarg_class_registry = plpipes.plugin.Registry("dbeaver_conarg_backend", "plpipes.tool.dbeaver.conarg.driver")
 
-def _con_lookup(name, drv_cfg):
+def _conarg_lookup(name, drv_cfg):
     drv_cfg = cfg.cd(f"db.instance.{name}")
     con_name = drv_cfg.get("driver", "sqlite")
-    con_class = _con_class_registry.lookup(con_name)
+    con_class = _conarg_class_registry.lookup(con_name)
     return con_class(name, drv_cfg)
 
 def run_cmd_detached(command):
@@ -40,23 +40,23 @@ def run(argv):
         logging.error("DBeaver not found, skipping")
         return
 
-    con_args = []
+    conargs = []
     instances_cfg = cfg.cd("db.instance")
     for instance in instances_cfg.keys():
         instance_cfg = instances_cfg.cd(instance)
         try:
-            dbc = _con_lookup(instance, instance_cfg)
+            dbc = _conarg_lookup(instance, instance_cfg)
             if (dbc.name == "work") or dbc.active():
-                args = dbc.con_args()
+                args = dbc.conargs()
                 args['folder'] = cfg['fs.project']
-                con_args.append(args)
+                conargs.append(args)
         except ModuleNotFoundError:
             logging.warning(f"Unable to initialize DBeaver connection to DB {instance}, config extractor for {instance_cfg.get('driver')} not found")
         except:
             logging.exception(f"Unable to initialize DBeaver connection to DB {instance}")
 
     cmd = [dbeaver_path]
-    for args in con_args:
+    for args in conargs:
         cmd.append("-con"),
         cmd.append("|".join([f"{k}={v}" for k, v in args.items()]))
 
