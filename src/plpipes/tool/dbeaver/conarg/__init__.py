@@ -21,6 +21,8 @@ class ConArg(plpipes.plugin.Plugin):
         for arg in self._con_args:
             value = getattr(self, arg, None)
             if value is not None:
+                if "|" in str(value):
+                    raise ValueError(f"Value for {arg} for database instance {self.name} contains a pipe character, which is not allowed")
                 args[arg] = value
 
         for arg in self._con_boolean_args:
