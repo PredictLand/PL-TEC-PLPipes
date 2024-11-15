@@ -35,7 +35,7 @@ def run_cmd_detached(command):
 
     return subprocess.Popen(command, **kwargs)
 
-def run_dbeaver(permanent=False, connect=False, instances=None):
+def run_dbeaver(permanent=False, connect=False, instances=None, print_command=False):
     try:
         dbeaver_path = findapp.findapp(cfg.get("fs.command.dbeaver", "dbeaver-ce"),
                                        app_name="dbeaver",
@@ -77,4 +77,9 @@ def run_dbeaver(permanent=False, connect=False, instances=None):
         cmd.append("|".join([f"{k}={v}" for k, v in args.items()]))
 
     logging.info(f"Running command {cmd}")
-    run_cmd_detached(cmd)
+
+    if print_command:
+        from shlex import quote
+        print(" ".join([quote(arg) for arg in cmd]))
+    else:
+        run_cmd_detached(cmd)
