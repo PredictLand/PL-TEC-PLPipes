@@ -7,9 +7,10 @@ class ConArg(plpipes.plugin.Plugin):
     #def _init_plugin(self, name, drv_cfg):
     #    pass
 
-    def __init__(self, name, drv_cfg):
+    def __init__(self, name, db_drv):
         self.name = name
-        self._cfg = drv_cfg
+        self._db_drv = db_drv
+        self._cfg = db_drv.config()
         super().__init__()
 
     def active(self):

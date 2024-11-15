@@ -17,7 +17,7 @@ def lookup(db=None):
 
 def _init_driver(name):
     drv_cfg = cfg.cd(f"db.instance.{name}")
-    driver_name = drv_cfg.get("driver", "sqlite")
+    driver_name = drv_cfg.setdefault("driver", "sqlite")
     logging.debug(f"Initializing database instance {name} using driver {driver_name}")
     driver = _driver_registry.lookup(driver_name)
     return driver(name, drv_cfg)

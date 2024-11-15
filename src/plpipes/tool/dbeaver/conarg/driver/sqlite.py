@@ -6,13 +6,12 @@ from plpipes.tool.dbeaver.conarg import ConArg
 
 @plugin
 class SQLiteConArg(ConArg):
-    def __init__(self, name, drv_cfg):
+    def __init__(self, name, db_drv):
 
-        super().__init__(name, drv_cfg)
-        self._fn = db.lookup(name)._fn
+        super().__init__(name, db_drv)
+        self._fn = fn = db_drv.backing_filename()
+        self.database = str(pathlib.Path(fn).absolute())
         self.driver = "sqlite"
-        self.database = str(pathlib.Path(self._fn).absolute())
-
 
     def active(self):
         if pathlib.Path(self._fn).exists():

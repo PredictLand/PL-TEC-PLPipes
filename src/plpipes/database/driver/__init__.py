@@ -39,11 +39,17 @@ class Driver(plpipes.plugin.Plugin):
         for backend_name in self._cfg.get('extra_backends', []):
             self._backend_lookup(backend_name)
 
+    def config(self):
+        return self._cfg.to_tree()
+
     def _backend(self, name):
         if name is None:
             return self._default_backend
         logging.debug(f"looking up backend {name}")
         return self._backend_lookup(name)
+
+    def driver_name(self):
+        return self._plugin_name
 
     @optional_abstract
     @contextmanager

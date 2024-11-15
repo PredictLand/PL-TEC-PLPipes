@@ -13,3 +13,6 @@ class FileDBDriver(SQLAlchemyDriver):
         url = f"{driver}:///{fn}"
         super().__init__(name, drv_cfg, url)
         self._fn = fn
+
+    def backing_filename(self):
+        return self._fn

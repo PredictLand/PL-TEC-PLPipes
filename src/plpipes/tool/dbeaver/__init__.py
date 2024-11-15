@@ -2,6 +2,7 @@
 import sys
 from plpipes.config import cfg
 import plpipes.filesystem as fs
+import plpipes.database as db
 import plpipes.plugin
 import logging
 import findapp
@@ -10,11 +11,16 @@ import os
 
 _conarg_class_registry = plpipes.plugin.Registry("dbeaver_conarg_backend", "plpipes.tool.dbeaver.conarg.driver")
 
-def _conarg_lookup(name, drv_cfg):
-    drv_cfg = cfg.cd(f"db.instance.{name}")
-    con_name = drv_cfg.get("driver", "sqlite")
-    con_class = _conarg_class_registry.lookup(con_name)
-    return con_class(name, drv_cfg)
+def _conarg_lookup(name):
+    try:
+        db_drv = db.lookup(name)
+        plugin_name = db_drv.driver_name()
+        conarg_class = _conarg_class_registry.lookup(plugin_name)
+        return conarg_class(name, db_drv)
+    except ModuleNotFoundError:
+        logging.warning(f"Unable to initialize DBeaver connection to DB {name}, config extractor for {plugin_name} not found")
+        return
+
 
 def run_cmd_detached(command):
     kwargs = {
@@ -48,19 +54,16 @@ def run_dbeaver(permanent=False, connect=False, instances=None):
     conargs = []
     for instance in instances:
         try:
-            instance_cfg = instances_cfg.cd(instance)
-            dbc = _conarg_lookup(instance, instance_cfg)
-            if force_active or (instance == "work") or dbc.active():
-                args = dbc.conargs()
-                args['folder'] = cfg['fs.project']
-                args['create'] = True
-                if permanent:
-                    args['save'] = True
-                if connect:
-                    args['connect'] = True
-                conargs.append(args)
-        except ModuleNotFoundError:
-            logging.warning(f"Unable to initialize DBeaver connection to DB {instance}, config extractor for {instance_cfg.get('driver')} not found")
+            if (dbc := _conarg_lookup(instance)) is not None:
+                if force_active or (instance == "work") or dbc.active():
+                    args = dbc.conargs()
+                    args['folder'] = cfg['fs.project']
+                    args['create'] = True
+                    if permanent:
+                        args['save'] = True
+                    if connect:
+                        args['connect'] = True
+                    conargs.append(args)
         except:
             logging.exception(f"Unable to initialize DBeaver connection to DB {instance}")
 
