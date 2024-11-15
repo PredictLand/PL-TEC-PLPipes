@@ -12,8 +12,8 @@ import os
 _conarg_class_registry = plpipes.plugin.Registry("dbeaver_conarg_backend", "plpipes.tool.dbeaver.conarg.driver")
 
 def _conarg_lookup(name):
+    db_drv = db.lookup(name)
     try:
-        db_drv = db.lookup(name)
         plugin_name = db_drv.driver_name()
         conarg_class = _conarg_class_registry.lookup(plugin_name)
         return conarg_class(name, db_drv)
