@@ -80,6 +80,10 @@ def list_views(db=None):
     with _begin_or_pass_through(db) as txn:
         return txn.list_views()
 
+def table_exists_p(table_name, db=None):
+    with _begin_or_pass_through(db) as txn:
+        return txn.table_exists_p(table_name)
+
 def drop_table(table_name, db=None, only_if_exists=False):
     with _begin_or_pass_through(db) as txn:
         return txn.drop_table(table_name, only_if_exists)
