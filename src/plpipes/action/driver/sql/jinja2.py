@@ -4,6 +4,7 @@ import logging
 import importlib
 
 from plpipes.config import cfg
+from plpipes.util import pluralsingular
 
 _SQL_RESERVED_WORDS = {'select', 'from', 'where', 'join', 'order', 'group', 'having'}
 
@@ -75,23 +76,11 @@ def _join_columns(columns, table_name=None, pre=None, post=None, sep=", "):
         columns = [f'{table_name}.{col}' for col in columns]
     return sep.join(columns)
 
-def _pluralize(word, lang='en', marks=False):
-    if isinstance(word, list):
-        return [_pluralize(w, lang) for w in word]
-    import pluralsingular
-    p = pluralsingular.pluralize(word, lang=lang)
-    if not marks:
-        p = _unidecode(p)
-    return p
+def _pluralize(word, marks=False, **kwargs):
+    return pluralsingular.pluralize(word, marks=marks, **kwargs)
 
-def _singularize(word, lang='en', marks=False):
-    if isinstance(word, list):
-        return [_singularize(w, lang) for w in word]
-    import pluralsingular
-    s = pluralsingular.singularize(word, lang=lang)
-    if not marks:
-        s = _unidecode(s)
-    return s
+def _singularize(word, marks=False, **kwargs):
+    return pluralsingular.singularize(word, marks=marks, **kwargs)
 
 def _unidecode(word):
     import unidecode
