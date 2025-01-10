@@ -1,10 +1,10 @@
 
 from plpipes.config import cfg
 
-PLURALS = cfg.to_tree("plpipes-util.pluralsingular.plurals")
+PLURALS = cfg.to_tree("util.pluralsingular.plurals")
 SINGULARS = {lang: {v: k for k, v in plurals.items()} for lang, plurals in PLURALS.items()}
 
-LANG = cfg.get("plpipes-util.pluralsingular.lang", "en")
+LANG = cfg.get("util.pluralsingular.lang", "en")
 
 def pluralize(word, lang=LANG, marks=True, plurals=None):
     if plurals is None:
