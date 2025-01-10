@@ -278,5 +278,13 @@ class _Ptr(collections.abc.MutableMapping):
             self[key] = cb()
         return self[key]
 
+    def getany(self, *keys, default=None):
+        for key in keys:
+            try:
+                return self[key]
+            except KeyError:
+                pass
+        return default
+
 cfg_stack = ConfigStack()
 cfg = cfg_stack.root()
