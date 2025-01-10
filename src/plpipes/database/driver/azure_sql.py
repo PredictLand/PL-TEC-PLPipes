@@ -19,7 +19,7 @@ class AzureSQLDriver(ODBCDriver):
         connect_args = {}
 
         if (((pwd := drv_cfg.get('password')) is not None) and
-            ((uid := drv_cfg.get('uid')) is not None)):
+            ((uid := drv_cfg.getany('uid', 'user')) is not None)):
             cs['Pwd'] = pwd
             cs['UID'] = uid
 
