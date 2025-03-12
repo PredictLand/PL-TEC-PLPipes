@@ -56,9 +56,45 @@ class _ConfigKeysIterator(_ListIterator):
 
 class RunAsOfDateIterator(_ListIterator):
     def __init__(self, key, icfg):
-        values = cfg.get("dates")
+        values = icfg.get("values")
         icfg.setdefault("target", "run.as_of_date")
-        super().__init__(key, icfg, list(icfg["values"]))
+
+        start = icfg.get("start")
+        if start is not None:
+            end = icfg.get("end", "today")
+            periodicity = icfg.get("periodicity", "daily")
+            values = self._date_range(start, end, periodicity, values)
+        elif values is None:
+            raise ValueError("No values or start date provided for RunAsOfDateIterator")
+
+        super().__init__(key, icfg, list(values))
+
+    def _date_range(self, start, end, periodicity, more_values):
+        from friendlydateparser import parse_date
+        from dateutil.relativedelta import relativedelta
+        start = parse_date(start)
+        end = parse_date(end)
+        if periodicity == "daily":
+            step = relativedelta(days=1)
+        elif periodicity == "weekly":
+            step = relativedelta(days=7)
+        elif periodicity == "monthly":
+            step = relativedelta(months=1)
+        elif periodicity == "yearly":
+            step = relativedelta(years=1)
+        else:
+            raise ValueError(f"Unsupported periodicity {periodicity}")
+
+        if more_values is None:
+            more_values = []
+        values = set(fdp.parse_date(v) for v in more_values)
+        value = start
+        while value <= end:
+            values.add(value)
+            value += step
+        values = sorted(values)
+        logging.debug(f"Date range from {start} to {end} with periodicity {periodicity} yields {values}")
+        return values
 
     def reset(self):
         super().reset()
