@@ -63,13 +63,24 @@ class _Node:
         self._fs = fs
         self._path = path
 
-    def is_file(self):
+    def is_file(self, path=""):
+        e = self.go(path, missing_ok=True)
+        return False if e is None else e._is_file()
+
+    def is_dir(self, path=""):
+        e = self.go(path, missing_ok=True)
+        return False if e is None else e._is_dir()
+
+    def __is_file(self):
         return False
 
-    def is_dir(self):
+    def _is_dir(self):
         return False
 
-    def go(self, path):
+    def go(self, path, missing_ok=False):
+        if path is None or path == "":
+            return self
+
         e = self
         parts = [x
                  for x in path.split("/")
@@ -78,6 +89,8 @@ class _Node:
             try:
                 e = e._go(p)
             except Exception as ex:
+                if missing_ok:
+                    return None
                 msg = f"Unable to go into {path}"
                 logging.exception(msg)
                 raise CloudFSError(msg) from ex
@@ -99,7 +112,7 @@ class _Node:
         raise Exception(f"Can't get object {self._path}")
 
 class _FileNode(_Node):
-    def is_file(self):
+    def _is_file(self):
         return True
 
 class _DirNode(_Node):
@@ -109,7 +122,7 @@ class _DirNode(_Node):
     def names(self):
         return list(self.ls().keys())
 
-    def is_dir(self):
+    def _is_dir(self):
         return True
 
     def _rget(self, dest=None, dir=None, name=None, **kwargs):
