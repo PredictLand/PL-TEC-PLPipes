@@ -6,8 +6,15 @@ if not plpipes.init._initialized:
     from plpipes.action.driver.simple import _action_namespace_setup
     import inspect
     import logging
+    import sys
 
-    simple_init()
+    argv = sys.argv
+    cmd = argv.get(0, '')
+    # Hack for VSCode/ipykernel not setting the correct command line arguments
+    if cmd.endswith('ipykernel_launcher.py'):
+        argv = ['bin/run.py']
+
+    simple_init(argv)
 
     def get_main_frame():
         stack = inspect.stack()
