@@ -1,52 +1,22 @@
-
-
 # Installing `plpipes`
 
 The Python module `plpipes` can be installed in two ways:
 
 ## Installing a packed version
 
-This is the way to install the module we recommend when you don't want
-to contribute to the development of the framework and just want to use
-it.
+This is the recommended method for installing the module if you simply want to use it without contributing to its development. 
 
-*Note that In practice, as `plpipes` is still in a very early
-development stage, that may not be a realistic assumption and you may
-be required to switch to the development version available from git
-quite soon!*
-
-Somehow (!) obtain the module wheel and install it using pip:
+You can install `plpipes` directly from the Python Package Index (PyPI) using pip:
 
 ```bash
-pip install /path/to/.../plpipes-0.1-py2.py3-none-any.whl
+pip install plpipes
 ```
 
-Hopefully, `plpipes` would be directly available from
-[PyPI](https://pypi.org/) soon.
-
-In the meantime, you can pack it yourself as follows:
-
-### Packing `plpipes`
-
-`plpipes` packing is handled with
-[flit](https://flit.pypa.io/en/stable/) (which can be installed with
-the usual `pip` command: `pip install flit`).
-
-A python wheel file for `plpipes` is generated running the following
-command from inside `plpipes` root directory:
-
-```bash
-flit build
-```
-
-The generated wheel file is placed inside `dist`. That file is a
-standard (pure) Python package that can be installed in any operating
-system as shown above.
+This will ensure you have the latest stable version.
 
 ## Installing from git
 
-1. Clone the repository outside of your project directory and switch
-    to the `develop` branch:
+1. Clone the repository outside of your project directory and switch to the `develop` branch:
 
     ```bash
     git clone git@github.com:PredictLand/PL-TEC-PLPipes.git
@@ -54,7 +24,7 @@ system as shown above.
     git checkout develop
     ```
 
-2. Add the `src` subdirectory to Python search path:
+2. Add the `src` subdirectory to the Python search path:
 
     ```bash
     # Linux and/or bash:
@@ -69,11 +39,9 @@ system as shown above.
     python -m plpipes -c "print('ok')"
     ```
 
-Alternatively you can modify your project main script to append
-the`src` directory to the module search path so that you don't need to
-set `PYTHONPATH` by hand every time you start a new session.
+Alternatively, you can modify your project's main script to append the `src` directory to the module search path so that you don't need to set `PYTHONPATH` manually each time you start a new session.
 
-For instance:
+For example:
 
 ```python
 from pathlib import Path
@@ -84,6 +52,20 @@ from plpipes.runner import main
 main()
 ```
 
-Or you could also set `PYTHONPATH` from your shell startup script
-(`~/.profile`) or in the Windows registry.
+Or you can also set `PYTHONPATH` from your shell startup script (`~/.profile`) or in the Windows registry.
 
+## Packing `plpipes`
+
+If you would like to create a wheel file for `plpipes`, you can do so using [flit](https://flit.pypa.io/en/stable/), which can be installed with pip:
+
+```bash
+pip install flit
+```
+
+To generate a Python wheel file for `plpipes`, run the following command from inside the `plpipes` root directory:
+
+```bash
+flit build
+```
+
+The generated wheel file will be placed in the `dist` directory. This file is a standard (pure) Python package that can be installed on any operating system as demonstrated above.
