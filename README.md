@@ -26,5 +26,5 @@ info@predictland.com.
 ## Copyright
 
 © PredictLand 2023, 2024, 2025. Distributed under the [MIT
-License](https://predictland.github.io/PL-TEC-PLPipes/license/)/
+License](https://predictland.github.io/PL-TEC-PLPipes/license/).
 
