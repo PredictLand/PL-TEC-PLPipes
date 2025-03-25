@@ -1,4 +1,4 @@
-import plpipes.config as cfg
+from plpipes.config import cfg
 
 import sys
 import os
