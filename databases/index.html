@@ -1,0 +1,1755 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../configuration/">
+      
+      
+        <link rel="next" href="../actions/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.18">
+    
+    
+      
+        <title>Databases - PLPipes Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.66ac8b77.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#database" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="PLPipes Docs" class="md-header__button md-logo" aria-label="PLPipes Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PLPipes Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Databases
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="PLPipes Docs" class="md-nav__button md-logo" aria-label="PLPipes Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    PLPipes Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nomenclature/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Nomenclature
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Project Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default database
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#duckdb-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      DuckDB configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQLite configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialite-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spatialite configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlserver-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQLServer configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#azuresql-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      AzureSQL configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#influxdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      InfluxDB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spark
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-databases-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other databases configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query" class="md-nav__link">
+    <span class="md-ellipsis">
+      query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      read_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_script" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute_script
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      copy_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      update_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      begin
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection class
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database backends
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#picking-the-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Picking the backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-specifics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend specifics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend specifics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pandas-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      pandas backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#geopandas-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      geopandas backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../actions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Actions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runner/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Runner
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Cloud Services
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            Cloud Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud-intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../azure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Azure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../msgraph/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MS Graph
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../google-cloud/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Google Cloud
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AWS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openai/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OpenAI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../other-network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Other network services
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jupyter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Jupyter Integration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spark/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Spark Integration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/summary/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    About
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default database
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#duckdb-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      DuckDB configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQLite configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialite-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spatialite configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlserver-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQLServer configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#azuresql-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      AzureSQL configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#influxdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      InfluxDB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spark
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-databases-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other databases configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query" class="md-nav__link">
+    <span class="md-ellipsis">
+      query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      read_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_script" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute_script
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      copy_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      update_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      begin
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection class
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database backends
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#picking-the-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Picking the backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-specifics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend specifics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend specifics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pandas-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      pandas backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#geopandas-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      geopandas backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="database">Database<a class="headerlink" href="#database" title="Permanent link">#</a></h1>
+<p><code>plpipes</code> provides a simple way to declare and use multiple database
+connections and a set of shortcuts for simplifying some procedures
+common in a Data Science context (i.e. running a query and getting
+back a DataFrame or creating a new table from a DataFrame).</p>
+<h2 id="default-database">Default database<a class="headerlink" href="#default-database" title="Permanent link">#</a></h2>
+<p>One of the key points of the framework is that a locally stored
+<a href="https://sqlite.org/">SQLite</a> database is always available for usage
+with zero setup work.</p>
+<p>Also, as most things in PLPipes, that default database (AKA as <code>work</code>
+database) is also configurable and it can be changed to be, for
+instance, a PostgreSQL one running in AWS just for the production
+environment or to use a <a href="https://duckdb.org/">DuckDB</a> one because of
+its native <a href="https://www.pola.rs/">polars</a> support or whatever.</p>
+<h2 id="database-configuration">Database configuration<a class="headerlink" href="#database-configuration" title="Permanent link">#</a></h2>
+<p>Database configuration goes under the <code>db.instance</code> sub-tree where the
+different database connections can be defined.</p>
+<p>For instance, a <code>input</code> database connection backed by a SQL Server
+database running in Azure can be declared as follows:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">db</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">instance</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">input</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure_sql</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">server</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-sql-server.database.windows.net</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">database</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer-db</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predictland</span>
+</span></code></pre></div>
+<p>The <code>db.instance.*.driver</code> key is used to find out which driver to use
+to establish the connection.</p>
+<p>The <code>db.instance.*.backend</code> key is used to stablish the DataFrame
+library backend used for the database instance. See
+<a href="#database-backends">Database-backends</a>.</p>
+<p>The remaining configuration entries are driver specific and as follow:</p>
+<h3 id="duckdb-configuration">DuckDB configuration<a class="headerlink" href="#duckdb-configuration" title="Permanent link">#</a></h3>
+<ul>
+<li><code>driver</code>: <code>duckdb</code></li>
+<li><code>file</code>: name of the database file. Defaults to
+    <code>{instance_name}.duckdb</code>.</li>
+</ul>
+<p>If the instance is named <code>input</code> or <code>output</code>, the database file is
+placed inside the matching directory (for instance,
+<code>input/input.duckdb</code>).</p>
+<p>Otherwise it is placed in the <code>work</code> directory (example:
+<code>work/other.duckdb</code>).</p>
+<h3 id="sqlite-configuration">SQLite configuration<a class="headerlink" href="#sqlite-configuration" title="Permanent link">#</a></h3>
+<ul>
+<li><code>driver</code>: <code>sqlite</code></li>
+<li><code>file</code>: database file name.</li>
+</ul>
+<p>Works in exactly the same way as DuckDB but using <code>sqlite</code> as the
+database file extension.</p>
+<h3 id="spatialite-configuration">Spatialite configuration<a class="headerlink" href="#spatialite-configuration" title="Permanent link">#</a></h3>
+<p>Spatialite is an extension of SQLite designed to facilitate the
+manipulation of geographic data.</p>
+<ul>
+<li><code>driver</code>: <code>spatialite</code></li>
+<li><code>file</code>: database file name.</li>
+</ul>
+<p>The extension must be installed. If you are using Conda it is
+available from the <code>conda-forge</code> repository and can be installed as
+follows:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>conda<span class="w"> </span>install<span class="w"> </span>libspatialite<span class="w"> </span>-c<span class="w"> </span>conda-forge
+</span></code></pre></div>
+<p>Note that Spatialite database files also use the <code>sqlite</code> extension.</p>
+<h3 id="sqlserver-configuration">SQLServer configuration<a class="headerlink" href="#sqlserver-configuration" title="Permanent link">#</a></h3>
+<ul>
+<li><code>driver</code>: <code>sql_server</code></li>
+<li><code>server</code></li>
+<li><code>database</code></li>
+<li><code>user</code></li>
+<li><code>password</code></li>
+<li><code>encrypt</code>: defaults to <code>true</code>.</li>
+<li><code>trusted_server_certificate</code>: defaults to <code>true</code>.</li>
+<li><code>timeout</code>: defaults to 60s.</li>
+</ul>
+<p>Also, in order to connect to a SQL-Server database the ODBC driver
+must be installed. It is available from
+<a href="https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server">here</a>.</p>
+<h3 id="azuresql-configuration">AzureSQL configuration<a class="headerlink" href="#azuresql-configuration" title="Permanent link">#</a></h3>
+<ul>
+<li><code>driver</code>: <code>azure_sql</code></li>
+<li><code>server</code>: full qualified server name. It can be seen at the Summary
+    page for the database in <a href="https://portal.azure.com">Azure
+    Portal</a>. It usually has a name like
+    <code>foo.database.windows.net</code>).</li>
+<li><code>database</code>: Database instance name. It is usually (always?) also the
+    name of the Azure resource.</li>
+<li><code>credentials</code>: Name of the Azure credential group to be used for
+    authentication. See the <a href="#Azure">Azure</a> chapter below.</li>
+</ul>
+<p>Example:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">db</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">instance</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">input</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure_sql</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">server</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo.database.windows.net</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nt">database</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">megadb-2000</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nt">credentials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nt">cloud</span><span class="p">:</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">azure</span><span class="p">:</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">auth</span><span class="p">:</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="nt">bar</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">        </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure_cli</span>
+</span></code></pre></div>
+<p>Again, the SQL-Server ODBC driver must also be installed.</p>
+<h3 id="influxdb">InfluxDB<a class="headerlink" href="#influxdb" title="Permanent link">#</a></h3>
+<p>So far, only InfluxDB version 1 is supported. There is nothing wrong
+with versions 2 and 3, just that nobody have requested them yet!</p>
+<ul>
+<li><code>driver</code>: <code>influxdb1</code></li>
+<li><code>host</code></li>
+<li><code>port</code>: defaults to 8086.</li>
+<li><code>database</code></li>
+<li><code>user</code></li>
+<li><code>password</code></li>
+<li><code>ssl</code>: whether to connect using TLS. Defaults to <code>true</code>.</li>
+<li><code>verify_ssl</code>: whether to check the remote server TLS certificate. Defaults to <code>true</code>.</li>
+</ul>
+<p>Note also that connections to InfluxDB v1 databases are handled in a
+special way because its python drivers are not compatible with
+SQLAlchemy. Some functionality may not be available. For instance,
+only the <code>pandas</code> backend is currently supported.</p>
+<h3 id="spark">Spark<a class="headerlink" href="#spark" title="Permanent link">#</a></h3>
+<p>Spark can be used as a regular database through <code>plpipes.database</code>
+with the following configuration:</p>
+<ul>
+<li><code>driver</code>: <code>spark</code></li>
+<li><code>default_database</code>: name of the default database, usually composed
+  of a catalog name and a database name joined by a dot (for instance,
+  <code>my_catalog.my_database</code>).</li>
+</ul>
+<p>Besides the database configuration, Spark must be configured on its
+own. See <a href="../spark/">Spark</a>.</p>
+<p>Note that Spark database uses a <code>spark</code> backend returning Spark
+dataframes by default. A <code>pandas</code> backend is also available.</p>
+<h3 id="other-databases-configuration">Other databases configuration<a class="headerlink" href="#other-databases-configuration" title="Permanent link">#</a></h3>
+<p><em>Not implemented yet, but just ask for them!!!</em></p>
+<h2 id="database-usage">Database usage<a class="headerlink" href="#database-usage" title="Permanent link">#</a></h2>
+<p><a href="../reference/plpipes/database/"><code>plpipes.database</code></a> provides a set of
+functions for accessing the databases declared in the configuration.</p>
+<p>Most of the functions provided accept an optional <code>db</code> argument, for
+selecting the database instance. When <code>db</code> is omitted, <code>work</code> is used
+as the default.</p>
+<p>For example:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">plpipes.database</span> <span class="kn">import</span> <span class="n">query</span><span class="p">,</span> <span class="n">create_table</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">df</span> <span class="o">=</span> <span class="n">query</span><span class="p">(</span><span class="s2">&quot;select * from order when date &gt;= :ld&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;ld&#39;</span><span class="p">:</span> <span class="s1">&#39;2018-01-01&#39;</span><span class="p">},</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;input&#39;</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">create_table</span><span class="p">(</span><span class="s1">&#39;recent_orders&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>A list of the most commonly used functions from <code>plpipes.database</code>
+follows:</p>
+<h4 id="query"><code>query</code><a class="headerlink" href="#query" title="Permanent link">#</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">query</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;work&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Submits the query to the database and returns a pandas dataframe as
+the result.</p>
+<h3 id="read_table"><code>read_table</code><a class="headerlink" href="#read_table" title="Permanent link">#</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">read_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Reads the contents of the table as a dataframe.</p>
+<p>The columns to be loaded can be specified with the <code>columns</code> optional
+argument.</p>
+<h3 id="execute"><code>execute</code><a class="headerlink" href="#execute" title="Permanent link">#</a></h3>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;work&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+Runs a SQL sentence that does not generate a result set.</p>
+<h3 id="execute_script"><code>execute_script</code><a class="headerlink" href="#execute_script" title="Permanent link">#</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">execute_script</span><span class="p">(</span><span class="n">sql_script</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;work&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Runs a sequence of SQL sentences.</p>
+<p><em>This method is an unstable state, waiting for a proper implementation to happen :-)</em></p>
+<h3 id="create_table"><code>create_table</code><a class="headerlink" href="#create_table" title="Permanent link">#</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">create_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>             <span class="n">if_exists</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">create_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>             <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>             <span class="n">db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>             <span class="n">if_exists</span><span class="o">=</span><span class="s2">&quot;replace)</span>
+</span></code></pre></div>
+<p>This method can be used to create a new table both from a dataframe or
+from a SQL sentence.</p>
+<h3 id="copy_table"><code>copy_table</code><a class="headerlink" href="#copy_table" title="Permanent link">#</a></h3>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">copy_table</span><span class="p">(</span><span class="n">source_table_name</span><span class="p">,</span> <span class="n">dest_table_name</span><span class="o">=</span><span class="n">source_table_name</span><span class="p">,</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>           <span class="n">source_db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">dest_db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>           <span class="n">if_exists</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
+</span></code></pre></div>
+Copies table <code>source_table_name</code> from database <code>source_db</code> into
+<code>dest_table_name</code> at database <code>dest_db</code>.</p>
+<h3 id="update_table"><code>update_table</code><a class="headerlink" href="#update_table" title="Permanent link">#</a></h3>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">update_table</span><span class="p">(</span><span class="n">source_table_name</span><span class="p">,</span> <span class="n">dest_table_name</span><span class="o">=</span><span class="n">source_table_name</span><span class="p">,</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>             <span class="n">source_db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">dest_db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;work&quot;</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>             <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key_dir</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+Updates table <code>dest_table_name</code> at database <code>dest_db</code> with the
+missing rows <code>from source_table_name</code> at <code>source_db</code>.</p>
+<p><code>key</code> points to a column with monotonic values which is used to
+identify the new rows in the source table.</p>
+<p><code>key_dir</code> indicates whether the <code>key</code> column monotony is strictly
+ascending (<code>&gt;</code>), ascending (<code>&gt;=</code>), descending (<code>&lt;=</code>) or strictly
+descending (<code>&lt;</code>).</p>
+<p>For instance, for a date column, whose values always increase, but
+which may have duplicates, the right value is <code>&gt;=</code>. In other words,
+the operator used answers to the question "how are the new values in
+the table?"</p>
+<h3 id="begin"><code>begin</code><a class="headerlink" href="#begin" title="Permanent link">#</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">with</span> <span class="n">begin</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;work&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">df</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sql1</span><span class="p">)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">df</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql2</span><span class="p">)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="o">...</span>
+</span></code></pre></div>
+<p>This method returns a database connection with an open transaction.</p>
+<p>The transaction is automatically commited when the with block is done
+unless an exception is raised. In that case, a rollback is performed.</p>
+<h2 id="connection-class">Connection class<a class="headerlink" href="#connection-class" title="Permanent link">#</a></h2>
+<p>The connection class is returned by calling <code>begin</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">connection</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;work&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Returns a SQLAlchemy connection (created by <code>begin</code>).</p>
+<p>Also useful for integrating <code>plpipes</code> with other third party modules
+or for using other <code>SQLAlchemy</code> methods not directly wrapped by
+<code>plpipes</code>.</p>
+<h2 id="database-backends">Database backends<a class="headerlink" href="#database-backends" title="Permanent link">#</a></h2>
+<p>Besides pandas, which is the de-facto standard in the Python
+Data-Science context for representing tabular data, there are other
+libraries that for certain problems may be more suitable (for
+instance, <a href="https://geopandas.org/en/stable/">geopandas</a> for the
+manipulation of geo-referenced data).</p>
+<p>PLPipes has a set of plugable backends controlling how data from the
+database is serialized/deserialized into the different DataFrame
+implementations.</p>
+<p>So far, backends for <code>pandas</code> and <code>geopandas</code> are provided. Others for
+<a href="https://www.pola.rs/">polars</a>, <a href="https://vaex.io/">vaex</a> or
+<a href="https://www.dask.org/">dassk</a> will be added as the need arises.</p>
+<p>A <code>spark</code> backend is also available for Spark databases.</p>
+<p>In any case, note that changing the backend, usually also requires
+changing the code that uses the dataframes as every library provides
+its own similar but incompatible API.</p>
+<p>Every backend may also accept custom keyword arguments. See <a href="#Backend-specifics">Backend
+specifics</a> bellow.</p>
+<h3 id="picking-the-backend">Picking the backend<a class="headerlink" href="#picking-the-backend" title="Permanent link">#</a></h3>
+<p>For database write operations (i.e. <code>create_table</code>), <code>plpipes</code> can
+infer which backend to use just looking at the dataframe object type,
+so as long as the backend is loaded, <code>plpipes</code> will use the right one
+automatically.</p>
+<p>The function <code>plpipes.database.load_backend</code> can be used to load a
+specific backend into a database driver:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">plpipes</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">load_backend</span><span class="p">(</span><span class="s2">&quot;geopandas&quot;</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p><em>Currently, under the hood, backends are attached to the driver
+class. Once a backend is loaded, for instance, for a <code>azure_sql</code>
+database, every other database using such driver will have the backend
+available for write operations.</em></p>
+<p>In the case of read operations, there is no way for <code>plpipes</code> to infer
+the desired backend and so it must be stated explicitly in one of the
+following ways:</p>
+<ol>
+<li>
+<p>Passing it as an argument in database read functions
+    (i.e. <code>read_table</code>, <code>query</code>, <code>query_chunked</code> and
+    <code>query_group</code>). For instance:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">df</span> <span class="o">=</span> <span class="n">plpipes</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;spark&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>In the database connection configuration. For instance:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">db</span><span class="p">:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">instance</span><span class="p">:</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">work</span><span class="p">:</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">      </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">polars</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>Every database driver can set its own default. For instance,
+   currently, the <code>spatialite</code> driver sets <code>geopandas</code> as its default
+   backend.</p>
+</li>
+</ol>
+<p>Read operations transparently call <code>load_backend</code> as needed. The
+default backend is also loaded automatically when the database is
+initialized.</p>
+<h3 id="backend-specifics">Backend specifics<a class="headerlink" href="#backend-specifics" title="Permanent link">#</a></h3>
+<h4 id="pandas-backend"><code>pandas</code> backend<a class="headerlink" href="#pandas-backend" title="Permanent link">#</a></h4>
+<p>This is the default backend.</p>
+<h4 id="geopandas-backend"><code>geopandas</code> backend<a class="headerlink" href="#geopandas-backend" title="Permanent link">#</a></h4>
+<p>The <code>geopandas</code> backend can handle both <code>geopandas</code> and regular
+<code>pandas</code> dataframes.</p>
+<p>In read operations, the argument <code>geom_col</code> must be used to indicate
+which column contains the geometric data.</p>
+<p>If the argument is ommited, the backend returns a regular <code>pandas</code> dataframe.</p>
+<p>Example:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">df</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;select * from countries&quot;</span><span class="p">,</span> <span class="n">geom_col</span><span class="o">=</span><span class="s2">&quot;geometry&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>In order to read geometric data from the database the backend may
+mangle the query in order to transform the geometric column values
+into the right format for <code>geopandas.read_postgis</code>
+method. Specifically, in the case of Spatialite, it wraps the
+geometric column in the query as <code>Hex(ST_AsBinary(geom_col))</code>.</p>
+<p>Alternatively, and in order to avoid such processing, the
+<code>wkb_geom_col</code> argument can be used instead. In that case, it is the
+programmer responsability to write a query returning the values in
+such colum in a format supported by geopandas (<code>wkb</code> stands for <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry">Well
+Known
+Binary</a>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.3220b9d7.min.js"></script>
+      
+    
+  </body>
+</html>
