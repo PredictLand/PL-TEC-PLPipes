@@ -31,7 +31,7 @@ if not plpipes.init._initialized:
     import sys
 
     argv = sys.argv
-    cmd = argv.get(0, '')
+    cmd = argv[0] if argv else ''
     # Hack for VSCode/ipykernel not setting the correct command line arguments
     if cmd.endswith('ipykernel_launcher.py'):
         argv = ['bin/run.py']
