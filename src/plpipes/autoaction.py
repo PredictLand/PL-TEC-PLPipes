@@ -51,7 +51,7 @@ if not plpipes.init._initialized:
     for k, v in main.f_globals.items():
         if k.startswith("__"):
             continue
-        raise Exception(f"Importing plpipes.autoaction must be the first sentence in the action script. Found `{k}` already declared.")
+        logging.warning(f"Importing plpipes.autoaction should be the first sentence in the action script. Found `{k}` already declared.")
 
     logging.info(f"Injecting variables into action namespace.")
 
