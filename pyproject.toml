@@ -27,7 +27,8 @@ dependencies = [
     "httpx >=0.23",
     "sqlparse >= 0.5",
     "friendlydateparser > 0.2.2",
-    "findapp >= 0.0.1"
+    "findapp >= 0.0.1",
+    "colorlog >= 6.9.0"
 ]
 
 [project.optional-dependencies]
