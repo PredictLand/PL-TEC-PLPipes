@@ -23,6 +23,11 @@ class AzureSQLDriver(ODBCDriver):
             cs['Pwd'] = pwd
             cs['UID'] = uid
 
+        if (((hostNameInCertificate := drv_cfg.get('hostNameInCertificate')) is not None) and
+            ((encrypt := drv_cfg.get('encrypt')) is not None)):
+            cs['HostNameInCertificate'] = hostNameInCertificate
+            cs['Encrypt'] = encrypt
+
         elif (cred_account_name := drv_cfg.get('credentials')) is not None:
             import plpipes.cloud.azure.auth
             credential = plpipes.cloud.azure.auth.credentials(creds_account_name)
