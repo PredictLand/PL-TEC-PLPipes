@@ -22,8 +22,16 @@ Authentication accounts are declared in the configuration files and
 instantiated by the module on demand (which for some kind of
 authentication methods may require user interaction).
 
-For instance, the following configuration snippet defines the
-authorization account `predictland`.
+This type of authentications are typically managed with App registrations in Azure. We in particular have one, "plpipes", to access to some internal elements of PredictLand (SharePoint, etc.). A few comments:
+- If you want to know more on how it was configured, etc., you can go to https://portal.azure.com, log in with your Azure account, go to "App registrations", and look for "plpipes".
+- This app has a secret with expiration date. In case it expires (you will know because your processes of code which depend on it will fail), follow these steps:
+    - Go to https://portal.azure.com, log in with your Azure account, go to "App registrations", and look for "plpipes".
+    - In the left-hand-side bar go to "Manage" > "Certificates & secrets".
+    - You will see that all of them have expired (you can check it in the dates appearing in the column "Expires").
+    - Click on "New client secret".
+    - ***IMPORTANT***: Save the value of the secret, since this is the only time Azure will allow you to store it. Afterwards, you will not be able to see it. This is the value of `client_secret` you can see below.
+
+After having seen how to refresh a secret with the example of the app "plpipes", you can see not an instance of the configuration file `predictland`.
 
 ```yaml
 cloud:
